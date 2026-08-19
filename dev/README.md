@@ -14,7 +14,7 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 |---|---|---|
 | `step01/` | Analýza repozitáře, plán vývoje, struktura projektu s % dokončení, UI design, jazykové mutace | ✅ hotovo |
 | `step02/` | Bezpečnostní základ, jádro (config, secrets, logging, model), regresní testy (M0) | ✅ hotovo |
-| `step03/` | Úložiště, readery, plánovač smyčky (M1) | ⬜ plánováno |
+| `step03/` | Úložiště, readery, plánovač smyčky (M1) | ✅ hotovo |
 | `step04/` | Web API, frontend, jazykové mutace (M2) | ⬜ plánováno |
 | `step05/` | Analýza a archivace (M3) | ⬜ plánováno |
 | `step06/` | Predikce (M4) | ⬜ plánováno |

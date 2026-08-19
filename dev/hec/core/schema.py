@@ -43,6 +43,32 @@ SHELLY_DEVICE = {
     "enabled": F("bool", True),
 }
 
+def _day_profile(day_from: int = 6, day_to: int = 22) -> list[bool]:
+    """24 hodin: True = denní teplota. Výchozí profil 6:00–22:00."""
+    return [day_from <= hour < day_to for hour in range(24)]
+
+
+BASIC_SETTINGS_TEMPLATE = {
+    "HeatSet": {"Heat": False, "HeatingMode": 0, "EquitCurve": 2, "Boost": False,
+                "EmergencyMode": False,
+                "ExtendedHeatSet": {"Regulation": 3, "LeadingThermostat": 1}},
+    "HeatTemp_Const": 42,
+    "HeatTempEqCustom_P20": 24, "HeatTempEqCustom_P10": 29, "HeatTempEqCustom_P0": 32,
+    "HeatTempEqCustom_M10": 35, "HeatTempEqCustom_M20": 37,
+    "BoilerSet": {"Boiler": True, "Boost": False, "Sensor": True},
+    "BoilerTemp": 48,
+    "PoolSet": {"Pool": False, "Boost": False},
+    "PoolTemp": 37,
+    "AccSecure": False,
+}
+
+THERMOSTAT_SETTINGS_TEMPLATE = {
+    "DayTemperature": 23, "NightTemperature": 21, "DayNightMode": False,
+    "Monday": _day_profile(), "Tuesday": _day_profile(), "Wednesday": _day_profile(),
+    "Thursday": _day_profile(), "Friday": _day_profile(),
+    "Saturday": _day_profile(6, 23), "Sunday": _day_profile(6, 23),
+}
+
 SCHEMA: dict[str, Any] = {
     "system": {
         "config_version": F("int", CONFIG_VERSION, restart=True),
@@ -78,6 +104,9 @@ SCHEMA: dict[str, Any] = {
         "family": F("enum", "ET", choices=("ET", "EH", "ES", "DT", "")),
         "timeout": F("int", 2, minimum=1, maximum=30),
         "retries": F("int", 3, minimum=0, maximum=10),
+        # Znaménko toků se mezi instalacemi liší, proto je směr konfigurovatelný.
+        "grid_positive_is_import": F("bool", True),
+        "battery_positive_is_charge": F("bool", True),
     },
     "tng": {
         "enabled": F("bool", True),
@@ -103,6 +132,10 @@ SCHEMA: dict[str, Any] = {
             "default_temperature": F("float", 23.0, minimum=10, maximum=30),
             "schedule": F("list", [], item=SCHEDULE_ITEM),
         },
+        # Šablony payloadů převzaté z ověřené provozní konfigurace. Reader do nich
+        # dosazuje jen teploty; ostatní pole musí zůstat, jinak TNG požadavek odmítne.
+        "basic_settings_template": F("dict", BASIC_SETTINGS_TEMPLATE),
+        "thermostat_settings_template": F("dict", THERMOSTAT_SETTINGS_TEMPLATE),
     },
     "ote": {
         "enabled": F("bool", True),
@@ -202,6 +235,10 @@ def _coerce(value: Any, spec: Field, path: str, errors: list[str]) -> Any:
             if value not in spec.choices:
                 errors.append(f"{path}: '{value}' není z {list(spec.choices)}")
                 return spec.default
+        elif kind == "dict":
+            if not isinstance(value, dict):
+                errors.append(f"{path}: očekáván objekt")
+                return dict(spec.default or {})
         elif kind == "list":
             if not isinstance(value, list):
                 errors.append(f"{path}: očekáván seznam")
