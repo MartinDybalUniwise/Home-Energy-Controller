@@ -13,8 +13,13 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | Krok | Obsah | Stav |
 |---|---|---|
 | `step01/` | Analýza repozitáře, plán vývoje, struktura projektu s % dokončení, UI design, jazykové mutace | ✅ hotovo |
-| `step02/` | Bezpečnost + regresní testy stávající TNG logiky (fáze M0), skeleton balíku `hec/` | ⬜ plánováno |
-| `step03/` | Readery, storage, scheduler (fáze M1) | ⬜ plánováno |
+| `step02/` | Bezpečnostní základ, jádro (config, secrets, logging, model), regresní testy (M0) | ✅ hotovo |
+| `step03/` | Úložiště, readery, plánovač smyčky (M1) | ✅ hotovo |
+| `step04/` | Web API, frontend, jazykové mutace (M2) | ✅ hotovo |
+| `step05/` | Analýza a archivace (M3) | ✅ hotovo |
+| `step06/` | Predikce (M4) | ✅ hotovo |
+| `step07/` | Řízená optimalizace (M5) | ✅ hotovo |
+| `step08/` | Produktizace (M6) | ✅ hotovo |
 
 Další kroky se doplňují sem, jakmile vzniknou.
 

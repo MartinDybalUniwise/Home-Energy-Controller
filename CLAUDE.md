@@ -28,6 +28,7 @@ Aktuální stav a % dokončení každého souboru: `dev/step01/PROJECT_STRUCTURE
 Plán vývoje a fáze M0–M6: `dev/step01/DEVELOPMENT_PLAN.md`.
 Vizuální jazyk a paleta grafů: `dev/step01/UI_DESIGN.md`.
 Jazykové mutace: `dev/step01/I18N.md`.
+Nasazení a API produktu: `dev/hec/docs/DEPLOYMENT.md`, `dev/hec/docs/API.md`.
 
 ## Tvrdá pravidla
 
@@ -64,11 +65,20 @@ v tabulce v `dev/README.md`.
 ## Příkazy
 
 ```bash
+# produkt (dev/hec)
+py dev/run.py --init                    # vytvoří konfiguraci a .env
+py dev/run.py --once                    # jedno kolo čtení všech zdrojů
+py dev/run.py --status                  # stav readerů jako JSON
+py dev/run.py                           # sběr dat + rozhraní na :8080
+py dev/run.py --diagnostics             # ZIP pro podporu (bez tajemství)
+pytest                                  # 181 testů
+ruff check .                            # lint
+
+# zmrazené prototypy v kořeni
 py tng_controller.py --once --dry-run   # bezpečný test TNG bez zápisu
 py tng_controller.py --status           # výpis aktuálního stavu TČ jako JSON
 py ote_reader.py                        # ceny na dnešek a zítřek
 py weather_reader.py                    # aktuální počasí + předpověď
-pytest                                  # testy (vznikají v kroku 02)
 ```
 
 Na Linuxu `python3` místo `py`.

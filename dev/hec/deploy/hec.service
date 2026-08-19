@@ -1,0 +1,23 @@
+[Unit]
+Description=Home Energy Controller
+Documentation=https://github.com/MartinDybalUniwise/Home-Energy-Controller
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=%i
+WorkingDirectory=/opt/home-energy-controller
+ExecStart=/usr/bin/python3 /opt/home-energy-controller/dev/run.py
+Restart=always
+RestartSec=10
+# Tajemství se načítají ze souboru .env, ne z jednotky služby.
+EnvironmentFile=-/opt/home-energy-controller/.env
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=multi-user.target

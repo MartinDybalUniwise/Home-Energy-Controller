@@ -1,0 +1,27 @@
+# Provozní data – nikdy do gitu
+data/
+logs/
+history/
+archive/
+
+# Tajemství
+.env
+.env.local
+connect.local.json
+config/config.json
+dev/hec/config/config.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# OS / editory
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

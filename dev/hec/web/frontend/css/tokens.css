@@ -1,0 +1,100 @@
+/* Design tokeny podle dev/step01/UI_DESIGN.md.
+   Světlá sada je základ na holém :root, tmavá ji přepisuje ve dvou blocích:
+   podle systému a podle výslovné volby uživatele. */
+
+:root {
+  color-scheme: light;
+
+  --scrim: rgba(255, 255, 255, 0.35);
+  --panel: linear-gradient(180deg, rgba(255,255,255,.88), rgba(238,244,251,.94));
+  --panel-solid: #f4f7fb;
+  --panel-border: rgba(13, 27, 42, .12);
+  --divider: rgba(13, 27, 42, .10);
+  --tab-bg: #0b2545;
+  --tab-ink: #ffffff;
+
+  --ink-primary: #0d1b2a;
+  --ink-secondary: #40566e;
+  --ink-muted: #6b7f95;
+  --ink-value: #0d1b2a;
+  --ink-value-alt: #1f6fb2;
+
+  --state-good: #1b7f4b;
+  --state-warning: #a86b00;
+  --state-serious: #b4531a;
+  --state-critical: #b3261e;
+
+  /* Série grafů – barva se váže na entitu, ne na pořadí. Ověřeno validátorem. */
+  --series-pv: #eda100;
+  --series-battery: #1baf7a;
+  --series-house: #2a78d6;
+  --series-grid-import: #eb6834;
+  --series-heatpump: #e87ba4;
+  --series-grid-export: #008300;
+  --series-appliances: #4a3aa7;
+
+  --brand-accent: #1f6fb2;
+
+  --radius-panel: 6px;
+  --radius-card: 4px;
+  --gap-col: 2px;
+  --pad-panel: 20px;
+  --shadow-panel: 0 8px 32px rgba(4, 16, 32, .18);
+
+  --font-ui: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-value: "Barlow Semi Condensed", "Inter", system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --scrim: rgba(4, 16, 32, .45);
+    --panel: linear-gradient(180deg, rgba(19,72,134,.86), rgba(10,42,82,.93));
+    --panel-solid: #0d1b2a;
+    --panel-border: rgba(255, 255, 255, .10);
+    --divider: rgba(255, 255, 255, .14);
+    --ink-primary: #ffffff;
+    --ink-secondary: #bcd6f2;
+    --ink-muted: #8fb0d4;
+    --ink-value: #ffffff;
+    --ink-value-alt: #4fb3ff;
+    --state-good: #3ecf8e;
+    --state-warning: #e8b13a;
+    --state-serious: #ef8a4a;
+    --state-critical: #ff6b64;
+    --series-pv: #c98500;
+    --series-battery: #199e70;
+    --series-house: #3987e5;
+    --series-grid-import: #d95926;
+    --series-heatpump: #d55181;
+    --series-grid-export: #008300;
+    --series-appliances: #9085e9;
+    --brand-accent: #4fb3ff;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --scrim: rgba(4, 16, 32, .45);
+  --panel: linear-gradient(180deg, rgba(19,72,134,.86), rgba(10,42,82,.93));
+  --panel-solid: #0d1b2a;
+  --panel-border: rgba(255, 255, 255, .10);
+  --divider: rgba(255, 255, 255, .14);
+  --ink-primary: #ffffff;
+  --ink-secondary: #bcd6f2;
+  --ink-muted: #8fb0d4;
+  --ink-value: #ffffff;
+  --ink-value-alt: #4fb3ff;
+  --state-good: #3ecf8e;
+  --state-warning: #e8b13a;
+  --state-serious: #ef8a4a;
+  --state-critical: #ff6b64;
+  --series-pv: #c98500;
+  --series-battery: #199e70;
+  --series-house: #3987e5;
+  --series-grid-import: #d95926;
+  --series-heatpump: #d55181;
+  --series-grid-export: #008300;
+  --series-appliances: #9085e9;
+  --brand-accent: #4fb3ff;
+}
