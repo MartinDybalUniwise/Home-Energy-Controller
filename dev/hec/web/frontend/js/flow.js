@@ -23,7 +23,14 @@ function edge(from, to, watts, color, motion) {
             stroke="${color}" stroke-width="${thickness(watts)}" marker-end="url(#arrow)"/>`;
 }
 
+function isMeasured(value) {
+  return value !== undefined && value !== null && !Number.isNaN(Number(value));
+}
+
 export function renderFlow(container, values, t, motion = 'full') {
+  // Chybějící zdroj (vypnutý reader) se nesmí vydávat za změřenou nulu –
+  // "0 W" tvrdí, že se nic nevyrábí/nespotřebovává, zatímco pravda je
+  // "nezměřeno". Šipky pod prahem edge() se stejně nekreslí; jde jen o popisek.
   const pv = Number(values.pv_w) || 0;
   const house = Number(values.house_w) || 0;
   const gridImport = Number(values.grid_import_w) || 0;
@@ -40,9 +47,17 @@ export function renderFlow(container, values, t, motion = 'full') {
     edge(NODES.house, NODES.heatpump, heatpump, 'var(--series-heatpump)', motion),
   ].join('');
 
+  const measured = {
+    pv: isMeasured(values.pv_w),
+    house: isMeasured(values.house_w),
+    battery: isMeasured(values.battery_charge_w) || isMeasured(values.battery_discharge_w),
+    grid: isMeasured(values.grid_import_w) || isMeasured(values.grid_export_w),
+    heatpump: isMeasured(values.heatpump_power_w),
+  };
+
   const labels = Object.entries(NODES).map(([name, node]) => {
     const watts = { pv, house, battery: charge || discharge, grid: gridImport || gridExport, heatpump }[name];
-    const { value, unit } = power(watts);
+    const { value, unit } = measured[name] ? power(watts) : { value: '–', unit: t('unit.w') };
     return `<g transform="translate(${node.x} ${node.y})">
         <rect class="node" x="-58" y="-30" width="116" height="60" rx="6"/>
         <text text-anchor="middle" y="-10" font-size="11" fill="var(--ink-secondary)">${t(node.key)}</text>
