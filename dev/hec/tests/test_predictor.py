@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from datetime import timedelta
 
 from hec.controller.predictor import Predictor
@@ -164,6 +165,31 @@ def test_cost_is_none_without_known_prices(tmp_path):
 
     day = Predictor(config, storage).forecast()["days"][0]
     assert day["cost_czk"] is None and day["prices_known"] is False
+
+
+def test_forecast_reports_unknown_consumption_honestly(tmp_path):
+    """Bez naučené spotřeby se neukazuje 0 kWh, ale neznámo (nalezeno na ostrém
+    provozu: čerstvá instalace zobrazovala 'Expected consumption: 0.0 kWh',
+    jako by šlo o reálnou predikci nulové spotřeby)."""
+    config, storage = make(tmp_path)
+    write_weather(config, ghi=250.0)
+
+    day = Predictor(config, storage).forecast()["days"][0]
+    assert day["pv_kwh"] > 0                    # výroba se predikovat dá
+    assert day["consumption_kwh"] is None
+    assert day["grid_balance_kwh"] is None
+    assert day["cost_czk"] is None
+    assert day["battery_soc_min_pct"] is None
+
+
+def test_cost_estimate_never_shows_negative_zero(tmp_path):
+    """round(-31.6 * 0.0, 1) je v Pythonu -0.0; v UI by se zobrazilo '-0 Kč'."""
+    config, storage = make(tmp_path)
+    predictor = Predictor(config, storage)
+
+    cost = predictor._estimate_cost(-31.6, [{"price_total_czk_kwh": 5.0}])
+    assert cost == 0.0
+    assert math.copysign(1.0, cost) == 1.0
 
 
 def test_cheapest_window_is_found(tmp_path):
