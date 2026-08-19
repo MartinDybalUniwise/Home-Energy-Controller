@@ -1,2 +1,9 @@
+# Runtime závislosti Home Energy Controller.
+# Web, konfigurace i grafy jsou postavené na standardní knihovně – zde je
+# jen to, co proveřeně obsluhuje HTTP relaci TNG a parsování stránek OTE.
 requests>=2.32.0
 beautifulsoup4>=4.12.0
+
+# Volitelné: čtení měniče GoodWe. Bez této knihovny reader hlásí chybu
+# a ostatní zdroje běží dál.
+# goodwe>=0.4.8

@@ -1,0 +1,15 @@
+[tool.pytest.ini_options]
+testpaths = ["dev/hec/tests"]
+pythonpath = ["dev", "."]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+# Prototypy v kořeni jsou zmrazené (CLAUDE.md, pravidlo 1) – lint je nepřepisuje.
+exclude = ["data", "logs", "history", "tng_controller.py", "ote_reader.py",
+           "weather_reader.py", "goodwe-read.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501"]

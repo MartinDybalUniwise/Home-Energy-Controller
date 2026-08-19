@@ -1,0 +1,29 @@
+{
+  "tng": {
+    "base_url": "https://tngsmart.cz",
+    "login_url": "https://tngsmart.cz/Pages/Login",
+    "username": "${HEC_TNG_USERNAME}",
+    "password": "${HEC_TNG_PASSWORD}",
+    "thermostat_id": "${HEC_TNG_THERMOSTAT_ID}",
+    "thermostat_key": "${HEC_TNG_THERMOSTAT_KEY}",
+    "timezone_cookie_name": "${HEC_TNG_TIMEZONE_COOKIE_NAME}",
+    "timezone_cookie_value": "7200000",
+    "accept_cookies": true,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
+    "headers": {
+      "Accept": "application/json, text/javascript, */*; q=0.01",
+      "Accept-Language": "cs,en;q=0.8",
+      "Origin": "https://tngsmart.cz",
+      "X-Requested-With": "XMLHttpRequest"
+    },
+    "endpoints": {
+      "thermostat_settings": "/api/HeatPumpInsertThermostatSettings/{thermostat_key}",
+      "basic_settings": "/api/HeatPumpInsertBasicSettings_v3/{basic_key}",
+      "thermostat_page": "/Pages/Account/MyThermostat?ThermostatId={thermostat_id}",
+      "heatpump_data": "/api/HeatPumpData/{heatpump_hash}-{from_ms}-{to_ms}-0",
+      "installations_page": "/Pages/Account/MyInstallations?HeatPumpHash={heatpump_hash}"
+    },
+    "basic_key": "${HEC_TNG_BASIC_KEY}",
+    "heatpump_hash": "${HEC_TNG_HEATPUMP_HASH}"
+  }
+}

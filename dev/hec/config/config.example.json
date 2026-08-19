@@ -1,0 +1,132 @@
+{
+  "system": {
+    "config_version": 1,
+    "site_name": "Home Energy Controller",
+    "timezone": "Europe/Prague",
+    "latitude": 49.8209,
+    "longitude": 18.2625
+  },
+  "storage": {
+    "data_path": "data",
+    "logs_path": "logs",
+    "history_path": "history",
+    "archive_path": "",
+    "archive_after_days": 30,
+    "compress_archive": true,
+    "archive_check_hours": 24
+  },
+  "logging": {
+    "level": "INFO",
+    "max_bytes": 5000000,
+    "backups": 5
+  },
+  "polling": {
+    "goodwe_seconds": 10,
+    "tng_seconds": 300,
+    "shelly_seconds": 10,
+    "weather_minutes": 15,
+    "ote_minutes": 60
+  },
+  "goodwe": {
+    "enabled": false,
+    "host": "${HEC_GOODWE_HOST}",
+    "family": "ET",
+    "timeout": 2,
+    "retries": 3
+  },
+  "tng": {
+    "enabled": true,
+    "connect_file": "connect.json",
+    "request_timeout_seconds": 30,
+    "minimum_change_interval_seconds": 900,
+    "telemetry_bootstrap_seconds": 3600,
+    "telemetry_overlap_seconds": 120,
+    "write_enabled": false,
+    "heating": {
+      "enabled": false,
+      "default_temperature": 42,
+      "schedule": []
+    },
+    "boiler": {
+      "enabled": true,
+      "default_temperature": 45,
+      "schedule": []
+    },
+    "thermostat": {
+      "enabled": false,
+      "default_temperature": 23.0,
+      "schedule": []
+    }
+  },
+  "ote": {
+    "enabled": true,
+    "eur_czk_rate": 25.0,
+    "fetch_rate_from_cnb": true,
+    "distribution_czk_kwh": 0.0,
+    "fees_czk_kwh": 0.0,
+    "vat_rate": 0.21,
+    "export_price_czk_kwh": 0.0
+  },
+  "weather": {
+    "enabled": true,
+    "forecast_days": 3,
+    "location_name": "Ostrava, CZ"
+  },
+  "shelly": {
+    "enabled": false,
+    "request_timeout_seconds": 5,
+    "devices": []
+  },
+  "controller": {
+    "enabled": false,
+    "max_data_age_seconds": 300,
+    "decision_interval_seconds": 300,
+    "comfort": {
+      "room_min_c": 20.0,
+      "room_max_c": 24.0,
+      "dhw_min_c": 45.0,
+      "dhw_max_c": 52.0,
+      "max_preheat_k": 1.5,
+      "quiet_hours_from": "22:00",
+      "quiet_hours_to": "06:00"
+    },
+    "optimization": {
+      "aggressiveness": "medium",
+      "pv_surplus_kw": 2.0,
+      "battery_soc_min_pct": 60.0,
+      "cheap_price_percentile": 0.25,
+      "expensive_price_percentile": 0.75,
+      "priorities": [
+        "house_load",
+        "battery_charge",
+        "dhw",
+        "thermal_storage",
+        "flexible_loads",
+        "sharing",
+        "grid_export"
+      ]
+    }
+  },
+  "prediction": {
+    "enabled": true,
+    "pv_peak_kwp": 10.0,
+    "learning_days": 30,
+    "battery_capacity_kwh": 10.0
+  },
+  "web": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "password": "${HEC_WEB_PASSWORD}"
+  },
+  "ui": {
+    "language": "cs",
+    "languages": [
+      "cs",
+      "en"
+    ],
+    "animations": "full",
+    "theme": "auto",
+    "currency": "CZK",
+    "brand_accent": "#4fb3ff"
+  }
+}
