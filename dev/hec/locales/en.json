@@ -138,7 +138,9 @@
     "controller_running": "Control active",
     "write_disabled": "Writing to the heat pump is disabled",
     "reader_error": "Read error: {error}",
-    "last_success": "Last successful read"
+    "last_success": "Last successful read",
+    "yes": "Yes",
+    "no": "No"
   },
   "reason": {
     "pv_surplus_high_soc": "PV surplus {pv_kw} kW, battery {soc} %, low price {price} CZK/kWh",

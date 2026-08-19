@@ -81,7 +81,7 @@ export async function overview(view, { api, motion }) {
     card('entity.heatpump', heatpumpW === null
       ? `<span class="value">–</span>` : bigValue(heatpumpW).replace('big', '')),
     card('entity.dhw', `<span class="value">${num(tng.boiler_temperature, 1)}<span class="unit">°C</span></span>`
-      + `<p class="meta">${t('entity.heating')}: ${tng.heating_on ? 'ANO' : '–'} · ${num(tng.heating_set_temperature, 0)} °C</p>`),
+      + `<p class="meta">${t('entity.heating')}: ${tng.heating_on === undefined ? '–' : t(tng.heating_on ? 'status.yes' : 'status.no')} · ${num(tng.heating_set_temperature, 0)} °C</p>`),
     card('entity.outside', `<span class="value">${num(tng.outside_temperature ?? weather?.current?.temp_c, 1)}<span class="unit">°C</span></span>`),
     card('entity.price', `<span class="value">${num(ote.price_total_czk_kwh ?? ote.price_czk_kwh, 2)}<span class="unit">${t('unit.czk_kwh')}</span></span>`),
     card('overview.phases', phaseTile(goodwe)),
