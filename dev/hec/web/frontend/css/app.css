@@ -110,6 +110,10 @@ body {
   display: grid; gap: clamp(12px, 2vw, 20px);
   max-width: 1440px; margin: 0 auto;
 }
+/* Grid items default to a content-based minimum width, so a wide scroller
+   (the overview stripe with many hours) would otherwise blow out the whole
+   page instead of scrolling inside itself. */
+.view > div { min-width: 0; }
 .loading { color: var(--ink-secondary); }
 
 .section-tab {
