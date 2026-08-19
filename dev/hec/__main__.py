@@ -15,9 +15,29 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--once", action="store_true", help="jedno kolo čtení a konec")
     parser.add_argument("--status", action="store_true", help="vypíše stav jako JSON")
     parser.add_argument("--no-web", action="store_true", help="jen sběr dat, bez webu")
+    parser.add_argument("--init", action="store_true", help="vytvoří konfiguraci a .env")
+    parser.add_argument("--diagnostics", nargs="?", const="", metavar="SOUBOR",
+                        help="zabalí stav a logy pro podporu (bez tajemství)")
+    parser.add_argument("--version", action="store_true")
     args = parser.parse_args(argv)
 
+    if args.version:
+        from . import __version__
+        print(__version__)
+        return 0
+
+    if args.init:
+        from .tools.init_install import initialise
+        result = initialise(config_path=args.config)
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+
     app = Application(config_path=args.config)
+
+    if args.diagnostics is not None:
+        from .tools.diagnostics import export
+        print(export(app, args.diagnostics or None))
+        return 0
 
     if args.status:
         print(json.dumps(app.status(), ensure_ascii=False, indent=2))

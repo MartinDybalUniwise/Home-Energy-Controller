@@ -51,6 +51,9 @@ async function refreshStatus() {
     const [status, weather] = await Promise.all([api.status(), api.weather().catch(() => ({}))]);
     applyScene(weather, state.motion);
     document.getElementById('site-name').textContent = status.site_name || t('app.name');
+    if (status.ui?.brand_accent) {
+      document.documentElement.style.setProperty('--brand-accent', status.ui.brand_accent);
+    }
     document.getElementById('clock').textContent = time(new Date());
 
     const pill = document.getElementById('status-pill');

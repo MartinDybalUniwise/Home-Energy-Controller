@@ -19,7 +19,7 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | `step05/` | Analýza a archivace (M3) | ✅ hotovo |
 | `step06/` | Predikce (M4) | ✅ hotovo |
 | `step07/` | Řízená optimalizace (M5) | ✅ hotovo |
-| `step08/` | Produktizace (M6) | ⬜ plánováno |
+| `step08/` | Produktizace (M6) | ✅ hotovo |
 
 Další kroky se doplňují sem, jakmile vzniknou.
 

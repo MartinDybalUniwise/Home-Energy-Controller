@@ -10,6 +10,7 @@ from __future__ import annotations
 import threading
 from typing import Any
 
+from .. import __version__
 from ..analysis.heatpump import HeatPumpAnalyser
 from ..analysis.phases import PhaseAnalyser
 from ..controller.controller import Controller
@@ -90,6 +91,15 @@ class Application:
             "stale_sources": stale,
             "controller": controller_state,
             "site_name": self.config.get("system.site_name"),
+            "version": __version__,
+            # Vzhled a jazyk potřebuje i nepřihlášené rozhraní.
+            "ui": {
+                "language": self.config.get("ui.language"),
+                "languages": self.config.get("ui.languages"),
+                "animations": self.config.get("ui.animations"),
+                "theme": self.config.get("ui.theme"),
+                "brand_accent": self.config.get("ui.brand_accent"),
+            },
         }
 
     def reader(self, name: str):
