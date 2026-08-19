@@ -124,3 +124,56 @@ def test_translations_serves_catalogs():
 
     status, payload = api.translations("xx")
     assert status == 404 and "cs" in payload["available"]
+
+
+def test_logs_requires_source(tmp_path):
+    status, payload = api.logs(FakeApp(tmp_path), {})
+    assert status == 400 and payload["error"] == "missing_source"
+
+
+def test_logs_tail_returns_last_records_unaggregated(tmp_path):
+    """Na rozdíl od /api/history se tady nic nezhušťuje – je to pro ruční kontrolu."""
+    app = FakeApp(tmp_path)
+    seed(app)
+
+    status, payload = api.logs(app, {"source": "goodwe", "tail": "5"})
+    assert status == 200
+    assert payload["count"] == 5
+    assert payload["rows"][-1]["pv_w"] == 1359          # poslední zapsaný vzorek
+
+
+def test_logs_tail_is_capped(tmp_path):
+    app = FakeApp(tmp_path)
+    seed(app)
+
+    _, payload = api.logs(app, {"source": "goodwe", "tail": "999999"})
+    assert payload["count"] == 360                       # tolik vzorků seed() vytvoří
+
+
+def test_logs_for_a_specific_day_is_not_downsampled(tmp_path):
+    app = FakeApp(tmp_path)
+    seed(app)
+    day = now_local().date().isoformat()
+
+    status, payload = api.logs(app, {"source": "goodwe", "day": day})
+    assert status == 200
+    assert payload["day"] == day
+    assert payload["count"] == payload["rows"].__len__() > 0
+
+
+def test_log_days_requires_source(tmp_path):
+    status, payload = api.log_days(FakeApp(tmp_path), {})
+    assert status == 400 and payload["error"] == "missing_source"
+
+
+def test_log_days_lists_available_days(tmp_path):
+    app = FakeApp(tmp_path)
+    seed(app)
+
+    _, payload = api.log_days(app, {"source": "goodwe"})
+    assert payload["days"] == [now_local().date().isoformat()]
+
+
+def test_log_days_empty_for_unknown_source(tmp_path):
+    _, payload = api.log_days(FakeApp(tmp_path), {"source": "nikdy_nepsano"})
+    assert payload["days"] == []

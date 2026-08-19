@@ -148,6 +148,8 @@ class Handler(BaseHTTPRequestHandler):
             "/api/status": lambda: api.status(self.app),
             "/api/history": lambda: api.history(self.app, params),
             "/api/sources": lambda: api.sources(self.app),
+            "/api/logs": lambda: api.logs(self.app, params),
+            "/api/logs/days": lambda: api.log_days(self.app, params),
             "/api/prices": lambda: api.prices(self.app),
             "/api/weather": lambda: api.weather(self.app),
             "/api/prediction": lambda: api.prediction(self.app),

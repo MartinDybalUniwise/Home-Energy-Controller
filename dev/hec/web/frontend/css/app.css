@@ -87,7 +87,10 @@ body {
   background: var(--state-warning); color: #101010;
 }
 .pill[data-level="critical"] { background: var(--state-critical); color: #fff; }
+.pill[data-level="warning"] { background: var(--state-warning); color: #101010; }
 .pill[data-level="ok"] { background: var(--state-good); color: #06210f; }
+/* Vypnuto záměrně, ne porucha – nesmí vypadat jako varování ani chyba. */
+.pill[data-level="neutral"] { background: var(--panel-border); color: var(--ink-secondary); }
 
 .nav {
   display: flex; gap: 2px; background: var(--tab-bg); padding: 0 clamp(12px, 3vw, 28px) 0;
@@ -199,8 +202,21 @@ table.data th, table.data td { padding: 6px 10px; text-align: right; border-bott
 table.data th:first-child, table.data td:first-child { text-align: left; }
 .table-wrap { overflow-x: auto; padding: 0 16px 16px; }
 
+/* Prohlížeč syrové JSONL historie (stránka Data) – jeden záznam na řádek,
+   monospace jako skutečný log, nejnovější dole a viditelný bez scrollování. */
+.log-view {
+  margin: 0; padding: 12px 16px; max-height: 65vh; overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: .78rem; line-height: 1.6; white-space: pre-wrap; word-break: break-all;
+  color: var(--ink-secondary);
+  background: color-mix(in srgb, var(--panel-solid) 55%, transparent);
+  border-top: 1px solid var(--divider);
+}
+
 /* Tok energie */
-.flow { width: 100%; height: auto; display: block; padding: 8px 0 4px; }
+/* viewBox škáluje text i uzly na 100 % šířky kontejneru – bez stropu by na
+   širokém panelu (desktop) diagram narostl nepřiměřeně velký vůči zbytku UI. */
+.flow { width: 100%; max-width: 420px; height: auto; display: block; margin: 0 auto; padding: 8px 0 4px; }
 .flow text { font-family: var(--font-ui); fill: var(--ink-primary); }
 .flow .node { fill: color-mix(in srgb, var(--panel-solid) 60%, transparent); stroke: var(--panel-border); }
 .flow .edge { fill: none; stroke-linecap: round; opacity: .9; }
