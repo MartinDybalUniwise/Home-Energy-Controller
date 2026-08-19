@@ -137,6 +137,21 @@ def heatpump(app, params: dict) -> tuple[int, dict]:
     return 200, analyser.analyse_day()
 
 
+def decisions(app, params: dict) -> tuple[int, dict]:
+    controller = getattr(app, "controller", None)
+    if controller is None:
+        return 200, {"decisions": []}
+    return 200, {"decisions": controller.recent(int(params.get("days", 7))),
+                 "state": controller.state()}
+
+
+def metrics(app, params: dict) -> tuple[int, dict]:
+    reporter = getattr(app, "metrics", None)
+    if reporter is None:
+        return 200, {"days": 0}
+    return 200, reporter.report(int(params.get("days", 30)))
+
+
 def config_get(app) -> tuple[int, dict]:
     return 200, {"config": app.config.to_public_dict(), "errors": app.config.errors}
 

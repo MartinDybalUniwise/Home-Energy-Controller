@@ -145,6 +145,8 @@ class Handler(BaseHTTPRequestHandler):
             "/api/summaries": lambda: api.summaries(self.app, params),
             "/api/appliances": lambda: api.appliance_cycles(self.app, params),
             "/api/phases": lambda: api.phases(self.app, params),
+            "/api/decisions": lambda: api.decisions(self.app, params),
+            "/api/metrics": lambda: api.metrics(self.app, params),
             "/api/heatpump": lambda: api.heatpump(self.app, params),
             "/api/config": lambda: api.config_get(self.app),
             "/api/config/schema": lambda: api.config_schema(self.app),

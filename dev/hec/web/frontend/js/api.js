@@ -32,6 +32,8 @@ export const api = {
   appliances: (days = 7) => request(`/api/appliances?days=${days}`),
   phases: (days = 7) => request(`/api/phases?days=${days}`),
   heatpump: () => request('/api/heatpump'),
+  metrics: (days = 30) => request(`/api/metrics?days=${days}`),
+  decisions: (days = 7) => request(`/api/decisions?days=${days}`),
   sources: () => request('/api/sources'),
   history: (params) => request('/api/history?' + new URLSearchParams(params)),
   config: () => request('/api/config'),

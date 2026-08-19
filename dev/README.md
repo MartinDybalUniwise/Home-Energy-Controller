@@ -18,7 +18,7 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | `step04/` | Web API, frontend, jazykové mutace (M2) | ✅ hotovo |
 | `step05/` | Analýza a archivace (M3) | ✅ hotovo |
 | `step06/` | Predikce (M4) | ✅ hotovo |
-| `step07/` | Řízená optimalizace (M5) | ⬜ plánováno |
+| `step07/` | Řízená optimalizace (M5) | ✅ hotovo |
 | `step08/` | Produktizace (M6) | ⬜ plánováno |
 
 Další kroky se doplňují sem, jakmile vzniknou.

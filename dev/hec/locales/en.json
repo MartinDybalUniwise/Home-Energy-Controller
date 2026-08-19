@@ -188,5 +188,16 @@
     "run_hours": "Run time",
     "kwh_per_degree_day": "Consumption per degree-day",
     "not_measured": "The heat pump is not metered separately yet"
+  },
+  "metrics": {
+    "title": "Benefit",
+    "period": "Over the last {days} days",
+    "self_consumption": "Self-consumption",
+    "self_sufficiency": "Self-sufficiency",
+    "cost": "Electricity purchased",
+    "revenue": "Export revenue",
+    "decisions": "System decisions",
+    "applied": "of which applied",
+    "no_counterfactual": "No saving is claimed against operation without optimisation — there is no reference period"
   }
 }

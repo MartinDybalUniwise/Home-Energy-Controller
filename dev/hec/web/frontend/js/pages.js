@@ -229,10 +229,11 @@ export async function history(view, { api, state }) {
 }
 
 async function renderAnalysis(container, api) {
-  const [phases, heatpump, cycles] = await Promise.all([
+  const [phases, heatpump, cycles, metrics] = await Promise.all([
     api.phases().catch(() => ({ available: false })),
     api.heatpump().catch(() => ({ measured: false })),
     api.appliances(7).catch(() => ({ cycles: [] })),
+    api.metrics(30).catch(() => ({ totals: { days: 0 } })),
   ]);
 
   const parts = [];
@@ -255,6 +256,17 @@ async function renderAnalysis(container, api) {
     ? recent.map((cycle) => `<p class="meta"><strong>${cycle.name}</strong> ${dateTime(cycle.started)}<br>`
         + `${t('history.duration')}: ${duration(cycle.duration_min)} · ${t('history.energy')}: ${num(cycle.energy_kwh, 2)} ${t('unit.kwh')}`
         + ` · ${t('history.peak')}: ${num(cycle.peak_w, 0)} W</p>`).join('')
+    : `<p class="meta">${t('app.no_data')}</p>`));
+
+  const totals = metrics.totals || {};
+  parts.push(card('metrics.title', totals.days
+    ? `<p class="meta">${t('metrics.period', { days: totals.days })}<br>
+        ${t('metrics.self_consumption')}: ${num(totals.self_consumption_pct, 0)} %<br>
+        ${t('metrics.self_sufficiency')}: ${num(totals.self_sufficiency_pct, 0)} %<br>
+        ${t('entity.pv')}: ${num(totals.pv_kwh, 0)} ${t('unit.kwh')}<br>
+        ${t('metrics.cost')}: ${totals.cost_czk === null ? '–' : num(totals.cost_czk, 0) + ' Kč'}<br>
+        ${t('metrics.decisions')}: ${metrics.decisions?.total ?? 0} (${t('metrics.applied')} ${metrics.decisions?.applied ?? 0})</p>
+       <p class="meta">${t('metrics.no_counterfactual')}</p>`
     : `<p class="meta">${t('app.no_data')}</p>`));
 
   container.innerHTML = parts.join('');

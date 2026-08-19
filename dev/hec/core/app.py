@@ -12,6 +12,8 @@ from typing import Any
 
 from ..analysis.heatpump import HeatPumpAnalyser
 from ..analysis.phases import PhaseAnalyser
+from ..controller.controller import Controller
+from ..controller.metrics import Metrics
 from ..controller.predictor import Predictor
 from ..readers.registry import build_readers
 from ..storage.jsonl import JsonlStorage
@@ -46,7 +48,8 @@ class Application:
         self.phases = PhaseAnalyser(self.config, self.storage)
         self.predictor = Predictor(self.config, self.storage, self.summaries)
         self.heatpump = HeatPumpAnalyser(self.config, self.storage)
-        self.controller = None            # dosadí se v kroku s optimalizací
+        self.metrics = Metrics(self.config, self.storage, self.summaries)
+        self.controller = Controller(self)
         self.started_at = now_local()
 
         for error in self.config.errors:

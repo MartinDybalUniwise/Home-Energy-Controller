@@ -188,5 +188,16 @@
     "run_hours": "Doba běhu",
     "kwh_per_degree_day": "Spotřeba na denostupeň",
     "not_measured": "Tepelné čerpadlo se zatím samostatně neměří"
+  },
+  "metrics": {
+    "title": "Přínos",
+    "period": "Za posledních {days} dní",
+    "self_consumption": "Vlastní spotřeba",
+    "self_sufficiency": "Soběstačnost",
+    "cost": "Nákup elektřiny",
+    "revenue": "Výnos z dodávky",
+    "decisions": "Rozhodnutí systému",
+    "applied": "z toho provedeno",
+    "no_counterfactual": "Úspora proti provozu bez optimalizace se netvrdí – chybí referenční období"
   }
 }
