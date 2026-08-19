@@ -67,7 +67,25 @@ class OteReader(BaseReader):
         super().__init__(config, storage)
 
     def interval_seconds(self) -> int:
-        return int(self.config.get("polling.ote_minutes", 60)) * 60
+        return int(self.config.get("polling.ote_minutes", 240)) * 60
+
+    def _next_publish_boundary_seconds(self, moment: datetime) -> float | None:
+        """Ceny pro zítřek jednou zveřejněné se už neregenerují – dokud je
+        nemáme uložené, má smysl probudit se blízko obvyklého času zveřejnění
+        (kolem 13:00-13:30) místo čekání na celý (několikahodinový) interval."""
+        tomorrow = moment.date() + timedelta(days=1)
+        if self.day_path(tomorrow).exists():
+            return None
+        candidate = moment.replace(hour=13, minute=15, second=0, microsecond=0)
+        if candidate <= moment:
+            return None                                        # dnešní okno už proběhlo
+        return (candidate - moment).total_seconds()
+
+    def schedule_next(self, monotonic_now: float) -> None:
+        super().schedule_next(monotonic_now)
+        boundary = self._next_publish_boundary_seconds(now_local())
+        if boundary is not None:
+            self._next_at = min(self._next_at, monotonic_now + boundary)
 
     # --- kurz --------------------------------------------------------------
     def eur_czk_rate(self) -> float:
@@ -141,6 +159,26 @@ class OteReader(BaseReader):
     def save_day(self, payload: dict):
         return atomic_write_json(self.config.data_dir / f"ote-{payload['date']}.json", payload)
 
+    def day_path(self, day: date):
+        return self.config.data_dir / f"ote-{day.isoformat()}.json"
+
+    def load_or_fetch_day(self, day: date, *, required: bool = True) -> dict | None:
+        """Jednou zveřejněná cena pro daný den se už nemění – síť se zatěžuje
+        jen dokud soubor ještě nemáme, ne při každém pravidelném čtení."""
+        cached = read_json(self.day_path(day), None)
+        if cached is not None:
+            return cached
+        try:
+            payload = self.fetch_day(day)
+        except Exception as exc:                              # noqa: BLE001
+            if required:
+                raise
+            self.log.info("ote_tomorrow_unavailable | day=%s reason=%s",
+                          day.isoformat(), type(exc).__name__)
+            return None
+        self.save_day(payload)
+        return payload
+
     @staticmethod
     def period_for(payload: dict, moment: datetime) -> dict | None:
         clock = moment.strftime("%H:%M")
@@ -151,16 +189,10 @@ class OteReader(BaseReader):
 
     def read(self) -> dict:
         today = now_local().date()
-        payload = self.fetch_day(today)
-        self.save_day(payload)
-
-        tomorrow_payload = None
-        try:
-            # D+1 se zveřejňuje kolem 15:00; dřívější prázdný výsledek není chyba.
-            tomorrow_payload = self.fetch_day(today + timedelta(days=1))
-            self.save_day(tomorrow_payload)
-        except Exception as exc:                              # noqa: BLE001
-            self.log.info("ote_tomorrow_unavailable | reason=%s", type(exc).__name__)
+        payload = self.load_or_fetch_day(today)
+        # D+1 se zveřejňuje po uzávěrce aukce ve 12:00, výsledky bývají na webu
+        # OTE k dispozici kolem 13:00-13:30; dřívější prázdný výsledek není chyba.
+        tomorrow_payload = self.load_or_fetch_day(today + timedelta(days=1), required=False)
 
         current = self.period_for(payload, now_local()) or {}
         prices = [p["price_total_czk_kwh"] for p in payload["periods"]]
