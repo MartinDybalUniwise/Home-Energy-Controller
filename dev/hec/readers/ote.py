@@ -74,7 +74,7 @@ class OteReader(BaseReader):
         nemáme uložené, má smysl probudit se blízko obvyklého času zveřejnění
         (kolem 13:00-13:30) místo čekání na celý (několikahodinový) interval."""
         tomorrow = moment.date() + timedelta(days=1)
-        if self.day_path(tomorrow).exists():
+        if self._is_enriched(read_json(self.day_path(tomorrow), None)):
             return None
         candidate = moment.replace(hour=13, minute=15, second=0, microsecond=0)
         if candidate <= moment:
@@ -162,11 +162,21 @@ class OteReader(BaseReader):
     def day_path(self, day: date):
         return self.config.data_dir / f"ote-{day.isoformat()}.json"
 
+    @staticmethod
+    def _is_enriched(payload: dict | None) -> bool:
+        """Soubor `data/ote-*.json` je sdílený kontrakt se zmrazeným
+        `ote_reader.py` v kořeni – ten cenu v CZK nedopočítává. Takový starší
+        nebo cizí zápis se nesmí vzít jako platná cache, jinak by chyběl
+        price_total_czk_kwh, který na něm dál staví read()."""
+        periods = (payload or {}).get("periods") or []
+        return bool(periods) and "price_total_czk_kwh" in periods[0]
+
     def load_or_fetch_day(self, day: date, *, required: bool = True) -> dict | None:
         """Jednou zveřejněná cena pro daný den se už nemění – síť se zatěžuje
-        jen dokud soubor ještě nemáme, ne při každém pravidelném čtení."""
+        jen dokud soubor ještě nemáme (nebo není v očekávaném tvaru), ne při
+        každém pravidelném čtení."""
         cached = read_json(self.day_path(day), None)
-        if cached is not None:
+        if self._is_enriched(cached):
             return cached
         try:
             payload = self.fetch_day(day)

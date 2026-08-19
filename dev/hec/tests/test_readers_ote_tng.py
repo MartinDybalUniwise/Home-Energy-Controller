@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import date, datetime
 from unittest.mock import patch
 
 from conftest import FakeResponse, FakeSession
@@ -127,12 +127,38 @@ def test_ote_schedule_next_wakes_near_the_publish_window_when_tomorrow_is_missin
 def test_ote_schedule_next_ignores_publish_window_once_tomorrow_is_cached(tmp_path):
     config = make_config(tmp_path)
     reader = OteReader(config, session=FakeSession({}))
-    reader.save_day({"date": "2026-08-20", "periods": []})
+    reader.save_day({"date": "2026-08-20",
+                     "periods": [{"period": 1, "start": "00:00", "end": "00:15",
+                                 "price_eur_mwh": 80.0, "price_czk_kwh": 2.0,
+                                 "price_total_czk_kwh": 2.0}]})
 
     moment = datetime(2026, 8, 19, 9, 0)
     with patch("hec.readers.ote.now_local", return_value=moment):
         reader.schedule_next(1000.0)
     assert reader._next_at == 1000.0 + reader.backoff_seconds()
+
+
+def test_ote_cache_ignores_a_file_written_by_the_legacy_prototype_reader(tmp_path):
+    """data/ote-*.json je sdílený formát se zmrazeným ote_reader.py v kořeni,
+    který CZK ceny nedopočítává – takový soubor nesmí projít jako platná cache,
+    jinak by na něm read() spadl na chybějícím price_total_czk_kwh."""
+    config = make_config(tmp_path, ote={"fetch_rate_from_cnb": False, "eur_czk_rate": 25.0,
+                                        "vat_rate": 0.0})
+    legacy_payload = {"date": "2026-08-19", "market": "OTE day-ahead market",
+                      "resolution": "PT15M", "currency": "EUR/MWh", "source": "legacy",
+                      "fetched_at": "2026-08-19T10:00:00+02:00", "period_count": 1,
+                      "min_price_eur_mwh": 100.0, "max_price_eur_mwh": 100.0,
+                      "avg_price_eur_mwh": 100.0,
+                      "periods": [{"period": 1, "start": "00:00", "end": "00:15",
+                                  "price_eur_mwh": 100.0}]}          # bez CZK polí
+    (config.data_dir / "ote-2026-08-19.json").write_text(json.dumps(legacy_payload), encoding="utf-8")
+    session = FakeSession({"ote-cr.cz": FakeResponse(OTE_PAGE)})
+    reader = OteReader(config, session=session)
+
+    payload = reader.load_or_fetch_day(date(2026, 8, 19))
+
+    assert payload["periods"][0]["price_total_czk_kwh"] is not None
+    assert any(method == "GET" for method, _ in session.calls)   # skutečně došlo k re-fetchi
 
 
 # --- TNG -------------------------------------------------------------------
