@@ -178,5 +178,15 @@
     "load_failed": "Could not load data",
     "save_failed": "Could not save",
     "not_found": "Not found"
+  },
+  "analysis": {
+    "title": "Analysis",
+    "recommendations": "Recommendations",
+    "phases_unavailable": "The inverter does not expose per-phase values",
+    "phase_imbalance": "Phase {high} peaks at {high_kw} kW while {low} stays at {low_kw} kW. Consider moving some circuits.",
+    "heatpump_energy": "Heat pump consumption",
+    "run_hours": "Run time",
+    "kwh_per_degree_day": "Consumption per degree-day",
+    "not_measured": "The heat pump is not metered separately yet"
   }
 }

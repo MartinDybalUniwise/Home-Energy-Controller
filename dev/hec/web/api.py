@@ -123,6 +123,20 @@ def appliance_cycles(app, params: dict) -> tuple[int, dict]:
     return 200, {"cycles": detector.recent(int(params.get("days", 7)))}
 
 
+def phases(app, params: dict) -> tuple[int, dict]:
+    analyser = getattr(app, "phases", None)
+    if analyser is None:
+        return 200, {"available": False}
+    return 200, analyser.analyse(int(params.get("days", 7)))
+
+
+def heatpump(app, params: dict) -> tuple[int, dict]:
+    analyser = getattr(app, "heatpump", None)
+    if analyser is None:
+        return 200, {"measured": False}
+    return 200, analyser.analyse_day()
+
+
 def config_get(app) -> tuple[int, dict]:
     return 200, {"config": app.config.to_public_dict(), "errors": app.config.errors}
 

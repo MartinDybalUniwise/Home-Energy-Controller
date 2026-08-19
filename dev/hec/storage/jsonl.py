@@ -78,8 +78,12 @@ class JsonlStorage:
             return
 
     def query(self, source: str, frm: datetime | None = None, to: datetime | None = None,
-              *, limit: int | None = None) -> list[dict]:
-        """Vzorky v rozsahu, seřazené vzestupně. Otevírá jen dotčené denní soubory."""
+              *, limit: int | None = None, end_exclusive: bool = False) -> list[dict]:
+        """Vzorky v rozsahu, seřazené vzestupně. Otevírá jen dotčené denní soubory.
+
+        `end_exclusive` je potřeba pro denní řezy – vzorek přesně o půlnoci
+        jinak spadne do dvou dnů zároveň.
+        """
         directory = self.history_dir / source
         if not directory.exists():
             return []
@@ -102,7 +106,7 @@ class JsonlStorage:
                     continue
                 if frm is not None and stamp < frm:
                     continue
-                if to is not None and stamp > to:
+                if to is not None and (stamp >= to if end_exclusive else stamp > to):
                     continue
                 out.append(record)
         out.sort(key=lambda r: r.get("timestamp") or "")

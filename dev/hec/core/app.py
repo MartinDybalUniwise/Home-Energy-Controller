@@ -10,10 +10,13 @@ from __future__ import annotations
 import threading
 from typing import Any
 
+from ..analysis.heatpump import HeatPumpAnalyser
+from ..analysis.phases import PhaseAnalyser
 from ..readers.registry import build_readers
 from ..storage.jsonl import JsonlStorage
 from . import config as config_mod
 from .logging_setup import configure, event, get_logger, register_secrets
+from .maintenance import Maintenance
 from .model import Sample
 from .scheduler import Scheduler
 from .secrets import collect_secret_values
@@ -36,6 +39,11 @@ class Application:
         self.snapshot: dict[str, dict] = {}
         self.readers = build_readers(self.config, self.storage)
         self.scheduler = Scheduler(self.readers, on_sample=self.accept)
+        self.maintenance = Maintenance(self.config, self.storage)
+        self.summaries = self.maintenance.summaries
+        self.appliances = self.maintenance.appliances
+        self.phases = PhaseAnalyser(self.config, self.storage)
+        self.heatpump = HeatPumpAnalyser(self.config, self.storage)
         self.controller = None            # dosadí se v kroku s optimalizací
         self.started_at = now_local()
 
@@ -94,6 +102,8 @@ class Application:
 
     def start(self) -> None:
         self.scheduler.start()
+        self.maintenance.start()
 
     def stop(self) -> None:
         self.scheduler.stop()
+        self.maintenance.stop()

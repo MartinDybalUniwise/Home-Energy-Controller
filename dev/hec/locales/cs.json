@@ -178,5 +178,15 @@
     "load_failed": "Data se nepodařilo načíst",
     "save_failed": "Uložení se nezdařilo",
     "not_found": "Nenalezeno"
+  },
+  "analysis": {
+    "title": "Analýza",
+    "recommendations": "Doporučení",
+    "phases_unavailable": "Měnič nevystavuje fázové hodnoty",
+    "phase_imbalance": "Fáze {high} je zatížená až {high_kw} kW, zatímco {low} zůstává na {low_kw} kW. Zvažte přepojení některých okruhů.",
+    "heatpump_energy": "Spotřeba tepelného čerpadla",
+    "run_hours": "Doba běhu",
+    "kwh_per_degree_day": "Spotřeba na denostupeň",
+    "not_measured": "Tepelné čerpadlo se zatím samostatně neměří"
   }
 }

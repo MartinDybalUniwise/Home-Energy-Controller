@@ -171,6 +171,10 @@ export async function history(view, { api, state }) {
     <div>
       <span class="section-tab">${t('history.daily_summary')}</span>
       <section class="panel"><div class="cards" id="summaries"></div></section>
+    </div>
+    <div>
+      <span class="section-tab">${t('analysis.title')}</span>
+      <section class="panel"><div class="cards" id="analysis"></div></section>
     </div>`;
 
   const draw = async () => {
@@ -221,6 +225,39 @@ export async function history(view, { api, state }) {
 
   await draw();
   await renderSummaries(view.querySelector('#summaries'), api);
+  await renderAnalysis(view.querySelector('#analysis'), api);
+}
+
+async function renderAnalysis(container, api) {
+  const [phases, heatpump, cycles] = await Promise.all([
+    api.phases().catch(() => ({ available: false })),
+    api.heatpump().catch(() => ({ measured: false })),
+    api.appliances(7).catch(() => ({ cycles: [] })),
+  ]);
+
+  const parts = [];
+  parts.push(card('overview.phases', phases.available
+    ? ['l1_w', 'l2_w', 'l3_w'].map((phase, index) =>
+        `<div class="meta">L${index + 1}: ⌀ ${num(phases.phases[phase].mean_w, 0)} W · p95 ${num(phases.phases[phase].p95_w, 0)} W</div>`).join('')
+      + (phases.recommendations || []).map((item) =>
+        `<p class="meta">${t(item.reason_key, item.reason_params)}</p>`).join('')
+    : `<p class="meta">${t(phases.reason_key || 'app.no_data')}</p>`));
+
+  parts.push(card('analysis.heatpump_energy', heatpump.measured
+    ? `<span class="value">${num(heatpump.energy_kwh, 1)}<span class="unit">${t('unit.kwh')}</span></span>`
+      + `<p class="meta">${t('analysis.run_hours')}: ${num(heatpump.run_hours, 1)} ${t('unit.hours')}<br>`
+      + `${t('entity.outside')}: ${num(heatpump.mean_outside_c, 1)} °C<br>`
+      + `${t('analysis.kwh_per_degree_day')}: ${num(heatpump.kwh_per_degree_day, 2)}</p>`
+    : `<p class="meta">${t('analysis.not_measured')}</p>`));
+
+  const recent = (cycles.cycles || []).slice(-6).reverse();
+  parts.push(card('history.appliance_cycles', recent.length
+    ? recent.map((cycle) => `<p class="meta"><strong>${cycle.name}</strong> ${dateTime(cycle.started)}<br>`
+        + `${t('history.duration')}: ${duration(cycle.duration_min)} · ${t('history.energy')}: ${num(cycle.energy_kwh, 2)} ${t('unit.kwh')}`
+        + ` · ${t('history.peak')}: ${num(cycle.peak_w, 0)} W</p>`).join('')
+    : `<p class="meta">${t('app.no_data')}</p>`));
+
+  container.innerHTML = parts.join('');
 }
 
 async function renderSummaries(container, api) {

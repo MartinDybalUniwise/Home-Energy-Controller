@@ -30,6 +30,8 @@ export const api = {
   prediction: () => request('/api/prediction'),
   summaries: (days = 30) => request(`/api/summaries?days=${days}`),
   appliances: (days = 7) => request(`/api/appliances?days=${days}`),
+  phases: (days = 7) => request(`/api/phases?days=${days}`),
+  heatpump: () => request('/api/heatpump'),
   sources: () => request('/api/sources'),
   history: (params) => request('/api/history?' + new URLSearchParams(params)),
   config: () => request('/api/config'),

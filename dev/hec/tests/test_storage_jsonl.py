@@ -52,6 +52,17 @@ def test_query_filters_by_range_and_keeps_order(tmp_path):
     assert [r["pv_w"] for r in result] == [1, 2, 3]
 
 
+def test_end_exclusive_keeps_midnight_out_of_two_days(tmp_path):
+    """Denní řez: vzorek přesně o půlnoci patří jen následujícímu dni."""
+    storage = make_storage(tmp_path)
+    midnight = now_local().replace(hour=0, minute=0, second=0, microsecond=0)
+    storage.append("goodwe", {"timestamp": to_iso(midnight), "pv_w": 1})
+
+    day_before = storage.query("goodwe", midnight - timedelta(days=1), midnight, end_exclusive=True)
+    day_after = storage.query("goodwe", midnight, midnight + timedelta(days=1), end_exclusive=True)
+    assert day_before == [] and len(day_after) == 1
+
+
 def test_corrupted_line_does_not_break_reading(tmp_path):
     storage = make_storage(tmp_path)
     storage.append("goodwe", {"timestamp": to_iso(now_local()), "pv_w": 1})
