@@ -15,7 +15,7 @@ from __future__ import annotations
 import copy
 import json
 import re
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -80,6 +80,46 @@ class TngReader(BaseReader):
 
     def interval_seconds(self) -> int:
         return int(self.config.get("polling.tng_seconds", 300))
+
+    def _next_boundary_seconds(self, moment: datetime) -> float | None:
+        """Sekundy do nejbližší hranice rozvrhu (bez ní by změna čekala až na
+        další pravidelný check, klidně několik minut). Prototyp totéž řešil
+        kontrolou signatury rozvrhu každou vteřinu; tady stačí naplánovat
+        probuzení readeru přesně na hranici okna."""
+        boundaries: set[str] = set()
+        for name in ("boiler", "heating", "thermostat"):
+            section = self.config.get(f"tng.{name}", {})
+            if not section.get("enabled"):
+                continue
+            for window in section.get("schedule", []) or []:
+                boundaries.add(window.get("from"))
+                boundaries.add(window.get("to"))
+        boundaries.discard(None)
+        if not boundaries:
+            return None
+
+        base = moment.replace(second=0, microsecond=0)
+        nearest: float | None = None
+        for hhmm in boundaries:
+            try:
+                hour, minute = (int(part) for part in hhmm.split(":"))
+            except (ValueError, AttributeError):
+                continue
+            candidate = base.replace(hour=hour, minute=minute)
+            if candidate <= moment:
+                candidate += timedelta(days=1)
+            delta = (candidate - moment).total_seconds()
+            if nearest is None or delta < nearest:
+                nearest = delta
+        return nearest
+
+    def schedule_next(self, monotonic_now: float) -> None:
+        super().schedule_next(monotonic_now)
+        if not self.config.get("tng.write_enabled", False):
+            return
+        boundary = self._next_boundary_seconds(now_local())
+        if boundary is not None:
+            self._next_at = min(self._next_at, monotonic_now + max(1.0, boundary))
 
     def _load_state(self) -> None:
         saved = read_json(self.state_path, {}) or {}
@@ -163,7 +203,14 @@ class TngReader(BaseReader):
         self.ensure_login()
         state = self.read_state()
         if self.config.get("tng.write_enabled", False):
-            self.apply(state)
+            try:
+                self.apply(state)
+            except Exception as exc:                          # noqa: BLE001 – izolace zápisu od čtení
+                # Telemetrie z read_state() je už bezpečně natažená a její kurz
+                # posunutý; selhání POSTu ji nesmí zahodit. Gate zůstává
+                # neoznačený (_mark_posted se volá až po úspěšném post_json),
+                # takže další check zápis bezpečně zopakuje.
+                self.log.warning("apply_failed | error=%s: %s", type(exc).__name__, exc)
         settings = state.get("settings") or {}
         heatpump = state.get("heatpump") or {}
         return {
