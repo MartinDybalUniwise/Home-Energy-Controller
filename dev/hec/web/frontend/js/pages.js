@@ -74,7 +74,7 @@ export async function overview(view, { api, motion }) {
     </div>`;
 
   renderStripe(view.querySelector('#stripe'), { goodwe, weather, prices, ote });
-  renderFlow(view.querySelector('#flow'), { ...goodwe, heatpump_power_w: heatpumpW }, t, motion);
+  renderFlow(view.querySelector('#flow'), { ...goodwe, heatpump_power_w: heatpumpW, devices: shelly.devices }, t, motion);
 
   const tiles = [
     card('entity.battery_soc', `<span class="value">${num(goodwe.battery_soc, 0)}<span class="unit">%</span></span>`),

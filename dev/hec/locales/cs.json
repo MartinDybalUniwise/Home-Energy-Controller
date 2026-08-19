@@ -47,7 +47,12 @@
     "outside": "Venkovní teplota",
     "room": "Teplota v místnosti",
     "water_out": "Výstupní voda",
-    "weather": "Počasí"
+    "weather": "Počasí",
+    "dishwasher": "Myčka",
+    "washing_machine": "Pračka",
+    "dryer": "Sušička",
+    "fridge": "Lednice",
+    "other_appliances": "Ostatní"
   },
   "overview": {
     "title": "Aktuální stav",
