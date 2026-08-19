@@ -33,7 +33,7 @@ function pageFromHash() {
   return ALL_PAGES.includes(name) ? name : 'overview';
 }
 
-async function render() {
+async function render({ showLoading = true } = {}) {
   if (pageCleanup) { pageCleanup(); pageCleanup = null; }
 
   state.page = pageFromHash();
@@ -42,7 +42,10 @@ async function render() {
     else link.removeAttribute('aria-current');
   });
 
-  view.innerHTML = `<p class="loading">${t('app.loading')}</p>`;
+  // Na navigaci (nový obsah zatím neexistuje) se "Načítám…" hodí. Na
+  // periodickou obnovu téže stránky ne – vymazání celé stránky na jeden
+  // řádek a zpět každých pár sekund by bylo jen matoucí probliknutí.
+  if (showLoading) view.innerHTML = `<p class="loading">${t('app.loading')}</p>`;
   try {
     // Stránky Stav a Data se samy obnovují a vrací úklidovou funkci pro
     // zastavení časovače při odchodu jinam – ostatní stránky nic nevrací.
@@ -135,7 +138,7 @@ async function start() {
     refreshing = true;
     try {
       await refreshStatus();
-      if (state.page === 'overview') await render();
+      if (state.page === 'overview') await render({ showLoading: false });
     } finally {
       refreshing = false;
     }
