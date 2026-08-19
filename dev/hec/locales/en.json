@@ -184,7 +184,14 @@
     "wind": "Wind",
     "precipitation": "Precipitation",
     "humidity": "Humidity",
-    "cloud_cover": "Cloud cover"
+    "cloud_cover": "Cloud cover",
+    "forecast_title": "Forecast by day",
+    "part_morning": "Morning",
+    "part_forenoon": "Late morning",
+    "part_noon": "Midday",
+    "part_afternoon": "Afternoon",
+    "part_evening": "Evening",
+    "part_night": "Night"
   },
   "login": {
     "title": "Sign in",

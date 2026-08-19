@@ -66,6 +66,10 @@ export async function overview(view, { api, motion }) {
       </section>
     </div>
     <div>
+      <span class="section-tab">${t('weather.forecast_title')}</span>
+      <section class="panel"><div id="forecast-blocks"></div></section>
+    </div>
+    <div>
       <span class="section-tab">${t('overview.flow')}</span>
       <section class="panel">
         <div id="flow"></div>
@@ -74,6 +78,7 @@ export async function overview(view, { api, motion }) {
     </div>`;
 
   renderStripe(view.querySelector('#stripe'), { goodwe, weather, prices, ote });
+  renderForecastBlocks(view.querySelector('#forecast-blocks'), weather);
   renderFlow(view.querySelector('#flow'), { ...goodwe, heatpump_power_w: heatpumpW }, t, motion);
 
   const tiles = [
@@ -117,6 +122,86 @@ function isDaytime(stamp, weather) {
     return true;          // bez východu/západu slunce se ikona chová jako dřív
   }
   return stamp >= sunrise && stamp <= sunset;
+}
+
+// Šest tříhodinových úseků dne – běžné dělení počasí v ČR. Noc (21–6) přesahuje
+// půlnoc, proto se řadí pod den, kdy začala (viz dayPartFor).
+const DAYPARTS = [
+  { key: 'morning', fromHour: 6 }, { key: 'forenoon', fromHour: 9 },
+  { key: 'noon', fromHour: 12 }, { key: 'afternoon', fromHour: 15 },
+  { key: 'evening', fromHour: 18 }, { key: 'night', fromHour: 21 },
+];
+
+function dayPartFor(stamp) {
+  const hour = stamp.getHours();
+  if (hour < 6) {
+    const previous = new Date(stamp);
+    previous.setDate(previous.getDate() - 1);
+    return { dayKey: localDateKey(previous), part: 'night' };
+  }
+  const part = [...DAYPARTS].reverse().find((entry) => hour >= entry.fromHour);
+  return { dayKey: localDateKey(stamp), part: part.key };
+}
+
+/** Hodinová předpověď seskupená podle dne a denní doby – pro rozklikávací bloky. */
+function groupByDayPart(hours) {
+  const days = new Map();
+  for (const hour of hours) {
+    const stamp = new Date(hour.time);
+    if (Number.isNaN(stamp.getTime())) continue;
+    const { dayKey, part } = dayPartFor(stamp);
+    const parts = days.get(dayKey) || days.set(dayKey, new Map()).get(dayKey);
+    const entries = parts.get(part) || parts.set(part, []).get(part);
+    entries.push({ ...hour, stamp });
+  }
+  return days;
+}
+
+function renderForecastBlocks(container, weather) {
+  const days = groupByDayPart(weather?.forecast_hourly || []);
+  if (!days.size) {
+    container.innerHTML = `<p class="notice">${t('app.no_data')}</p>`;
+    return;
+  }
+
+  container.innerHTML = [...days.entries()].map(([dayKey, parts]) => `
+    <div class="forecast-day">
+      <h4>${weekday(new Date(`${dayKey}T00:00:00`))}, ${time(`${dayKey}T00:00:00`, { day: '2-digit', month: '2-digit' })}</h4>
+      <div class="daypart-row">
+        ${DAYPARTS.filter((entry) => parts.has(entry.key)).map((entry) => {
+          const rows = parts.get(entry.key);
+          const temps = rows.map((row) => row.temp_c).filter((value) => value !== null && value !== undefined);
+          const range = temps.length
+            ? `${Math.round(Math.min(...temps))}–${Math.round(Math.max(...temps))}` : '–';
+          const middle = rows[Math.floor(rows.length / 2)];
+          const blockId = `daypart_${dayKey}_${entry.key}`;
+          return `
+            <div class="daypart">
+              <button type="button" class="daypart-toggle" aria-expanded="false" aria-controls="${blockId}">
+                <span class="col-label">${t(`weather.part_${entry.key}`)}</span>
+                ${weatherIcon(middle.condition, isDaytime(middle.stamp, weather))}
+                <span class="value alt">${range}<span class="unit">°C</span></span>
+              </button>
+              <div class="daypart-hours" id="${blockId}" hidden>
+                ${rows.map((row) => `
+                  <div class="daypart-hour">
+                    <span class="col-label">${time(row.stamp)}</span>
+                    ${weatherIcon(row.condition, isDaytime(row.stamp, weather))}
+                    <span class="value">${num(row.temp_c, 0)}<span class="unit">°C</span></span>
+                  </div>`).join('')}
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+
+  container.querySelectorAll('.daypart-toggle').forEach((button) => {
+    button.addEventListener('click', () => {
+      const expanded = button.getAttribute('aria-expanded') === 'true';
+      button.setAttribute('aria-expanded', String(!expanded));
+      container.querySelector(`#${button.getAttribute('aria-controls')}`).hidden = expanded;
+    });
+  });
 }
 
 function renderStripe(container, { goodwe, weather, prices, ote }) {
