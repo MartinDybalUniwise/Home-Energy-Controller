@@ -129,7 +129,224 @@
     "theme": "Motiv",
     "theme_auto": "Podle systému",
     "theme_dark": "Tmavý",
-    "theme_light": "Světlý"
+    "theme_light": "Světlý",
+    "tng_boiler": "Ohřev teplé vody (TUV)",
+    "tng_heating": "Topení",
+    "tng_thermostat": "Termostat",
+    "field": {
+      "system": {
+        "site_name": "Název systému",
+        "timezone": "Časové pásmo",
+        "latitude": "Zeměpisná šířka",
+        "longitude": "Zeměpisná délka"
+      },
+      "storage": {
+        "data_path": "Složka datových souborů",
+        "logs_path": "Složka logů",
+        "history_path": "Složka historie",
+        "archive_path": "Složka archivu",
+        "archive_after_days": "Stáří pro archivaci (dny)",
+        "compress_archive": "Komprimovat archiv",
+        "archive_check_hours": "Kontrola archivace (hodiny)"
+      },
+      "logging": {
+        "level": "Úroveň logování",
+        "max_bytes": "Max. velikost log souboru (B)",
+        "backups": "Počet záloh logu"
+      },
+      "polling": {
+        "goodwe_seconds": "Interval čtení: FVE/baterie (s)",
+        "tng_seconds": "Interval čtení: tepelné čerpadlo (s)",
+        "shelly_seconds": "Interval čtení: Shelly (s)",
+        "weather_minutes": "Interval čtení: počasí (min)",
+        "ote_minutes": "Interval čtení: ceny elektřiny (min)"
+      },
+      "goodwe": {
+        "enabled": "Zapnuto",
+        "host": "Adresa měniče",
+        "family": "Řada měniče",
+        "timeout": "Časový limit (s)",
+        "retries": "Počet opakování",
+        "grid_positive_is_import": "Kladná hodnota = odběr ze sítě",
+        "battery_positive_is_charge": "Kladná hodnota = nabíjení baterie"
+      },
+      "tng": {
+        "enabled": "Zapnuto",
+        "connect_file": "Soubor s přihlašovacími údaji",
+        "request_timeout_seconds": "Časový limit požadavku (s)",
+        "minimum_change_interval_seconds": "Min. odstup mezi zápisy (s)",
+        "telemetry_bootstrap_seconds": "Historie při prvním spuštění (s)",
+        "telemetry_overlap_seconds": "Překryv při dotahování telemetrie (s)",
+        "write_enabled": "Povolit zápis do tepelného čerpadla",
+        "heating": { "enabled": "Řídit topení", "default_temperature": "Výchozí teplota topení (°C)" },
+        "boiler": { "enabled": "Řídit ohřev teplé vody", "default_temperature": "Výchozí teplota TUV (°C)" },
+        "thermostat": { "enabled": "Řídit termostat", "default_temperature": "Výchozí teplota místnosti (°C)" }
+      },
+      "ote": {
+        "enabled": "Zapnuto",
+        "eur_czk_rate": "Kurz EUR/CZK (záložní)",
+        "fetch_rate_from_cnb": "Stahovat kurz z ČNB",
+        "distribution_czk_kwh": "Distribuční poplatek (Kč/kWh)",
+        "fees_czk_kwh": "Ostatní poplatky (Kč/kWh)",
+        "vat_rate": "Sazba DPH",
+        "export_price_czk_kwh": "Výkupní cena přebytků (Kč/kWh)"
+      },
+      "weather": {
+        "enabled": "Zapnuto",
+        "forecast_days": "Délka předpovědi (dny)",
+        "location_name": "Název lokality"
+      },
+      "shelly": {
+        "enabled": "Zapnuto",
+        "request_timeout_seconds": "Časový limit požadavku (s)"
+      },
+      "controller": {
+        "enabled": "Zapnuto",
+        "max_data_age_seconds": "Max. stáří dat (s)",
+        "decision_interval_seconds": "Interval rozhodování (s)",
+        "comfort": {
+          "room_min_c": "Min. pokojová teplota (°C)",
+          "room_max_c": "Max. pokojová teplota (°C)",
+          "dhw_min_c": "Min. teplota TUV (°C)",
+          "dhw_max_c": "Max. teplota TUV (°C)",
+          "max_preheat_k": "Max. předehřev nad cíl (K)",
+          "quiet_hours_from": "Klidové hodiny od",
+          "quiet_hours_to": "Klidové hodiny do"
+        },
+        "optimization": {
+          "aggressiveness": "Míra optimalizace",
+          "pv_surplus_kw": "Práh přebytku FVE (kW)",
+          "battery_soc_min_pct": "Min. nabití baterie (%)",
+          "cheap_price_percentile": "Práh levné ceny (percentil)",
+          "expensive_price_percentile": "Práh drahé ceny (percentil)"
+        }
+      },
+      "prediction": {
+        "enabled": "Zapnuto",
+        "pv_peak_kwp": "Špičkový výkon FVE (kWp)",
+        "learning_days": "Okno učení (dny)",
+        "battery_capacity_kwh": "Kapacita baterie (kWh)"
+      },
+      "web": {
+        "host": "Adresa rozhraní",
+        "port": "Port",
+        "password": "Heslo"
+      },
+      "ui": {
+        "language": "Jazyk",
+        "animations": "Animace",
+        "theme": "Motiv",
+        "currency": "Měna",
+        "brand_accent": "Zvýrazňovací barva"
+      }
+    },
+    "help": {
+      "system": {
+        "site_name": "Jméno zobrazené v hlavičce aplikace.",
+        "timezone": "Používá se pro plánování tepelného čerpadla, okna cen a zobrazené časy. Změna vyžaduje restart.",
+        "latitude": "Přesná poloha domu – určuje předpověď počasí a polohu slunce pro odhad výroby FVE. Liší se od pole „Název lokality“ v sekci Počasí, které je jen popisek.",
+        "longitude": "Spolu se zeměpisnou šířkou určuje přesnou polohu domu pro předpověď počasí a odhad výroby FVE."
+      },
+      "storage": {
+        "data_path": "Kam se ukládají aktuální hodnoty ze všech zdrojů. Relativní cesta je vůči instalaci.",
+        "logs_path": "Kam se zapisují provozní logy aplikace.",
+        "history_path": "Kam se ukládají časové řady pro grafy a analýzu.",
+        "archive_path": "Kam se přesouvá starší historie po uplynutí doby níže. Prázdné pole archivaci vypíná.",
+        "archive_after_days": "Po kolika dnech se historická data přesunou do archivu.",
+        "compress_archive": "Archivované soubory se uloží komprimované, aby zabíraly méně místa.",
+        "archive_check_hours": "Jak často se kontroluje, zda je co archivovat."
+      },
+      "logging": {
+        "level": "Kolik podrobností se zapisuje do logu. DEBUG je nejpodrobnější, ERROR jen chyby.",
+        "max_bytes": "Po dosažení této velikosti se log soubor otočí (rotuje).",
+        "backups": "Kolik starších log souborů se ponechá při rotaci."
+      },
+      "polling": {
+        "goodwe_seconds": "Jak často se čte aktuální výkon a stav baterie z měniče GoodWe.",
+        "tng_seconds": "Jak často se kontroluje stav tepelného čerpadla. Nesouvisí s minimálním odstupem mezi zápisy – ten je v sekci Tepelné čerpadlo.",
+        "shelly_seconds": "Jak často se čtou hodnoty ze zařízení Shelly.",
+        "weather_minutes": "Jak často se stahuje předpověď počasí.",
+        "ote_minutes": "Jak často se kontrolují nové ceny elektřiny. Jednou zveřejněná cena pro daný den se už nemění, časté čtení tedy není potřeba."
+      },
+      "goodwe": {
+        "enabled": "Čtení dat z měniče GoodWe.",
+        "host": "IP adresa nebo hostname měniče GoodWe na lokální síti.",
+        "family": "Model/řada měniče GoodWe – ovlivňuje, jak se čtou data.",
+        "timeout": "Jak dlouho se čeká na odpověď měniče, než se pokus považuje za neúspěšný.",
+        "retries": "Kolikrát se čtení zopakuje po neúspěchu, než se nahlásí chyba.",
+        "grid_positive_is_import": "Znaménko toku ze sítě se liší podle instalace – tady se určí, jak ho číst.",
+        "battery_positive_is_charge": "Znaménko toku baterie se liší podle instalace – tady se určí, jak ho číst."
+      },
+      "tng": {
+        "enabled": "Čtení stavu tepelného čerpadla TNG.",
+        "connect_file": "Cesta k souboru s přihlašovacími údaji k TNG. Tajemství se nikdy neukládají do konfigurace ani do gitu.",
+        "request_timeout_seconds": "Jak dlouho se čeká na odpověď TNG serveru.",
+        "minimum_change_interval_seconds": "Ochrana tepelného čerpadla – kratší odstup mezi dvěma zápisy nastavení systém nedovolí. Nesnižovat bez znalosti důsledků.",
+        "telemetry_bootstrap_seconds": "Jak daleko do minulosti se natáhne telemetrie při prvním spuštění, než je k dispozici vlastní historie.",
+        "telemetry_overlap_seconds": "Malý bezpečnostní překryv při navazování na poslední načtený vzorek, aby se nic neztratilo.",
+        "write_enabled": "Bez zapnutí systém jen loguje, co by odeslal, ale nic doopravdy nezapisuje.",
+        "heating": { "enabled": "Zapíná automatické řízení teploty topné vody podle rozvrhu.", "default_temperature": "Použije se mimo časová okna v rozvrhu." },
+        "boiler": { "enabled": "Zapíná automatické řízení teploty teplé vody podle rozvrhu.", "default_temperature": "Použije se mimo časová okna v rozvrhu." },
+        "thermostat": { "enabled": "Zapíná automatické řízení pokojového termostatu podle rozvrhu.", "default_temperature": "Použije se mimo časová okna v rozvrhu." }
+      },
+      "ote": {
+        "enabled": "Stahování spotových cen elektřiny z OTE.",
+        "eur_czk_rate": "Použije se, jen když se nepodaří stáhnout aktuální kurz z ČNB.",
+        "fetch_rate_from_cnb": "Vypnutím se vždy použije záložní kurz nastavený výše.",
+        "distribution_czk_kwh": "Připočítá se ke spotové ceně při výpočtu konečné ceny.",
+        "fees_czk_kwh": "Další poplatky připočítané ke konečné ceně, například systémové služby.",
+        "vat_rate": "Například 0.21 pro 21 %. Použije se při výpočtu konečné ceny.",
+        "export_price_czk_kwh": "Cena, za kterou se prodává přebytek elektřiny do sítě."
+      },
+      "weather": {
+        "enabled": "Stahování předpovědi počasí.",
+        "forecast_days": "Kolik dní dopředu se stahuje předpověď.",
+        "location_name": "Jen popisek zobrazený v aplikaci, např. „Ostrava, CZ“. Samotná předpověď se počítá podle GPS souřadnic v sekci Obecné."
+      },
+      "shelly": {
+        "enabled": "Čtení dat ze zařízení Shelly na lokální síti.",
+        "request_timeout_seconds": "Jak dlouho se čeká na odpověď jednoho zařízení Shelly."
+      },
+      "controller": {
+        "enabled": "Zapíná automatické rozhodování a optimalizaci. Bez tohoto systém jen sleduje a doporučuje.",
+        "max_data_age_seconds": "Pokud jsou klíčová data starší, optimalizace se zastaví (bezpečný režim) místo hádání hodnoty.",
+        "decision_interval_seconds": "Jak často se vyhodnocuje, zda je potřeba nějaká akce.",
+        "comfort": {
+          "room_min_c": "Pod touto teplotou má komfort přednost před úsporou.",
+          "room_max_c": "Nad touto teplotou systém neprohřívá dál ani kvůli levné ceně.",
+          "dhw_min_c": "Pod touto teplotou má ohřev teplé vody přednost před úsporou.",
+          "dhw_max_c": "Horní hranice, na kterou se teplá voda předehřívá i při levné ceně nebo přebytku FVE.",
+          "max_preheat_k": "O kolik stupňů výš než cílovou teplotu smí systém předehřát při levné ceně nebo přebytku FVE.",
+          "quiet_hours_from": "Od tohoto času se neprovádí hlučnější akce, například ohřev bojleru.",
+          "quiet_hours_to": "Do tohoto času platí omezení klidových hodin."
+        },
+        "optimization": {
+          "aggressiveness": "Jak agresivně se systém snaží šetřit na úkor menší rezervy komfortu.",
+          "pv_surplus_kw": "Od jakého přebytku výroby nad spotřebou se přebytek považuje za využitelný pro předehřev nebo nabíjení.",
+          "battery_soc_min_pct": "Pod touto hranicí se baterie nevyužívá pro nic jiného než zálohu domu.",
+          "cheap_price_percentile": "Ceny v tomto nejlevnějším podílu dne se považují za levné – např. 0.25 znamená nejlevnější čtvrtinu.",
+          "expensive_price_percentile": "Ceny v tomto nejdražším podílu dne se považují za drahé."
+        }
+      },
+      "prediction": {
+        "enabled": "Učení spotřeby a výroby z historie pro predikční stránku.",
+        "pv_peak_kwp": "Instalovaný špičkový výkon fotovoltaiky – používá se pro odhad výroby.",
+        "learning_days": "Z kolika posledních dnů historie se počítá typický průběh spotřeby a výroby.",
+        "battery_capacity_kwh": "Celková kapacita domácí baterie – používá se pro odhad stavu nabití v predikci."
+      },
+      "web": {
+        "host": "Na které síťové adrese webové rozhraní naslouchá. 0.0.0.0 znamená na všech.",
+        "port": "Číslo portu webového rozhraní (výchozí 8080).",
+        "password": "Heslo pro přihlášení do webového rozhraní. Prvotně se nastavuje přes .env, tady se jen mění."
+      },
+      "ui": {
+        "language": "Jazyk uživatelského rozhraní.",
+        "animations": "Míra pohybu a přechodů v rozhraní.",
+        "theme": "Světlý, tmavý, nebo podle nastavení systému.",
+        "currency": "Měna, ve které se zobrazují ceny.",
+        "brand_accent": "Barva zvýraznění v rozhraní (hex kód, například #4fb3ff)."
+      }
+    }
   },
   "status": {
     "title": "Stav systému",
