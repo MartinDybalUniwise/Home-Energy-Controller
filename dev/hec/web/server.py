@@ -7,9 +7,11 @@ požadavků z prohlížeče bez problémů.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import mimetypes
 import secrets as pysecrets
+import socket
 from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -21,6 +23,7 @@ from . import api
 FRONTEND = Path(__file__).resolve().parent / "frontend"
 SESSION_HOURS = 24 * 30
 MAX_BODY = 2 * 1024 * 1024
+WILDCARD_HOSTS = ("0.0.0.0", "", "::")  # "poslouchej na všech rozhraních"
 
 
 class SessionStore:
@@ -195,6 +198,23 @@ class Handler(BaseHTTPRequestHandler):
         self.do_GET()
 
 
+class DualStackServer(ThreadingHTTPServer):
+    """Naslouchá na IPv4 i IPv6 jedním soketem.
+
+    Prohlížeč na `localhost` zkouší nejdřív IPv6 (`::1`). Server poslouchající
+    jen na IPv4 (`0.0.0.0`) na tento pokus vůbec neodpoví – prohlížeč pak čeká
+    na timeout spojení (desítky sekund), než to zkusí přes IPv4. Stejný postup
+    jako vestavěný `python -m http.server` od Pythonu 3.8.
+    """
+
+    address_family = socket.AF_INET6
+
+    def server_bind(self) -> None:
+        with contextlib.suppress(OSError):
+            self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+        super().server_bind()
+
+
 def build_server(app, host: str | None = None, port: int | None = None) -> ThreadingHTTPServer:
     handler = type("BoundHandler", (Handler,), {
         "app": app,
@@ -202,6 +222,13 @@ def build_server(app, host: str | None = None, port: int | None = None) -> Threa
     })
     host = host if host is not None else str(app.config.get("web.host", "0.0.0.0"))
     port = int(port if port is not None else app.config.get("web.port", 8080))
+
+    if host in WILDCARD_HOSTS:
+        try:
+            return DualStackServer(("::", port), handler)
+        except OSError:
+            # IPv6 není dostupné (např. minimální kontejner) – IPv4 samotné stačí.
+            get_logger("web").warning("dual_stack_unavailable | falling_back_to=ipv4")
     return ThreadingHTTPServer((host, port), handler)
 
 
@@ -209,7 +236,8 @@ def serve(app) -> int:
     server = build_server(app)
     host, port = server.server_address[0], server.server_address[1]
     get_logger("web").info("web_started | host=%s port=%s", host, port)
-    print(f"Home Energy Controller – http://{host}:{port}", flush=True)
+    display_host = "localhost" if host in ("::", "0.0.0.0", "") else host
+    print(f"Home Energy Controller – http://{display_host}:{port}", flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

@@ -11,6 +11,7 @@ import pytest
 from hec.core import config as config_mod
 from hec.core import schema
 from hec.storage.jsonl import JsonlStorage
+from hec.web import server as server_module
 from hec.web.server import build_server
 
 
@@ -129,3 +130,64 @@ def test_wrong_password_is_rejected(server):
     with pytest.raises(urllib.error.HTTPError) as error:
         urllib.request.urlopen(request, timeout=5)                    # noqa: S310
     assert error.value.code == 401
+
+
+# --- localhost na Windows: IPv6 nejdřív, server jen na IPv4 = desítky sekund čekání ---
+
+def test_wildcard_host_tries_dual_stack_first(tmp_path, monkeypatch):
+    """Výchozí (wildcard) host se má pokusit naslouchat na IPv4 i IPv6 zároveň."""
+    attempted = []
+
+    class FakeDualStack(server_module.ThreadingHTTPServer):
+        def __init__(self, address, handler):
+            attempted.append(address)
+            super().__init__(("127.0.0.1", 0), handler)   # skutečně bindne jen IPv4
+
+    monkeypatch.setattr(server_module, "DualStackServer", FakeDualStack)
+    httpd = build_server(MiniApp(tmp_path), host="0.0.0.0", port=0)
+    httpd.server_close()
+
+    assert attempted and attempted[0][0] == "::"
+
+
+def test_explicit_host_does_not_use_dual_stack(tmp_path, monkeypatch):
+    """Výslovně zadaná adresa (ne wildcard) se dual-stack netýká."""
+    called = False
+
+    class FakeDualStack(server_module.ThreadingHTTPServer):
+        def __init__(self, *args, **kwargs):
+            nonlocal called
+            called = True
+            super().__init__(*args, **kwargs)
+
+    monkeypatch.setattr(server_module, "DualStackServer", FakeDualStack)
+    httpd = build_server(MiniApp(tmp_path), host="127.0.0.1", port=0)
+    httpd.server_close()
+
+    assert called is False
+
+
+def test_dual_stack_falls_back_to_ipv4_when_unavailable(tmp_path, monkeypatch):
+    """Bez IPv6 (minimální kontejner) musí server přesto naběhnout, ne spadnout."""
+    def refuse(*args, **kwargs):
+        raise OSError("Address family not supported by protocol")
+
+    monkeypatch.setattr(server_module, "DualStackServer", refuse)
+    httpd = build_server(MiniApp(tmp_path), host="0.0.0.0", port=0)
+    try:
+        assert httpd.server_address[1] > 0
+    finally:
+        httpd.server_close()
+
+
+def test_wildcard_host_actually_serves_requests(tmp_path):
+    """End-to-end bez mockování – server musí fungovat i v prostředí bez IPv6."""
+    httpd = build_server(MiniApp(tmp_path), host="0.0.0.0", port=0)
+    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    thread.start()
+    try:
+        status, payload, _ = get(f"http://127.0.0.1:{httpd.server_address[1]}/api/current")
+        assert status == 200 and payload["sources"]["goodwe"]["pv_w"] == 4210
+    finally:
+        httpd.shutdown()
+        httpd.server_close()
