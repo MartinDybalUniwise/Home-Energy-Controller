@@ -6,7 +6,10 @@ import { applyTranslations, preferredLanguage, setLanguage, t, time } from './i1
 import { pages } from './pages.js';
 
 const REFRESH_MS = 10000;
-const ORDER = ['overview', 'history', 'prediction', 'settings'];
+// Gesto swipe zůstává jen mezi třemi hlavními stránkami (kap. 13 zadání);
+// Stav, Data a Nastavení jsou dostupné výhradně přes menu.
+const PRIMARY_ORDER = ['overview', 'history', 'prediction'];
+const ALL_PAGES = ['overview', 'history', 'prediction', 'status', 'logs', 'settings'];
 
 const state = {
   page: 'overview',
@@ -16,6 +19,7 @@ const state = {
 };
 
 const view = document.getElementById('view');
+let pageCleanup = null;
 
 function applyPreferences({ animations, theme } = {}) {
   if (animations) { state.motion = animations; localStorage.setItem('hec_motion', animations); }
@@ -26,10 +30,12 @@ function applyPreferences({ animations, theme } = {}) {
 
 function pageFromHash() {
   const name = (location.hash.replace('#/', '') || 'overview').split('?')[0];
-  return ORDER.includes(name) ? name : 'overview';
+  return ALL_PAGES.includes(name) ? name : 'overview';
 }
 
 async function render() {
+  if (pageCleanup) { pageCleanup(); pageCleanup = null; }
+
   state.page = pageFromHash();
   document.querySelectorAll('.nav a').forEach((link) => {
     if (link.dataset.page === state.page) link.setAttribute('aria-current', 'page');
@@ -38,7 +44,10 @@ async function render() {
 
   view.innerHTML = `<p class="loading">${t('app.loading')}</p>`;
   try {
-    await pages[state.page](view, { api, state, motion: state.motion, onUiChange: applyPreferences });
+    // Stránky Stav a Data se samy obnovují a vrací úklidovou funkci pro
+    // zastavení časovače při odchodu jinam – ostatní stránky nic nevrací.
+    const cleanup = await pages[state.page](view, { api, state, motion: state.motion, onUiChange: applyPreferences });
+    if (typeof cleanup === 'function') pageCleanup = cleanup;
   } catch (error) {
     if (error.unauthorised) return askForPassword();
     view.innerHTML = `<p class="notice error">${t('error.load_failed')}</p>`;
@@ -103,8 +112,9 @@ function enableSwipe() {
     const deltaY = event.changedTouches[0].clientY - startY;
     // Gesto je zkratka, ne jediná cesta – menu funguje vždy.
     if (Math.abs(deltaX) < 70 || Math.abs(deltaY) > 50) return;
-    const index = ORDER.indexOf(state.page);
-    const next = ORDER[index + (deltaX < 0 ? 1 : -1)];
+    const index = PRIMARY_ORDER.indexOf(state.page);
+    if (index === -1) return;
+    const next = PRIMARY_ORDER[index + (deltaX < 0 ? 1 : -1)];
     if (next) location.hash = `#/${next}`;
   }, { passive: true });
 }
@@ -115,9 +125,20 @@ async function start() {
   await refreshStatus();
   await render();
   clearInterval(state.timer);
-  state.timer = setInterval(() => {
-    refreshStatus();
-    if (state.page === 'overview') render();
+
+  // Pokud by se jedno kolo někdy zdrželo (pomalá síť, uspaná záložka), další
+  // tik se přeskočí, místo aby se požadavky hromadily a stránka se postupně
+  // "zpomalovala" nabalováním nedokončených volání.
+  let refreshing = false;
+  state.timer = setInterval(async () => {
+    if (refreshing) return;
+    refreshing = true;
+    try {
+      await refreshStatus();
+      if (state.page === 'overview') await render();
+    } finally {
+      refreshing = false;
+    }
   }, REFRESH_MS);
 }
 

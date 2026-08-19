@@ -60,8 +60,12 @@ class Predictor:
         fallback = float(self.config.get("prediction.pv_peak_kwp", 10.0)) * DEFAULT_PERFORMANCE_RATIO
         return round(fallback, 3), 0
 
-    def consumption_estimate(self, target: date, history: list[dict] | None = None) -> tuple[float, int]:
-        """Medián denní spotřeby, zvlášť pro pracovní dny a víkend."""
+    def consumption_estimate(self, target: date, history: list[dict] | None = None) -> tuple[float | None, int]:
+        """Medián denní spotřeby, zvlášť pro pracovní dny a víkend.
+
+        Bez naučené historie vrací None, ne 0.0 – nulová spotřeba by v UI
+        vypadala jako reálná predikce, ne jako chybějící data.
+        """
         history = history if history is not None else self._history()
         weekend = target.weekday() >= 5
         same_kind = [day["house_kwh"] for day in history
@@ -70,7 +74,7 @@ class Predictor:
         value = safe_median(same_kind)
         if value is None:
             value = safe_median([day.get("house_kwh") for day in history])
-        return (round(value, 2), len(same_kind)) if value else (0.0, 0)
+        return (round(value, 2), len(same_kind)) if value is not None else (None, 0)
 
     def heat_slope(self, history: list[dict] | None = None) -> tuple[float | None, int]:
         """Spotřeba tepelného čerpadla na jeden denostupeň."""
@@ -176,10 +180,13 @@ class Predictor:
             degree_days = max(0.0, BASE_TEMPERATURE_C - mean_temp) if mean_temp is not None else None
             heat = round(slope * degree_days, 1) if (slope and degree_days) else None
 
-            total_load = consumption + (heat or 0.0)
-            balance = round(total_load - pv, 1)
+            # Bez naučené spotřeby nejde spočítat ani bilanci sítě, ani náklad,
+            # ani nabití baterie – dopočítávat je z neznámé spotřeby by bylo
+            # jen jiné jméno pro odhad, který nikdo neověřil.
+            total_load = None if consumption is None else consumption + (heat or 0.0)
+            balance = round(total_load - pv, 1) if total_load is not None else None
             periods = self._prices_for(day)
-            cost = self._estimate_cost(balance, periods)
+            cost = self._estimate_cost(balance, periods) if balance is not None else None
 
             out_days.append({
                 "date": day.isoformat(),
@@ -193,7 +200,8 @@ class Predictor:
                 "mean_temperature_c": mean_temp,
                 "grid_balance_kwh": balance,
                 "cost_czk": cost,
-                "battery_soc_min_pct": self._simulate_soc(pv, total_load),
+                "battery_soc_min_pct": (self._simulate_soc(pv, total_load)
+                                        if total_load is not None else None),
                 "best_appliance_window": self._format_window(
                     self.cheapest_window(periods, APPLIANCE_WINDOW_HOURS)),
                 "best_dhw_window": self._format_window(
@@ -223,11 +231,13 @@ class Predictor:
         prices = [p.get("price_total_czk_kwh") for p in periods if p.get("price_total_czk_kwh") is not None]
         if not prices:
             return None
-        mean_price = sum(prices) / len(prices)
         if balance_kwh >= 0:
-            return round(balance_kwh * mean_price, 1)
-        export_price = float(self.config.get("ote.export_price_czk_kwh", 0.0))
-        return round(balance_kwh * export_price, 1)
+            price = sum(prices) / len(prices)
+        else:
+            price = float(self.config.get("ote.export_price_czk_kwh", 0.0))
+        # +0.0 srovná -0.0 (např. export × nulová výkupní cena) na 0.0 – jinak
+        # by se v UI zobrazilo matoucí "-0 Kč" místo "0 Kč".
+        return round(balance_kwh * price, 1) + 0.0
 
     def _simulate_soc(self, pv_kwh: float, load_kwh: float) -> float | None:
         """Hrubá simulace: přebytek nabíjí, deficit vybíjí. Meze 10–100 %."""

@@ -105,6 +105,20 @@ function phaseTile(goodwe) {
     + `<div class="meta">${t('overview.imbalance')}: ${num(goodwe.phase_imbalance_w, 0)} W</div>`;
 }
 
+function localDateKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+function isDaytime(stamp, weather) {
+  const daily = (weather?.forecast_daily || []).find((day) => day.date === localDateKey(stamp));
+  const sunrise = daily?.sunrise ? new Date(daily.sunrise) : null;
+  const sunset = daily?.sunset ? new Date(daily.sunset) : null;
+  if (!sunrise || !sunset || Number.isNaN(sunrise.getTime()) || Number.isNaN(sunset.getTime())) {
+    return true;          // bez východu/západu slunce se ikona chová jako dřív
+  }
+  return stamp >= sunrise && stamp <= sunset;
+}
+
 function renderStripe(container, { goodwe, weather, prices, ote }) {
   const hours = (weather?.forecast_hourly || []).slice(0, 7);
   const current = weather?.current || {};
@@ -128,7 +142,7 @@ function renderStripe(container, { goodwe, weather, prices, ote }) {
       && p.end > String(stamp.getHours()).padStart(2, '0') + ':00');
     return `<div class="col">
         <div class="col-label">${time(stamp)}</div>
-        ${weatherIcon(hour.condition, true)}
+        ${weatherIcon(hour.condition, isDaytime(stamp, weather))}
         <span class="value">${num(hour.temp_c, 0)}<span class="unit">°C</span></span>
         <div class="value alt">${period ? num(period.price_total_czk_kwh, 2) : '–'}</div>
         <div class="col-label">${t('unit.czk_kwh')}</div>
@@ -413,5 +427,192 @@ function setAt(object, path, value) {
   node[last] = value;
 }
 
-export const pages = { overview, history, prediction, settings };
+// --- Stav ---------------------------------------------------------------
+//
+// Formátovaný přehled /api/status pro snadné sledování za provozu – žádný
+// syrový JSON, jen to, co by člověk chtěl vidět na první pohled. Auto-refresh
+// běží každých 5 s a stránka vrací úklidovou funkci, kterou app.js zavolá
+// při odchodu na jinou stránku.
+
+function statusPill(ok, okKey, badKey) {
+  return `<span class="pill" data-level="${ok ? 'ok' : 'critical'}">${t(ok ? okKey : badKey)}</span>`;
+}
+
+function neutralPill(key) {
+  // Vypnuto je záměrný výchozí stav, ne porucha – nesmí vypadat jako varování.
+  return `<span class="pill" data-level="neutral">${t(key)}</span>`;
+}
+
+function renderReaderRow(reader) {
+  const state = !reader.enabled
+    ? neutralPill('status.disabled')
+    : statusPill(!reader.stale, 'status.ok', 'status.stale');
+  const age = reader.age_seconds === null ? '–' : `${Math.round(reader.age_seconds)} s`;
+  return `<tr>
+      <td>${reader.name}</td>
+      <td>${state}</td>
+      <td>${reader.last_success ? dateTime(reader.last_success) : '–'}</td>
+      <td>${age}</td>
+      <td>${reader.success_count}</td>
+      <td>${reader.error_count}</td>
+      <td>${reader.last_error || '–'}</td>
+    </tr>`;
+}
+
+function renderStatusReport(payload) {
+  const readers = Object.values(payload.readers || {});
+  const controller = payload.controller || {};
+  const decision = controller.last_decision;
+
+  const readerTable = readers.length
+    ? `<div class="table-wrap"><table class="data">
+        <thead><tr><th>${t('status.source')}</th><th>${t('status.state')}</th>
+          <th>${t('status.last_success')}</th><th>${t('status.age')}</th>
+          <th>${t('status.successes')}</th><th>${t('status.errors')}</th>
+          <th>${t('status.last_error')}</th></tr></thead>
+        <tbody>${readers.map(renderReaderRow).join('')}</tbody>
+      </table></div>`
+    : `<p class="notice">${t('status.no_readers')}</p>`;
+
+  const controllerCard = card('settings.controller', `
+    <p class="meta">
+      ${controller.enabled
+        ? `<span class="pill" data-level="ok">${t('status.controller_running')}</span>`
+        : neutralPill('status.controller_disabled')}
+      ${controller.enabled && controller.safe_mode
+        ? `<span class="pill" data-level="warning">${t('status.safe_mode')}</span>` : ''}
+      ${controller.write_enabled ? '' : `<br>${neutralPill('status.write_disabled')}`}
+    </p>
+    <p class="meta">
+      ${t('overview.last_decision')}:<br>
+      ${decision ? `<strong>${decision.rule} → ${decision.action}</strong> (${dateTime(decision.timestamp)})<br>${t(decision.reason_key, decision.reason_params) || ''}`
+                 : t('overview.no_decision')}
+    </p>`);
+
+  const stale = payload.stale_sources || [];
+  const infoCard = card('status.title', `
+    <p class="meta">
+      ${t('app.name')} v${payload.version || '–'}<br>
+      ${t('status.started')}: ${payload.started_at ? dateTime(payload.started_at) : '–'}<br>
+      ${stale.length
+        ? `<span class="pill" data-level="critical">${t('status.stale')}: ${stale.join(', ')}</span>`
+        : `<span class="pill" data-level="ok">${t('status.ok')}</span>`}
+    </p>`);
+
+  return `<div class="cards">${infoCard}${controllerCard}</div>${readerTable}`;
+}
+
+export async function status(view, { api }) {
+  view.innerHTML = `
+    <div>
+      <span class="section-tab">${t('status.title')}</span>
+      <section class="panel">
+        <div class="controls">
+          <button id="status-refresh">${t('app.refresh')}</button>
+          <label><input type="checkbox" id="status-auto" checked> ${t('app.auto_refresh')}</label>
+          <span class="meta" id="status-updated"></span>
+        </div>
+        <div id="status-report"></div>
+      </section>
+    </div>`;
+
+  const report = view.querySelector('#status-report');
+  const updated = view.querySelector('#status-updated');
+
+  async function draw() {
+    try {
+      const payload = await api.status();
+      report.innerHTML = renderStatusReport(payload);
+      updated.textContent = t('app.updated', { time: time(new Date()) });
+    } catch (error) {
+      if (error.unauthorised) throw error;
+      report.innerHTML = `<p class="notice error">${t('error.load_failed')}</p>`;
+    }
+  }
+
+  view.querySelector('#status-refresh').addEventListener('click', draw);
+  await draw();
+
+  const auto = view.querySelector('#status-auto');
+  const timer = setInterval(() => { if (auto.checked) draw(); }, 5000);
+  return () => clearInterval(timer);
+}
+
+// --- Data (prohlížeč JSONL historie) -------------------------------------
+//
+// Syrové, nezhuštěné záznamy jednoho zdroje – buď posledních N, nebo celý
+// vybraný den. Auto-refresh se týká jen režimu "posledních N", aby procházení
+// konkrétního dne neresetovalo rozjetý posun.
+
+function formatLogLine(row) {
+  return JSON.stringify(row);
+}
+
+export async function logsPage(view, { api }) {
+  const { sources } = await api.sources();
+
+  if (!sources.length) {
+    view.innerHTML = `<div><span class="section-tab">${t('logs.title')}</span>
+      <section class="panel"><p class="notice">${t('logs.no_sources')}</p></section></div>`;
+    return;
+  }
+
+  view.innerHTML = `
+    <div>
+      <span class="section-tab">${t('logs.title')}</span>
+      <section class="panel">
+        <div class="controls">
+          <select id="log-source" aria-label="${t('logs.source')}">
+            ${sources.map((source) => `<option value="${source}">${source}</option>`).join('')}
+          </select>
+          <select id="log-day" aria-label="${t('logs.day')}">
+            <option value="">${t('logs.tail', { count: 300 })}</option>
+          </select>
+          <button id="log-refresh">${t('app.refresh')}</button>
+          <label><input type="checkbox" id="log-auto" checked> ${t('app.auto_refresh')}</label>
+          <span class="meta" id="log-updated"></span>
+        </div>
+        <pre class="log-view" id="log-view"></pre>
+      </section>
+    </div>`;
+
+  const sourceSelect = view.querySelector('#log-source');
+  const daySelect = view.querySelector('#log-day');
+  const box = view.querySelector('#log-view');
+  const updated = view.querySelector('#log-updated');
+
+  async function loadDays() {
+    const { days } = await api.logDays(sourceSelect.value).catch(() => ({ days: [] }));
+    const current = daySelect.value;
+    daySelect.innerHTML = `<option value="">${t('logs.tail', { count: 300 })}</option>`
+      + days.slice().reverse().map((day) => `<option value="${day}">${day}</option>`).join('');
+    if (days.includes(current)) daySelect.value = current;
+  }
+
+  async function draw() {
+    const params = daySelect.value ? { day: daySelect.value } : { tail: 300 };
+    try {
+      const payload = await api.logs(sourceSelect.value, params);
+      box.textContent = payload.rows.length ? payload.rows.map(formatLogLine).join('\n') : t('app.no_data');
+      box.scrollTop = box.scrollHeight;
+      updated.textContent = t('app.updated', { time: time(new Date()) });
+    } catch (error) {
+      if (error.unauthorised) throw error;
+      box.textContent = t('error.load_failed');
+    }
+  }
+
+  sourceSelect.addEventListener('change', async () => { await loadDays(); await draw(); });
+  daySelect.addEventListener('change', draw);
+  view.querySelector('#log-refresh').addEventListener('click', draw);
+
+  await loadDays();
+  await draw();
+
+  const auto = view.querySelector('#log-auto');
+  const timer = setInterval(() => { if (auto.checked && !daySelect.value) draw(); }, 8000);
+  return () => clearInterval(timer);
+}
+
+export const pages = { overview, history, prediction, status, logs: logsPage, settings };
 export const helpers = { duration, availableLanguages, currentLanguage };

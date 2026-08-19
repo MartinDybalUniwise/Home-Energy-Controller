@@ -36,6 +36,8 @@ export const api = {
   decisions: (days = 7) => request(`/api/decisions?days=${days}`),
   sources: () => request('/api/sources'),
   history: (params) => request('/api/history?' + new URLSearchParams(params)),
+  logDays: (source) => request(`/api/logs/days?source=${encodeURIComponent(source)}`),
+  logs: (source, params = {}) => request('/api/logs?' + new URLSearchParams({ source, ...params })),
   config: () => request('/api/config'),
   configSchema: () => request('/api/config/schema'),
   saveConfig: (config) => request('/api/config', { method: 'PUT', body: JSON.stringify({ config }) }),

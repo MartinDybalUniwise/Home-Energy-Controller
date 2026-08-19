@@ -4,14 +4,18 @@
     "loading": "Loading…",
     "offline": "No connection to the system",
     "updated": "Updated {time}",
-    "no_data": "No data yet"
+    "no_data": "No data yet",
+    "refresh": "Refresh",
+    "auto_refresh": "Auto-refresh"
   },
   "nav": {
     "overview": "Overview",
     "history": "History",
     "prediction": "Forecast",
     "settings": "Settings",
-    "menu": "Menu"
+    "menu": "Menu",
+    "status": "Status",
+    "logs": "Data"
   },
   "unit": {
     "w": "W",
@@ -140,7 +144,19 @@
     "reader_error": "Read error: {error}",
     "last_success": "Last successful read",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "readers": "Data sources",
+    "version": "Version",
+    "started": "Started",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "no_readers": "No sources are enabled",
+    "source": "Source",
+    "state": "State",
+    "successes": "Successes",
+    "errors": "Errors",
+    "last_error": "Last error",
+    "age": "Age"
   },
   "reason": {
     "pv_surplus_high_soc": "PV surplus {pv_kw} kW, battery {soc} %, low price {price} CZK/kWh",
@@ -201,5 +217,12 @@
     "decisions": "System decisions",
     "applied": "of which applied",
     "no_counterfactual": "No saving is claimed against operation without optimisation — there is no reference period"
+  },
+  "logs": {
+    "title": "Data browser (JSONL)",
+    "tail": "Last {count}",
+    "source": "Data source",
+    "day": "Day",
+    "no_sources": "No history to show yet"
   }
 }

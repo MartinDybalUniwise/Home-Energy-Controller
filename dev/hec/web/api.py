@@ -87,6 +87,35 @@ def sources(app) -> tuple[int, dict]:
     return 200, {"sources": app.storage.sources()}
 
 
+def log_days(app, params: dict) -> tuple[int, dict]:
+    source = params.get("source")
+    if not source:
+        return 400, {"error": "missing_source"}
+    return 200, {"source": source, "days": app.storage.days(source)}
+
+
+def logs(app, params: dict) -> tuple[int, dict]:
+    """Syrová JSONL historie jednoho zdroje – bez zhuštění, pro ruční kontrolu.
+
+    Bez `day` vrací posledních `tail` záznamů (výchozí a maximum jsou omezené,
+    aby jeden požadavek nikdy nevytáhl celou historii do prohlížeče). S `day`
+    vrací celý daný den – tam si o rozsah řekl uživatel sám.
+    """
+    source = params.get("source")
+    if not source:
+        return 400, {"error": "missing_source"}
+
+    day = params.get("day")
+    if day:
+        frm = parse_moment(day, now_local())
+        rows = app.storage.query(source, frm, frm + timedelta(days=1), end_exclusive=True)
+    else:
+        tail = max(1, min(int(params.get("tail", 200) or 200), 2000))
+        rows = app.storage.last(source, tail)
+
+    return 200, {"source": source, "day": day, "count": len(rows), "rows": rows}
+
+
 def prices(app) -> tuple[int, dict]:
     """Ceny na dnešek a zítřek pro graf a plánování."""
     today = now_local().date()
