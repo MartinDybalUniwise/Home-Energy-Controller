@@ -12,6 +12,7 @@ from typing import Any
 
 from ..analysis.heatpump import HeatPumpAnalyser
 from ..analysis.phases import PhaseAnalyser
+from ..controller.predictor import Predictor
 from ..readers.registry import build_readers
 from ..storage.jsonl import JsonlStorage
 from . import config as config_mod
@@ -43,6 +44,7 @@ class Application:
         self.summaries = self.maintenance.summaries
         self.appliances = self.maintenance.appliances
         self.phases = PhaseAnalyser(self.config, self.storage)
+        self.predictor = Predictor(self.config, self.storage, self.summaries)
         self.heatpump = HeatPumpAnalyser(self.config, self.storage)
         self.controller = None            # dosadí se v kroku s optimalizací
         self.started_at = now_local()

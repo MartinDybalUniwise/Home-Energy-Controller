@@ -11,9 +11,10 @@ from datetime import date, datetime, time, timedelta
 from ..core.logging_setup import get_logger
 from ..core.timeutil import now_local, to_iso
 from ..storage.base import read_json
-from ..storage.series import downsample, integrate_kwh
+from ..storage.series import downsample, integrate_kwh, numeric
 
 QUARTER = 900
+BASE_TEMPERATURE_C = 18.0     # referenční teplota pro denostupně
 
 
 class Summaries:
@@ -63,6 +64,8 @@ class Summaries:
 
         goodwe = self.storage.query("goodwe", start, end, end_exclusive=True)
         shelly = self.storage.query("shelly", start, end, end_exclusive=True)
+        tng = self.storage.query("tng", start, end, end_exclusive=True)
+        weather = self.storage.query("weather", start, end, end_exclusive=True)
         prices = self._price_table(day)
 
         pv = integrate_kwh(goodwe, "pv_w")
@@ -73,6 +76,14 @@ class Summaries:
         discharge = integrate_kwh(goodwe, "battery_discharge_w")
         heatpump = integrate_kwh(shelly, "heatpump_power_w")
         appliances = integrate_kwh(shelly, "appliances_power_w")
+
+        # Venkovní teplota a denostupně: podklad pro odhad potřeby tepla.
+        outside = [numeric(r.get("outside_temperature")) for r in tng]
+        outside = [value for value in outside if value is not None]
+        mean_outside = round(sum(outside) / len(outside), 1) if outside else None
+        degree_days = round(max(0.0, BASE_TEMPERATURE_C - mean_outside), 2) if mean_outside is not None else None
+        # Ozáření [kWh/m2] – kalibrace predikce výroby.
+        irradiation = integrate_kwh(weather, "ghi_wm2")
 
         cost = self._cost(goodwe, "grid_import_w", prices)
         export_price = float(self.config.get("ote.export_price_czk_kwh", 0.0))
@@ -91,6 +102,9 @@ class Summaries:
             "battery_discharge_kwh": discharge,
             "heatpump_kwh": heatpump,
             "appliances_kwh": appliances,
+            "mean_outside_c": mean_outside,
+            "degree_days": degree_days,
+            "irradiation_kwh_m2": irradiation,
             # Kolik z vlastní výroby zůstalo doma.
             "self_consumption_pct": round((pv - grid_export) / pv * 100, 1) if pv > 0 else None,
             # Kolik ze spotřeby domu pokryla vlastní výroba a baterie.

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from datetime import timedelta
 
-from hec.core.timeutil import now_local, to_iso
+from hec.core.timeutil import floor_to, now_local, to_iso
 from hec.storage.jsonl import JsonlStorage
 from hec.storage.series import downsample, integrate_kwh, series_fields
 
@@ -75,7 +75,9 @@ def test_corrupted_line_does_not_break_reading(tmp_path):
 
 
 def test_downsample_buckets_and_aggregates():
-    base = now_local().replace(second=0, microsecond=0)
+    # Základ zarovnaný na patnáctiminutovou hranici – jinak by výsledek testu
+    # závisel na tom, v kolik hodin běží.
+    base = floor_to(now_local().replace(second=0, microsecond=0), 900)
     records = [{"timestamp": to_iso(base + timedelta(seconds=step)), "pv_w": step}
                for step in (0, 60, 120, 900, 960)]
 
