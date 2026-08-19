@@ -120,7 +120,7 @@ dev/
     ├── deploy/install.sh, install.ps1, hec.service ..... 🟢 80 %  neověřeno na čistém Pi
     ├── docs/DEPLOYMENT.md, API.md ...................... ✅ 100 %
     ├── tools/diagnostics.py, init_install.py ........... 🟢 90 %
-    └── tests/ .......................................... 🟢 85 %  180 testů
+    └── tests/ .......................................... 🟢 85 %  181 testů
 ```
 
 ---

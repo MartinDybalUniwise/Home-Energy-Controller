@@ -31,7 +31,7 @@ bez ručního skládání souborů.
 
 ## Akceptační kritéria
 
-- [x] 180 testů zeleně, `ruff check .` bez nálezu.
+- [x] 181 testů zeleně, `ruff check .` bez nálezu.
 - [x] `--init` vytvoří konfiguraci i `.env` a nic existujícího nepřepíše.
 - [x] Diagnostický export neobsahuje heslo ani klíče (test proti reálným hodnotám).
 - [x] Dokumentace pokrývá instalaci, aktualizaci, zálohy, obnovu i API.

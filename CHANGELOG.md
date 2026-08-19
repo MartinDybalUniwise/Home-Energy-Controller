@@ -27,7 +27,7 @@ beze změny, nová funkčnost žije v `dev/hec/`.
 * **Jazyky** – čeština a angličtina, 170 překladových klíčů, formátování
   přes `Intl`.
 * **Provoz** – instalace pro Linux i Windows, systemd jednotka, diagnostický
-  export bez tajemství, 180 automatických testů a CI.
+  export bez tajemství, 181 automatických testů a CI.
 
 ### Poznámky
 

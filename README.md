@@ -64,7 +64,7 @@ Stav dokončení jednotlivých částí:
 
 ```bash
 python3 -m pip install -r requirements-dev.txt
-pytest          # 180 testů
+pytest          # 181 testů
 ruff check .
 ```
 

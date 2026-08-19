@@ -69,6 +69,17 @@ def test_frontend_is_served_and_spa_routes_fall_back_to_index(server):
         assert response.status == 200
 
 
+def test_static_json_files_are_served_verbatim(server):
+    """manifest.json je statický soubor, ne datová struktura k serializaci."""
+    with urllib.request.urlopen(f"{server}/manifest.json", timeout=5) as response:  # noqa: S310
+        payload = json.loads(response.read())
+        assert response.headers["Content-Type"] == "application/json"
+    assert payload["short_name"] == "HEC"
+
+    with urllib.request.urlopen(f"{server}/icon.svg", timeout=5) as response:       # noqa: S310
+        assert response.headers["Content-Type"] == "image/svg+xml"
+
+
 def test_path_traversal_is_refused(server):
     with pytest.raises(urllib.error.HTTPError) as error:
         urllib.request.urlopen(f"{server}/../../../etc/passwd", timeout=5)  # noqa: S310
@@ -97,6 +108,16 @@ def test_password_protects_data_but_not_login(server):
     assert "HttpOnly" in cookie and "SameSite=Strict" in cookie
 
     status, payload, _ = get(f"{server}/api/current", cookie=cookie.split(";")[0])
+    assert status == 200
+
+
+@pytest.mark.parametrize("server", ["${HEC_WEB_PASSWORD}"], indirect=True)
+def test_unresolved_placeholder_is_not_treated_as_a_password(server):
+    """Nevyplněná proměnná nesmí zamknout rozhraní heslem, které nikdo nezná."""
+    status, payload, _ = get(f"{server}/api/session")
+    assert payload["required"] is False
+
+    status, _, _ = get(f"{server}/api/current")
     assert status == 200
 
 

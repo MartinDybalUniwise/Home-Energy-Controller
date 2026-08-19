@@ -71,7 +71,7 @@ py dev/run.py --once                    # jedno kolo čtení všech zdrojů
 py dev/run.py --status                  # stav readerů jako JSON
 py dev/run.py                           # sběr dat + rozhraní na :8080
 py dev/run.py --diagnostics             # ZIP pro podporu (bez tajemství)
-pytest                                  # 180 testů
+pytest                                  # 181 testů
 ruff check .                            # lint
 
 # zmrazené prototypy v kořeni

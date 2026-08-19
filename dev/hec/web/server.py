@@ -27,7 +27,12 @@ class SessionStore:
     """Přihlášení tokenem v cookie. Prázdné heslo = rozhraní bez přihlášení."""
 
     def __init__(self, password: str):
-        self.password = password or ""
+        password = (password or "").strip()
+        # Nevyplněná proměnná prostředí zůstane v konfiguraci jako ${HEC_WEB_PASSWORD}.
+        # Brát ji jako heslo by znamenalo rozhraní, do kterého se nikdo nedostane.
+        if password.startswith("${") and password.endswith("}"):
+            password = ""
+        self.password = password
         self.tokens: dict[str, datetime] = {}
 
     @property
@@ -62,10 +67,14 @@ class Handler(BaseHTTPRequestHandler):
     # --- pomocné -----------------------------------------------------------
     def _send(self, status: int, payload, content_type="application/json; charset=utf-8",
               headers: dict | None = None):
-        if content_type.startswith("application/json"):
+        # Hotové bajty se posílají tak, jak jsou – i když mají typ application/json
+        # (statický manifest.json). Serializovat by se měly jen datové struktury.
+        if isinstance(payload, bytes):
+            body = payload
+        elif content_type.startswith("application/json"):
             body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         else:
-            body = payload if isinstance(payload, bytes) else str(payload).encode("utf-8")
+            body = str(payload).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
