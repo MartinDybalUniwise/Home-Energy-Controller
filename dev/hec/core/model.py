@@ -56,6 +56,22 @@ class ReaderStatus:
         age = self.age
         return age is None or age > self.stale_after()
 
+    @property
+    def state(self) -> str:
+        """Čtyřstavový status pro UI a externí zdroje (dev/step09).
+
+        `last_error` se čistí při každém úspěšném pollu (viz BaseReader.poll),
+        takže jeho přítomnost vždy znamená, že poslední pokus selhal – to je
+        odlišná informace od `is_stale` (data mohou být čerstvá, ale poslední
+        dotaz přesto zrovna selhal, nebo naopak poslední dotaz uspěl, ale je
+        to už dávno).
+        """
+        if not self.enabled:
+            return "disabled"
+        if self.last_error is not None:
+            return "error"
+        return "stale" if self.is_stale else "ok"
+
     def to_dict(self) -> dict:
         return {
             "name": self.name,
@@ -68,6 +84,35 @@ class ReaderStatus:
             "success_count": self.success_count,
             "age_seconds": None if self.age is None else round(self.age, 1),
             "stale": self.is_stale,
+            "state": self.state,
+        }
+
+
+@dataclass
+class EnergyInterval:
+    """15minutová perioda energetického toku – sjednocený tvar pro EDC a
+    sdílení energie (dev/step09/EXTENSION_PLAN.md, kap. 3). Nepovinná pole
+    zůstávají `None`, když nejsou známa – nikdy se nedosazuje 0."""
+
+    timestamp: datetime
+    source: str                    # "edc" | "sharing" | ...
+    ean: str
+    role: str                      # "consumer" | "producer"
+    consumption_kwh: float | None = None
+    production_kwh: float | None = None
+    shared_received_kwh: float | None = None
+    shared_sent_kwh: float | None = None
+
+    def to_dict(self) -> dict:
+        return {
+            "timestamp": to_iso(self.timestamp),
+            "source": self.source,
+            "ean": self.ean,
+            "role": self.role,
+            "consumption_kwh": self.consumption_kwh,
+            "production_kwh": self.production_kwh,
+            "shared_received_kwh": self.shared_received_kwh,
+            "shared_sent_kwh": self.shared_sent_kwh,
         }
 
 

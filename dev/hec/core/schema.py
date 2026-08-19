@@ -43,6 +43,12 @@ SHELLY_DEVICE = {
     "enabled": F("bool", True),
 }
 
+SHARING_CONSUMER = {
+    "ean": F("str", ""),
+    "name": F("str", ""),
+    "allocation_percent": F("float", 0, minimum=0, maximum=100),
+}
+
 def _day_profile(day_from: int = 6, day_to: int = 22) -> list[bool]:
     """24 hodin: True = denní teplota. Výchozí profil 6:00–22:00."""
     return [day_from <= hour < day_to for hour in range(24)]
@@ -187,6 +193,23 @@ SCHEMA: dict[str, Any] = {
         "pv_peak_kwp": F("float", 10.0, minimum=0, maximum=100),
         "learning_days": F("int", 30, minimum=3, maximum=365),
         "battery_capacity_kwh": F("float", 10.0, minimum=0, maximum=200),
+    },
+    # dev/step09/EXTENSION_PLAN.md, fáze A: rozhraní pro sdílení energie a
+    # rozšířenou predikci. Vypnuto/prázdné ve výchozím stavu – nic se nezapne
+    # samo, dokud si to zadavatel/instalace výslovně nenastaví.
+    "sharing": {
+        "enabled": F("bool", False),
+        "producer_ean": F("str", ""),
+        "consumers": F("list", [], item=SHARING_CONSUMER),
+    },
+    "forecast": {
+        "enabled": F("bool", True),
+        "sharing_learning_days": F("int", 30, minimum=3, maximum=365),
+    },
+    "economics": {
+        # Reálná sazba závisí na smlouvě, kterou systém nezná - 0.0 je
+        # přiznaná neznalost, ne odhad (viz EXTENSION_PLAN.md kap. 8).
+        "sharing_value_czk_kwh": F("float", 0.0, minimum=0, maximum=20),
     },
     "web": {
         "host": F("str", "0.0.0.0", restart=True),

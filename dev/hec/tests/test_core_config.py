@@ -15,6 +15,26 @@ def test_defaults_cover_every_section():
     assert data["ui"]["languages"] == ["cs", "en"]
 
 
+def test_sharing_forecast_economics_are_safe_by_default():
+    """dev/step09 fáze A: sdílení energie se nesmí zapnout samo."""
+    data = schema.defaults()
+    assert data["sharing"]["enabled"] is False
+    assert data["sharing"]["consumers"] == []
+    assert data["forecast"]["enabled"] is True
+    assert data["economics"]["sharing_value_czk_kwh"] == 0.0
+
+
+def test_sharing_consumer_allocation_is_validated():
+    data, errors = schema.validate({"sharing": {"consumers": [
+        {"ean": "859...", "name": "Velké Bílovice", "allocation_percent": 35},
+        {"ean": "111...", "name": "Bad", "allocation_percent": 150},
+    ]}})
+    consumers = data["sharing"]["consumers"]
+    assert consumers[0]["allocation_percent"] == 35
+    assert consumers[1]["allocation_percent"] == 0    # nad maximem -> default
+    assert errors
+
+
 def test_invalid_value_falls_back_to_default_and_reports_error():
     data, errors = schema.validate({"polling": {"tng_seconds": 5}})
     assert data["polling"]["tng_seconds"] == 300
