@@ -113,6 +113,18 @@ def test_shelly_unreachable_device_does_not_hide_the_others(tmp_path):
     assert values["appliances_power_w"] == 2100.5
 
 
+def test_shelly_reports_appliance_type_for_the_flow_diagram(tmp_path):
+    """appliance_type se propaguje z configu do dat, aby UI vědělo, jakou ikonu vzít."""
+    config = make_config(tmp_path, shelly={"enabled": True, "devices": [
+        {"name": "Myčka", "host": "10.0.0.5", "role": "appliance", "appliance_type": "dishwasher",
+         "generation": 2, "channel": 0, "enabled": True}]})
+    session = FakeSession({"10.0.0.5": FakeResponse(payload=GEN2_SWITCH)})
+
+    values = ShellyReader(config, session=session).read()
+
+    assert values["devices"]["mycka"]["appliance_type"] == "dishwasher"
+
+
 def test_shelly_history_splits_devices_into_own_series(tmp_path):
     config = make_config(tmp_path, shelly={"enabled": True, "devices": [
         {"name": "Myčka", "host": "10.0.0.5", "role": "appliance", "generation": 2,

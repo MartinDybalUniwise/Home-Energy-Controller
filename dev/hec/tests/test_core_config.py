@@ -44,6 +44,17 @@ def test_list_items_are_validated(monkeypatch):
     assert errors
 
 
+def test_shelly_appliance_type_selects_flow_diagram_icon():
+    data, errors = schema.validate({"shelly": {"devices": [
+        {"name": "Myčka", "host": "10.0.0.5", "appliance_type": "dishwasher"},
+        {"name": "Neznámé", "host": "10.0.0.7", "appliance_type": "toaster"},
+    ]}})
+    devices = data["shelly"]["devices"]
+    assert devices[0]["appliance_type"] == "dishwasher"
+    assert devices[1]["appliance_type"] == "other"    # neznámý typ padá na "ostatní"
+    assert errors
+
+
 def test_load_expands_environment_placeholders(tmp_path, monkeypatch):
     monkeypatch.setenv("HEC_GOODWE_HOST", "192.168.1.50")
     path = tmp_path / "config.json"

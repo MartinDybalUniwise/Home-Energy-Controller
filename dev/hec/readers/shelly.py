@@ -106,6 +106,7 @@ class ShellyReader(BaseReader):
                 errors[key] = f"{type(exc).__name__}: {exc}"
                 continue
             values["role"] = device.get("role", "appliance")
+            values["appliance_type"] = device.get("appliance_type", "other")
             values["name"] = device.get("name", key)
             devices[key] = values
 

@@ -38,6 +38,10 @@ SHELLY_DEVICE = {
     "host": F("str", ""),
     # appliance = spotřebič se spínačem, heatpump_meter = Pro 3EM na TČ, meter = obecné měření
     "role": F("enum", "appliance", choices=("appliance", "heatpump_meter", "meter")),
+    # Určuje ikonu ve schématu toku energie. Bez zvolení se spotřebič zobrazí
+    # jako "ostatní" – to je bezpečný výchozí stav, ne chyba.
+    "appliance_type": F("enum", "other",
+                        choices=("dishwasher", "washing_machine", "dryer", "fridge", "other")),
     "generation": F("enum", 2, choices=(1, 2)),
     "channel": F("int", 0, minimum=0, maximum=3),
     "enabled": F("bool", True),
