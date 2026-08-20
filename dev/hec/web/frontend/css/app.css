@@ -219,6 +219,10 @@ table.data th:first-child, table.data td:first-child { text-align: left; }
 .flow { width: 100%; max-width: 420px; height: auto; display: block; margin: 0 auto; padding: 8px 0 4px; }
 .flow text { font-family: var(--font-ui); fill: var(--ink-primary); }
 .flow .node { fill: color-mix(in srgb, var(--panel-solid) 60%, transparent); stroke: var(--panel-border); }
+/* Statické zapojení spotřebičů (dům → rozvodnice → spotřebič) – vždy vidět,
+   i bez dat. Barevná animovaná šipka (.edge) se kreslí navrch jen tam, kde
+   je výkon skutečně změřen; .wire samo o sobě tok energie neznázorňuje. */
+.flow .wire { stroke: var(--panel-border); stroke-width: 1.5; }
 .flow .edge { fill: none; stroke-linecap: round; opacity: .9; }
 .flow .edge.animated { stroke-dasharray: 6 10; animation: flow 1.2s linear infinite; }
 @keyframes flow { to { stroke-dashoffset: -16; } }

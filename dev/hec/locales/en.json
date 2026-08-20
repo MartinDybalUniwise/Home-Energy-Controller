@@ -47,7 +47,12 @@
     "outside": "Outdoor temperature",
     "room": "Room temperature",
     "water_out": "Flow temperature",
-    "weather": "Weather"
+    "weather": "Weather",
+    "dishwasher": "Dishwasher",
+    "washing_machine": "Washing machine",
+    "dryer": "Dryer",
+    "fridge": "Fridge",
+    "other_appliances": "Other"
   },
   "overview": {
     "title": "Current state",
