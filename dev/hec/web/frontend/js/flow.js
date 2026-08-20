@@ -1,9 +1,11 @@
 // Schéma toku energie. Šipka má směr a tloušťku úměrnou výkonu.
 //
-// Spotřebiče pod domem jsou zatím z valné části bez měření (Shelly ještě
-// nemá přiřazená zařízení) – ikony a rozvržení jsou ale hotové už teď, takže
-// jakmile v konfiguraci přibude `shelly.devices[].appliance_type`, hodnoty
-// se samy rozsvítí bez další úpravy.
+// Pojmenované spotřebiče pod domem jsou zatím z valné části bez měření
+// (Shelly ještě nemá přiřazená zařízení) – ikony a rozvržení jsou ale hotové
+// už teď, takže jakmile v konfiguraci přibude `shelly.devices[].appliance_type`,
+// hodnoty se samy rozsvítí bez další úpravy. "Ostatní" je výjimka: není to
+// samostatně přiřaditelné zařízení, ale dopočítaný zbytek (dům minus vše
+// změřené zvlášť), takže svítí od začátku, i bez jediného Shelly zařízení.
 
 import { applianceIconGroup } from './icons.js';
 import { power } from './i18n.js';
@@ -110,9 +112,11 @@ export function renderFlow(container, values, t, motion = 'full') {
   const heatpump = Number(values.heatpump_power_w) || 0;
   const devices = values.devices || {};
 
-  // Jeden průchod přes spotřebiče: totéž pole se použije pro vykreslení uzlů
-  // (applianceNode) i pro barevný přechod nad jejich vodičem (applianceEdges).
-  const applianceData = APPLIANCES.map((appliance) => {
+  // Jeden průchod přes pojmenované spotřebiče: totéž pole se použije pro
+  // vykreslení uzlů (applianceNode) i pro barevný přechod nad jejich vodičem
+  // (applianceEdges). "Ostatní" není samostatně přiřaditelné zařízení, ale
+  // zbytek – viz níže.
+  const namedData = APPLIANCES.filter((appliance) => appliance.type !== 'other').map((appliance) => {
     if (appliance.type === 'heatpump') {
       return { appliance, watts: heatpump, measured: isMeasured(values.heatpump_power_w),
                color: 'var(--series-heatpump)' };
@@ -121,6 +125,20 @@ export function renderFlow(container, values, t, motion = 'full') {
     return { appliance, watts: device ? Number(device.power_w) : 0,
              measured: !!device && isMeasured(device.power_w), color: 'var(--series-appliances)' };
   });
+
+  // "Ostatní" = spotřeba domu (GoodWe) minus vše, co je změřeno zvlášť (TČ +
+  // pojmenované spotřebiče) – ne samostatně přiřazené Shelly zařízení. Bez
+  // jediného nakonfigurovaného spotřebiče se tak rovná celé spotřebě domu,
+  // ne "–". Drobný záporný zbytek (časové zpoždění mezi měřeními) se ořízne
+  // na 0 – reálný zpětný tok z jednotlivého spotřebiče do domu to není.
+  const namedMeasuredTotal = namedData.filter((d) => d.measured).reduce((sum, d) => sum + d.watts, 0);
+  const otherData = {
+    appliance: APPLIANCES.find((appliance) => appliance.type === 'other'),
+    watts: Math.max(0, house - namedMeasuredTotal),
+    measured: isMeasured(values.house_w),
+    color: 'var(--series-appliances)',
+  };
+  const applianceData = [...namedData, otherData];
 
   const edges = [
     edge(NODES.pv, NODES.house, pv, 'var(--series-pv)', motion),
