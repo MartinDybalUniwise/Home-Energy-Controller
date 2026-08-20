@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
+from unittest.mock import patch
 
 from conftest import FakeResponse, FakeSession
 from hec.core import config as config_mod
@@ -171,8 +173,61 @@ def test_tng_gate_state_survives_restart(tmp_path, tng_connect):
     assert fresh.can_post("basic", False)[0] is False
 
 
+def test_tng_post_failure_does_not_discard_already_fetched_telemetry(tmp_path, tng_connect):
+    """POST selže (non-204) -> telemetrie z read_state() se přesto uloží do historie."""
+    config = make_config(tmp_path, tng={
+        "enabled": True, "write_enabled": True,
+        "boiler": {"enabled": True, "default_temperature": 48, "schedule": []}})
+    session = FakeSession({
+        "MyThermostat": FakeResponse(THERMOSTAT_HTML),
+        "MyInstallations": FakeResponse(INSTALLATIONS_HTML),
+        "HeatPumpData": FakeResponse(payload=TELEMETRY),
+        "Pages/Login": FakeResponse("<html></html>"),
+        "api/HeatPumpInsertBasicSettings": FakeResponse("", status_code=500),
+    })
+    reader = TngReader(config, session=session, connect=tng_connect)
+
+    sample = reader.poll()
+
+    assert sample.ok is True
+    assert reader._telemetry_records
+    assert reader.telemetry_state["last_sample_time"] == "2026-08-19T10:51:23Z"
+    # Gate nesmí být označen jako čekající na potvrzení – POST vlastně neprošel.
+    assert reader.change_gate["basic"]["awaiting_confirmation"] is False
+
+
+def test_tng_schedule_next_wakes_at_the_next_schedule_boundary(tmp_path, tng_connect):
+    """Se zapnutým zápisem se reader probudí přesně na hranici rozvrhu, ne až po
+    plném pollingovém intervalu – jinak by změna čekala zbytečně dlouho."""
+    config = make_config(tmp_path, tng={
+        "enabled": True, "write_enabled": True,
+        "boiler": {"enabled": True, "default_temperature": 48,
+                   "schedule": [{"from": "22:00", "to": "06:00", "temperature": 51}]}})
+    reader = TngReader(config, session=FakeSession({}), connect=tng_connect)
+
+    moment = datetime(2026, 8, 19, 21, 55)
+    boundary = reader._next_boundary_seconds(moment)
+    assert boundary == 5 * 60                              # 22:00 je za 5 minut
+
+    monotonic_now = 1000.0
+    with patch("hec.readers.tng.now_local", return_value=moment.astimezone()):
+        reader.schedule_next(monotonic_now)
+    assert reader._next_at == monotonic_now + 5 * 60
+
+
+def test_tng_schedule_next_ignores_boundaries_when_write_disabled(tmp_path, tng_connect):
+    config = make_config(tmp_path, tng={
+        "enabled": True, "write_enabled": False,
+        "boiler": {"enabled": True, "default_temperature": 48,
+                   "schedule": [{"from": "22:00", "to": "06:00", "temperature": 51}]}})
+    reader = TngReader(config, session=FakeSession({}), connect=tng_connect)
+
+    monotonic_now = 1000.0
+    reader.schedule_next(monotonic_now)
+    assert reader._next_at == monotonic_now + reader.backoff_seconds()
+
+
 def test_scheduled_value_helper_matches_prototype():
-    from datetime import datetime
     section = {"default_temperature": 45, "schedule": [
         {"from": "22:00", "to": "06:00", "temperature": 51}]}
     assert scheduled_value(section, datetime(2026, 8, 19, 23, 0)) == 51
