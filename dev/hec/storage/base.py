@@ -8,10 +8,19 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Protocol
+
+# Na Windows může antivirus, indexer nebo OneDrive držet cílový soubor
+# krátce zamčený, takže os.replace() občas spadne na WinError 5 (Access is
+# denied), i když nic v aplikaci soubor nedrží. Jde o mikrovteřinovou
+# záležitost – pár rychlých pokusů to spolehlivě přečká, bez zpoždění
+# čtenářů na Linuxu/Pi, kde k tomu nedochází.
+REPLACE_RETRIES = 5
+REPLACE_RETRY_DELAY_SECONDS = 0.05
 
 
 class StorageBackend(Protocol):
@@ -34,7 +43,14 @@ def atomic_write_json(path: Path, payload: Any) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    os.replace(tmp, path)
+    for attempt in range(REPLACE_RETRIES):
+        try:
+            os.replace(tmp, path)
+            return path
+        except PermissionError:
+            if attempt == REPLACE_RETRIES - 1:
+                raise
+            time.sleep(REPLACE_RETRY_DELAY_SECONDS * (attempt + 1))
     return path
 
 
