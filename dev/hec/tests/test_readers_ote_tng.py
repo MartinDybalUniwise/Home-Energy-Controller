@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import date, datetime
 from unittest.mock import patch
 
 from conftest import FakeResponse, FakeSession
@@ -91,6 +91,74 @@ def test_read_writes_day_file_in_the_documented_shape(tmp_path):
                             "avg_price_eur_mwh", "periods"}
     assert payload["periods"][0]["price_czk_kwh"] == 2.5
     assert values["price_total_czk_kwh"] is not None
+
+
+def test_read_does_not_refetch_a_day_that_is_already_cached_on_disk(tmp_path):
+    """Jednou zveřejněná cena se nemění – opakované čtení nemá zatěžovat OTE."""
+    config = make_config(tmp_path, ote={"fetch_rate_from_cnb": False, "eur_czk_rate": 25.0,
+                                        "vat_rate": 0.0})
+    session = FakeSession({"ote-cr.cz": FakeResponse(OTE_PAGE)})
+    reader = OteReader(config, session=session)
+
+    reader.read()
+    session.routes.clear()                                # žádný další požadavek nesmí projít
+
+    reader.read()                                         # nespadne, i když network zmizel
+
+
+def test_ote_schedule_next_wakes_near_the_publish_window_when_tomorrow_is_missing(tmp_path):
+    """D+1 se zveřejňuje po uzávěrce aukce ve 12:00 (kolem 13:00-13:30) –
+    dokud zítřejší den nemáme, probudit se blízko tohoto okna dává smysl
+    místo čekání na celý (několikahodinový) polling interval."""
+    config = make_config(tmp_path)
+    reader = OteReader(config, session=FakeSession({}))
+
+    # Blíž k oknu než k celému (výchozímu 4h) intervalu, aby hranice vyhrála.
+    moment = datetime(2026, 8, 19, 12, 0)
+    boundary = reader._next_publish_boundary_seconds(moment)
+    assert boundary == 3600 + 15 * 60                      # 13:15 je za 1h15m
+
+    monotonic_now = 1000.0
+    with patch("hec.readers.ote.now_local", return_value=moment):
+        reader.schedule_next(monotonic_now)
+    assert reader._next_at == monotonic_now + boundary
+
+
+def test_ote_schedule_next_ignores_publish_window_once_tomorrow_is_cached(tmp_path):
+    config = make_config(tmp_path)
+    reader = OteReader(config, session=FakeSession({}))
+    reader.save_day({"date": "2026-08-20",
+                     "periods": [{"period": 1, "start": "00:00", "end": "00:15",
+                                 "price_eur_mwh": 80.0, "price_czk_kwh": 2.0,
+                                 "price_total_czk_kwh": 2.0}]})
+
+    moment = datetime(2026, 8, 19, 9, 0)
+    with patch("hec.readers.ote.now_local", return_value=moment):
+        reader.schedule_next(1000.0)
+    assert reader._next_at == 1000.0 + reader.backoff_seconds()
+
+
+def test_ote_cache_ignores_a_file_written_by_the_legacy_prototype_reader(tmp_path):
+    """data/ote-*.json je sdílený formát se zmrazeným ote_reader.py v kořeni,
+    který CZK ceny nedopočítává – takový soubor nesmí projít jako platná cache,
+    jinak by na něm read() spadl na chybějícím price_total_czk_kwh."""
+    config = make_config(tmp_path, ote={"fetch_rate_from_cnb": False, "eur_czk_rate": 25.0,
+                                        "vat_rate": 0.0})
+    legacy_payload = {"date": "2026-08-19", "market": "OTE day-ahead market",
+                      "resolution": "PT15M", "currency": "EUR/MWh", "source": "legacy",
+                      "fetched_at": "2026-08-19T10:00:00+02:00", "period_count": 1,
+                      "min_price_eur_mwh": 100.0, "max_price_eur_mwh": 100.0,
+                      "avg_price_eur_mwh": 100.0,
+                      "periods": [{"period": 1, "start": "00:00", "end": "00:15",
+                                  "price_eur_mwh": 100.0}]}          # bez CZK polí
+    (config.data_dir / "ote-2026-08-19.json").write_text(json.dumps(legacy_payload), encoding="utf-8")
+    session = FakeSession({"ote-cr.cz": FakeResponse(OTE_PAGE)})
+    reader = OteReader(config, session=session)
+
+    payload = reader.load_or_fetch_day(date(2026, 8, 19))
+
+    assert payload["periods"][0]["price_total_czk_kwh"] is not None
+    assert any(method == "GET" for method, _ in session.calls)   # skutečně došlo k re-fetchi
 
 
 # --- TNG -------------------------------------------------------------------

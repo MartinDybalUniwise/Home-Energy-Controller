@@ -100,7 +100,7 @@ SCHEMA: dict[str, Any] = {
         "tng_seconds": F("int", 300, minimum=30, maximum=3600),
         "shelly_seconds": F("int", 10, minimum=2, maximum=3600),
         "weather_minutes": F("int", 15, minimum=5, maximum=180),
-        "ote_minutes": F("int", 60, minimum=15, maximum=1440),
+        "ote_minutes": F("int", 240, minimum=15, maximum=1440),
     },
     "goodwe": {
         "enabled": F("bool", False),
