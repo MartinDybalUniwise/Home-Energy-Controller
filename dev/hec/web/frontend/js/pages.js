@@ -119,10 +119,22 @@ function isDaytime(stamp, weather) {
   return stamp >= sunrise && stamp <= sunset;
 }
 
+/** Cenová perioda pro daný okamžik – OTE vrací zvlášť dnešek a zítřek, takže
+ * se nejdřív vybere správný den a teprve v něm 15minutová perioda. */
+function periodFor(stamp, prices) {
+  const dateKey = localDateKey(stamp);
+  const day = [prices?.today, prices?.tomorrow].find((candidate) => candidate?.date === dateKey);
+  const clock = `${String(stamp.getHours()).padStart(2, '0')}:00`;
+  return (day?.periods || []).find((p) => p.start <= clock && p.end > clock) || null;
+}
+
 function renderStripe(container, { goodwe, weather, prices, ote }) {
-  const hours = (weather?.forecast_hourly || []).slice(0, 7);
+  // Žádné oříznutí na pár hodin – kolik dopředu je vidět, určuje jen to, kolik
+  // dat mají zdroje (weather.forecast_days, OTE dnešek+zítřek); posun je na
+  // uživateli přes vodorovné scrollování pruhu (viz .stripe v app.css).
+  const hours = weather?.forecast_hourly || [];
   const current = weather?.current || {};
-  const periods = prices?.today?.periods || [];
+  const todayKey = localDateKey(new Date());
 
   const first = `<div class="col">
       <div class="col-label">${t('overview.now')} · ${time(new Date())}</div>
@@ -138,10 +150,13 @@ function renderStripe(container, { goodwe, weather, prices, ote }) {
 
   const columns = hours.map((hour) => {
     const stamp = new Date(hour.time);
-    const period = periods.find((p) => p.start <= String(stamp.getHours()).padStart(2, '0') + ':00'
-      && p.end > String(stamp.getHours()).padStart(2, '0') + ':00');
+    const period = periodFor(stamp, prices);
+    // Jakmile sloupec patří jinému dni než dnešku, přidá se zkratka dne v
+    // týdnu – jinak by se ve stovce hodin ztratilo, kde jeden den končí.
+    const label = localDateKey(stamp) === todayKey ? time(stamp)
+      : time(stamp, { weekday: 'short', hour: '2-digit', minute: '2-digit' });
     return `<div class="col">
-        <div class="col-label">${time(stamp)}</div>
+        <div class="col-label">${label}</div>
         ${weatherIcon(hour.condition, isDaytime(stamp, weather))}
         <span class="value">${num(hour.temp_c, 0)}<span class="unit">°C</span></span>
         <div class="value alt">${period ? num(period.price_total_czk_kwh, 2) : '–'}</div>
