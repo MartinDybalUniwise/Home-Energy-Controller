@@ -406,7 +406,14 @@
     "wind": "Vítr",
     "precipitation": "Srážky",
     "humidity": "Vlhkost",
-    "cloud_cover": "Oblačnost"
+    "cloud_cover": "Oblačnost",
+    "forecast_title": "Předpověď po dnech",
+    "part_morning": "Ráno",
+    "part_forenoon": "Dopoledne",
+    "part_noon": "Poledne",
+    "part_afternoon": "Odpoledne",
+    "part_evening": "Večer",
+    "part_night": "Noc"
   },
   "login": {
     "title": "Přihlášení",
