@@ -25,7 +25,8 @@
     "tng_seconds": 300,
     "shelly_seconds": 10,
     "weather_minutes": 15,
-    "ote_minutes": 240
+    "ote_minutes": 240,
+    "sharing_hours": 24
   },
   "goodwe": {
     "enabled": false,
@@ -336,7 +337,8 @@
   "sharing": {
     "enabled": false,
     "producer_ean": "",
-    "consumers": []
+    "consumers": [],
+    "import_path": ""
   },
   "forecast": {
     "enabled": true,

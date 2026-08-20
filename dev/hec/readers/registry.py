@@ -10,6 +10,7 @@ from ..core.logging_setup import get_logger
 from .base import BaseReader
 from .goodwe import GoodWeReader
 from .ote import OteReader
+from .sharing_reader import SharingReader
 from .shelly import ShellyReader
 from .tng import TngReader
 from .weather import WeatherReader
@@ -20,6 +21,7 @@ READER_CLASSES: dict[str, type[BaseReader]] = {
     "ote": OteReader,
     "weather": WeatherReader,
     "shelly": ShellyReader,
+    "sharing": SharingReader,
 }
 
 

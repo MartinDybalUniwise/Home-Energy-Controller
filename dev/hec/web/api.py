@@ -14,6 +14,8 @@ from ..core import config as config_mod
 from ..core import i18n
 from ..core import schema as schema_mod
 from ..core.timeutil import now_local, parse_iso, to_iso
+from ..forecast.household_consumption_forecast import forecast_household_consumption
+from ..forecast.pv_forecast import forecast_pv
 from ..storage.base import read_json
 from ..storage.series import downsample, series_fields
 
@@ -134,7 +136,15 @@ def prediction(app) -> tuple[int, dict]:
     predictor = getattr(app, "predictor", None)
     if predictor is None:
         return 200, {"available": False, "reason_key": "prediction.not_enough_data"}
-    return 200, predictor.forecast()
+    forecast = predictor.forecast()
+    # dev/step09 fáze B: nový sjednocený tvar (value/range/confidence/...)
+    # vedle starých plochých polí – frontend na Predikci se nemění, jde jen
+    # o přípravu na sdílení a další zdroje predikcí (fáze D+).
+    generated_at = forecast.get("generated_at")
+    for day in forecast.get("days", []):
+        day["forecast_pv"] = forecast_pv(day, generated_at).to_dict()
+        day["forecast_consumption"] = forecast_household_consumption(day, generated_at).to_dict()
+    return 200, forecast
 
 
 def summaries(app, params: dict) -> tuple[int, dict]:

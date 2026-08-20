@@ -20,7 +20,7 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | `step06/` | Predikce (M4) | ✅ hotovo |
 | `step07/` | Řízená optimalizace (M5) | ✅ hotovo |
 | `step08/` | Produktizace (M6) | ✅ hotovo |
-| `step09/` | Rozšíření: sdílení energie (EDC), predikce, externí měření – plán a fáze A | 🚧 plán hotov, fáze A ve vývoji |
+| `step09/` | Rozšíření: sdílení energie (EDC/GoEnergy), predikce, externí měření – plán a fáze A–D | 🚧 fáze A–D hotovo, E–G navrženo |
 
 Další kroky se doplňují sem, jakmile vzniknou.
 
