@@ -125,6 +125,19 @@ def test_shelly_reports_appliance_type_for_the_flow_diagram(tmp_path):
     assert values["devices"]["mycka"]["appliance_type"] == "dishwasher"
 
 
+def test_shelly_heatpump_power_is_unmeasured_without_a_heatpump_meter(tmp_path):
+    """Bez nakonfigurovaného Pro 3EM na TČ nesmí příkon TČ vypadat jako naměřená nula."""
+    config = make_config(tmp_path, shelly={"enabled": True, "devices": [
+        {"name": "Myčka", "host": "10.0.0.5", "role": "appliance", "generation": 2,
+         "channel": 0, "enabled": True}]})
+    session = FakeSession({"10.0.0.5": FakeResponse(payload=GEN2_SWITCH)})
+
+    values = ShellyReader(config, session=session).read()
+
+    assert values["heatpump_power_w"] is None
+    assert values["appliances_power_w"] == 2100.5
+
+
 def test_shelly_history_splits_devices_into_own_series(tmp_path):
     config = make_config(tmp_path, shelly={"enabled": True, "devices": [
         {"name": "Myčka", "host": "10.0.0.5", "role": "appliance", "generation": 2,
