@@ -164,9 +164,9 @@ function renderForecastBlocks(container, weather) {
     return;
   }
 
-  container.innerHTML = [...days.entries()].map(([dayKey, parts]) => `
-    <div class="forecast-day">
-      <h4>${weekday(new Date(`${dayKey}T00:00:00`))}, ${time(`${dayKey}T00:00:00`, { day: '2-digit', month: '2-digit' })}</h4>
+  container.innerHTML = `<div class="forecast-days">${[...days.entries()].map(([dayKey, parts]) => `
+    <div class="card">
+      <div class="card-header">${weekday(new Date(`${dayKey}T00:00:00`))}, ${time(`${dayKey}T00:00:00`, { day: '2-digit', month: '2-digit' })}</div>
       <div class="daypart-row">
         ${DAYPARTS.filter((entry) => parts.has(entry.key)).map((entry) => {
           const rows = parts.get(entry.key);
@@ -180,7 +180,8 @@ function renderForecastBlocks(container, weather) {
               <button type="button" class="daypart-toggle" aria-expanded="false" aria-controls="${blockId}">
                 <span class="col-label">${t(`weather.part_${entry.key}`)}</span>
                 ${weatherIcon(middle.condition, isDaytime(middle.stamp, weather))}
-                <span class="value alt">${range}<span class="unit">°C</span></span>
+                <span class="value">${range}<span class="unit">°C</span></span>
+                <span class="daypart-chevron" aria-hidden="true"></span>
               </button>
               <div class="daypart-hours" id="${blockId}" hidden>
                 ${rows.map((row) => `
@@ -193,7 +194,7 @@ function renderForecastBlocks(container, weather) {
             </div>`;
         }).join('')}
       </div>
-    </div>`).join('');
+    </div>`).join('')}</div>`;
 
   container.querySelectorAll('.daypart-toggle').forEach((button) => {
     button.addEventListener('click', () => {
