@@ -25,7 +25,7 @@
     "tng_seconds": 300,
     "shelly_seconds": 10,
     "weather_minutes": 15,
-    "ote_minutes": 60
+    "ote_minutes": 240
   },
   "goodwe": {
     "enabled": false,

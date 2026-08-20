@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+from datetime import date, datetime
+from unittest.mock import patch
 
 from conftest import FakeResponse, FakeSession
 from hec.core import config as config_mod
@@ -91,6 +93,74 @@ def test_read_writes_day_file_in_the_documented_shape(tmp_path):
     assert values["price_total_czk_kwh"] is not None
 
 
+def test_read_does_not_refetch_a_day_that_is_already_cached_on_disk(tmp_path):
+    """Jednou zveřejněná cena se nemění – opakované čtení nemá zatěžovat OTE."""
+    config = make_config(tmp_path, ote={"fetch_rate_from_cnb": False, "eur_czk_rate": 25.0,
+                                        "vat_rate": 0.0})
+    session = FakeSession({"ote-cr.cz": FakeResponse(OTE_PAGE)})
+    reader = OteReader(config, session=session)
+
+    reader.read()
+    session.routes.clear()                                # žádný další požadavek nesmí projít
+
+    reader.read()                                         # nespadne, i když network zmizel
+
+
+def test_ote_schedule_next_wakes_near_the_publish_window_when_tomorrow_is_missing(tmp_path):
+    """D+1 se zveřejňuje po uzávěrce aukce ve 12:00 (kolem 13:00-13:30) –
+    dokud zítřejší den nemáme, probudit se blízko tohoto okna dává smysl
+    místo čekání na celý (několikahodinový) polling interval."""
+    config = make_config(tmp_path)
+    reader = OteReader(config, session=FakeSession({}))
+
+    # Blíž k oknu než k celému (výchozímu 4h) intervalu, aby hranice vyhrála.
+    moment = datetime(2026, 8, 19, 12, 0)
+    boundary = reader._next_publish_boundary_seconds(moment)
+    assert boundary == 3600 + 15 * 60                      # 13:15 je za 1h15m
+
+    monotonic_now = 1000.0
+    with patch("hec.readers.ote.now_local", return_value=moment):
+        reader.schedule_next(monotonic_now)
+    assert reader._next_at == monotonic_now + boundary
+
+
+def test_ote_schedule_next_ignores_publish_window_once_tomorrow_is_cached(tmp_path):
+    config = make_config(tmp_path)
+    reader = OteReader(config, session=FakeSession({}))
+    reader.save_day({"date": "2026-08-20",
+                     "periods": [{"period": 1, "start": "00:00", "end": "00:15",
+                                 "price_eur_mwh": 80.0, "price_czk_kwh": 2.0,
+                                 "price_total_czk_kwh": 2.0}]})
+
+    moment = datetime(2026, 8, 19, 9, 0)
+    with patch("hec.readers.ote.now_local", return_value=moment):
+        reader.schedule_next(1000.0)
+    assert reader._next_at == 1000.0 + reader.backoff_seconds()
+
+
+def test_ote_cache_ignores_a_file_written_by_the_legacy_prototype_reader(tmp_path):
+    """data/ote-*.json je sdílený formát se zmrazeným ote_reader.py v kořeni,
+    který CZK ceny nedopočítává – takový soubor nesmí projít jako platná cache,
+    jinak by na něm read() spadl na chybějícím price_total_czk_kwh."""
+    config = make_config(tmp_path, ote={"fetch_rate_from_cnb": False, "eur_czk_rate": 25.0,
+                                        "vat_rate": 0.0})
+    legacy_payload = {"date": "2026-08-19", "market": "OTE day-ahead market",
+                      "resolution": "PT15M", "currency": "EUR/MWh", "source": "legacy",
+                      "fetched_at": "2026-08-19T10:00:00+02:00", "period_count": 1,
+                      "min_price_eur_mwh": 100.0, "max_price_eur_mwh": 100.0,
+                      "avg_price_eur_mwh": 100.0,
+                      "periods": [{"period": 1, "start": "00:00", "end": "00:15",
+                                  "price_eur_mwh": 100.0}]}          # bez CZK polí
+    (config.data_dir / "ote-2026-08-19.json").write_text(json.dumps(legacy_payload), encoding="utf-8")
+    session = FakeSession({"ote-cr.cz": FakeResponse(OTE_PAGE)})
+    reader = OteReader(config, session=session)
+
+    payload = reader.load_or_fetch_day(date(2026, 8, 19))
+
+    assert payload["periods"][0]["price_total_czk_kwh"] is not None
+    assert any(method == "GET" for method, _ in session.calls)   # skutečně došlo k re-fetchi
+
+
 # --- TNG -------------------------------------------------------------------
 
 def build_tng(tmp_path, tng_connect, **overrides):
@@ -171,8 +241,61 @@ def test_tng_gate_state_survives_restart(tmp_path, tng_connect):
     assert fresh.can_post("basic", False)[0] is False
 
 
+def test_tng_post_failure_does_not_discard_already_fetched_telemetry(tmp_path, tng_connect):
+    """POST selže (non-204) -> telemetrie z read_state() se přesto uloží do historie."""
+    config = make_config(tmp_path, tng={
+        "enabled": True, "write_enabled": True,
+        "boiler": {"enabled": True, "default_temperature": 48, "schedule": []}})
+    session = FakeSession({
+        "MyThermostat": FakeResponse(THERMOSTAT_HTML),
+        "MyInstallations": FakeResponse(INSTALLATIONS_HTML),
+        "HeatPumpData": FakeResponse(payload=TELEMETRY),
+        "Pages/Login": FakeResponse("<html></html>"),
+        "api/HeatPumpInsertBasicSettings": FakeResponse("", status_code=500),
+    })
+    reader = TngReader(config, session=session, connect=tng_connect)
+
+    sample = reader.poll()
+
+    assert sample.ok is True
+    assert reader._telemetry_records
+    assert reader.telemetry_state["last_sample_time"] == "2026-08-19T10:51:23Z"
+    # Gate nesmí být označen jako čekající na potvrzení – POST vlastně neprošel.
+    assert reader.change_gate["basic"]["awaiting_confirmation"] is False
+
+
+def test_tng_schedule_next_wakes_at_the_next_schedule_boundary(tmp_path, tng_connect):
+    """Se zapnutým zápisem se reader probudí přesně na hranici rozvrhu, ne až po
+    plném pollingovém intervalu – jinak by změna čekala zbytečně dlouho."""
+    config = make_config(tmp_path, tng={
+        "enabled": True, "write_enabled": True,
+        "boiler": {"enabled": True, "default_temperature": 48,
+                   "schedule": [{"from": "22:00", "to": "06:00", "temperature": 51}]}})
+    reader = TngReader(config, session=FakeSession({}), connect=tng_connect)
+
+    moment = datetime(2026, 8, 19, 21, 55)
+    boundary = reader._next_boundary_seconds(moment)
+    assert boundary == 5 * 60                              # 22:00 je za 5 minut
+
+    monotonic_now = 1000.0
+    with patch("hec.readers.tng.now_local", return_value=moment.astimezone()):
+        reader.schedule_next(monotonic_now)
+    assert reader._next_at == monotonic_now + 5 * 60
+
+
+def test_tng_schedule_next_ignores_boundaries_when_write_disabled(tmp_path, tng_connect):
+    config = make_config(tmp_path, tng={
+        "enabled": True, "write_enabled": False,
+        "boiler": {"enabled": True, "default_temperature": 48,
+                   "schedule": [{"from": "22:00", "to": "06:00", "temperature": 51}]}})
+    reader = TngReader(config, session=FakeSession({}), connect=tng_connect)
+
+    monotonic_now = 1000.0
+    reader.schedule_next(monotonic_now)
+    assert reader._next_at == monotonic_now + reader.backoff_seconds()
+
+
 def test_scheduled_value_helper_matches_prototype():
-    from datetime import datetime
     section = {"default_temperature": 45, "schedule": [
         {"from": "22:00", "to": "06:00", "temperature": 51}]}
     assert scheduled_value(section, datetime(2026, 8, 19, 23, 0)) == 51

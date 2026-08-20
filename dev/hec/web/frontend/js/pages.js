@@ -79,7 +79,7 @@ export async function overview(view, { api, motion }) {
 
   renderStripe(view.querySelector('#stripe'), { goodwe, weather, prices, ote });
   renderForecastBlocks(view.querySelector('#forecast-blocks'), weather);
-  renderFlow(view.querySelector('#flow'), { ...goodwe, heatpump_power_w: heatpumpW }, t, motion);
+  renderFlow(view.querySelector('#flow'), { ...goodwe, heatpump_power_w: heatpumpW, devices: shelly.devices }, t, motion);
 
   const tiles = [
     card('entity.battery_soc', `<span class="value">${num(goodwe.battery_soc, 0)}<span class="unit">%</span></span>`),
@@ -204,10 +204,22 @@ function renderForecastBlocks(container, weather) {
   });
 }
 
+/** Cenová perioda pro daný okamžik – OTE vrací zvlášť dnešek a zítřek, takže
+ * se nejdřív vybere správný den a teprve v něm 15minutová perioda. */
+function periodFor(stamp, prices) {
+  const dateKey = localDateKey(stamp);
+  const day = [prices?.today, prices?.tomorrow].find((candidate) => candidate?.date === dateKey);
+  const clock = `${String(stamp.getHours()).padStart(2, '0')}:00`;
+  return (day?.periods || []).find((p) => p.start <= clock && p.end > clock) || null;
+}
+
 function renderStripe(container, { goodwe, weather, prices, ote }) {
-  const hours = (weather?.forecast_hourly || []).slice(0, 7);
+  // Žádné oříznutí na pár hodin – kolik dopředu je vidět, určuje jen to, kolik
+  // dat mají zdroje (weather.forecast_days, OTE dnešek+zítřek); posun je na
+  // uživateli přes vodorovné scrollování pruhu (viz .stripe v app.css).
+  const hours = weather?.forecast_hourly || [];
   const current = weather?.current || {};
-  const periods = prices?.today?.periods || [];
+  const todayKey = localDateKey(new Date());
 
   const first = `<div class="col">
       <div class="col-label">${t('overview.now')} · ${time(new Date())}</div>
@@ -223,10 +235,13 @@ function renderStripe(container, { goodwe, weather, prices, ote }) {
 
   const columns = hours.map((hour) => {
     const stamp = new Date(hour.time);
-    const period = periods.find((p) => p.start <= String(stamp.getHours()).padStart(2, '0') + ':00'
-      && p.end > String(stamp.getHours()).padStart(2, '0') + ':00');
+    const period = periodFor(stamp, prices);
+    // Jakmile sloupec patří jinému dni než dnešku, přidá se zkratka dne v
+    // týdnu – jinak by se ve stovce hodin ztratilo, kde jeden den končí.
+    const label = localDateKey(stamp) === todayKey ? time(stamp)
+      : time(stamp, { weekday: 'short', hour: '2-digit', minute: '2-digit' });
     return `<div class="col">
-        <div class="col-label">${time(stamp)}</div>
+        <div class="col-label">${label}</div>
         ${weatherIcon(hour.condition, isDaytime(stamp, weather))}
         <span class="value">${num(hour.temp_c, 0)}<span class="unit">°C</span></span>
         <div class="value alt">${period ? num(period.price_total_czk_kwh, 2) : '–'}</div>
@@ -432,22 +447,49 @@ const SECTION_LABELS = {
   web: 'settings.web', ui: 'settings.ui',
 };
 
+// Vnořené bloky uvnitř jedné sekce (např. tng.boiler.*) dostanou vlastní
+// podnadpis, aby se od plochých polí sekce (tng.write_enabled apod.) opticky
+// oddělily – jinak by rozvrh ohřevu, topení a termostatu splynul do jednoho
+// nepřehledného seznamu.
+const SUBGROUP_LABELS = {
+  'tng.boiler': 'settings.tng_boiler', 'tng.heating': 'settings.tng_heating',
+  'tng.thermostat': 'settings.tng_thermostat',
+  'controller.comfort': 'settings.comfort', 'controller.optimization': 'settings.optimization',
+};
+
+// Čistě interní pole, která uživatel nikdy nemá důvod měnit ručně.
+const HIDDEN_FIELDS = new Set(['system.config_version']);
+
+function groupFields(fields) {
+  const groups = {};
+  fields
+    .filter((field) => !['list', 'dict'].includes(field.kind))
+    .filter((field) => !HIDDEN_FIELDS.has(field.path))
+    .forEach((field) => {
+      const parts = field.path.split('.');
+      const group = (groups[parts[0]] ||= { direct: [], subs: {} });
+      if (parts.length > 2) (group.subs[parts[1]] ||= []).push(field);
+      else group.direct.push(field);
+    });
+  return groups;
+}
+
 export async function settings(view, { api, onUiChange }) {
   const [{ config }, { fields }] = await Promise.all([api.config(), api.configSchema()]);
-
-  const groups = {};
-  fields.filter((field) => !['list', 'dict'].includes(field.kind)).forEach((field) => {
-    const section = field.path.split('.')[0];
-    (groups[section] ||= []).push(field);
-  });
+  const groups = groupFields(fields);
 
   view.innerHTML = `<div><span class="section-tab">${t('settings.title')}</span>
     <section class="panel">
       <form id="settings-form">
-        ${Object.entries(groups).map(([section, list]) => `
+        ${Object.entries(groups).map(([section, group]) => `
           <div class="settings-group">
             <h3>${t(SECTION_LABELS[section] || section)}</h3>
-            ${list.map((field) => fieldRow(field, valueAt(config, field.path))).join('')}
+            ${group.direct.map((field) => fieldRow(field, valueAt(config, field.path))).join('')}
+            ${Object.entries(group.subs).map(([sub, list]) => `
+              <div class="settings-subgroup">
+                <h4>${t(SUBGROUP_LABELS[`${section}.${sub}`] || sub)}</h4>
+                ${list.map((field) => fieldRow(field, valueAt(config, field.path))).join('')}
+              </div>`).join('')}
           </div>`).join('')}
         <div class="controls">
           <button type="submit">${t('settings.save')}</button>
@@ -477,7 +519,15 @@ export async function settings(view, { api, onUiChange }) {
 
 function fieldRow(field, value) {
   const id = `f_${field.path.replace(/\./g, '_')}`;
-  const label = field.path.split('.').slice(1).join('.');
+  const labelKey = `settings.field.${field.path}`;
+  const helpKey = `settings.help.${field.path}`;
+  // t() echoes back an unknown key verbatim – fall back to the raw config
+  // path rather than show a translation key like "settings.field.x.y" in
+  // the UI if a field is ever added to the schema without a translation.
+  const translatedLabel = t(labelKey);
+  const label = translatedLabel === labelKey ? field.path.split('.').slice(1).join('.') : translatedLabel;
+  const translatedHelp = t(helpKey);
+  const help = translatedHelp === helpKey ? '' : `<p class="field-help">${translatedHelp}</p>`;
   let input;
   if (field.kind === 'bool') {
     input = `<input id="${id}" data-path="${field.path}" type="checkbox"${value ? ' checked' : ''}>`;
@@ -492,7 +542,7 @@ function fieldRow(field, value) {
     input = `<input id="${id}" data-path="${field.path}" type="${field.secret ? 'password' : 'text'}" value="${value ?? ''}">`;
   }
   const hint = field.restart ? `<span class="hint">${t('settings.restart_required')}</span>` : '';
-  return `<div class="field"><label for="${id}">${label}</label>${input}${hint}</div>`;
+  return `<div class="field"><label for="${id}">${label}</label>${input}${hint}${help}</div>`;
 }
 
 function readInput(input, field) {

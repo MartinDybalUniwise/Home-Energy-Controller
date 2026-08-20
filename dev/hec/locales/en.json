@@ -47,7 +47,12 @@
     "outside": "Outdoor temperature",
     "room": "Room temperature",
     "water_out": "Flow temperature",
-    "weather": "Weather"
+    "weather": "Weather",
+    "dishwasher": "Dishwasher",
+    "washing_machine": "Washing machine",
+    "dryer": "Dryer",
+    "fridge": "Fridge",
+    "other_appliances": "Other"
   },
   "overview": {
     "title": "Current state",
@@ -129,7 +134,224 @@
     "theme": "Theme",
     "theme_auto": "System",
     "theme_dark": "Dark",
-    "theme_light": "Light"
+    "theme_light": "Light",
+    "tng_boiler": "Hot water",
+    "tng_heating": "Heating",
+    "tng_thermostat": "Thermostat",
+    "field": {
+      "system": {
+        "site_name": "System name",
+        "timezone": "Time zone",
+        "latitude": "Latitude",
+        "longitude": "Longitude"
+      },
+      "storage": {
+        "data_path": "Data folder",
+        "logs_path": "Log folder",
+        "history_path": "History folder",
+        "archive_path": "Archive folder",
+        "archive_after_days": "Archive after (days)",
+        "compress_archive": "Compress archive",
+        "archive_check_hours": "Archive check interval (hours)"
+      },
+      "logging": {
+        "level": "Log level",
+        "max_bytes": "Max log file size (bytes)",
+        "backups": "Log backups to keep"
+      },
+      "polling": {
+        "goodwe_seconds": "Poll interval: solar/battery (s)",
+        "tng_seconds": "Poll interval: heat pump (s)",
+        "shelly_seconds": "Poll interval: Shelly (s)",
+        "weather_minutes": "Poll interval: weather (min)",
+        "ote_minutes": "Poll interval: electricity prices (min)"
+      },
+      "goodwe": {
+        "enabled": "Enabled",
+        "host": "Inverter address",
+        "family": "Inverter family",
+        "timeout": "Timeout (s)",
+        "retries": "Retries",
+        "grid_positive_is_import": "Positive value = grid import",
+        "battery_positive_is_charge": "Positive value = battery charging"
+      },
+      "tng": {
+        "enabled": "Enabled",
+        "connect_file": "Credentials file",
+        "request_timeout_seconds": "Request timeout (s)",
+        "minimum_change_interval_seconds": "Minimum gap between writes (s)",
+        "telemetry_bootstrap_seconds": "History window on first start (s)",
+        "telemetry_overlap_seconds": "Telemetry catch-up overlap (s)",
+        "write_enabled": "Allow writing to the heat pump",
+        "heating": { "enabled": "Control heating", "default_temperature": "Default heating temperature (°C)" },
+        "boiler": { "enabled": "Control hot water", "default_temperature": "Default hot water temperature (°C)" },
+        "thermostat": { "enabled": "Control thermostat", "default_temperature": "Default room temperature (°C)" }
+      },
+      "ote": {
+        "enabled": "Enabled",
+        "eur_czk_rate": "EUR/CZK rate (fallback)",
+        "fetch_rate_from_cnb": "Fetch rate from the Czech National Bank",
+        "distribution_czk_kwh": "Distribution fee (CZK/kWh)",
+        "fees_czk_kwh": "Other fees (CZK/kWh)",
+        "vat_rate": "VAT rate",
+        "export_price_czk_kwh": "Export price (CZK/kWh)"
+      },
+      "weather": {
+        "enabled": "Enabled",
+        "forecast_days": "Forecast length (days)",
+        "location_name": "Location name"
+      },
+      "shelly": {
+        "enabled": "Enabled",
+        "request_timeout_seconds": "Request timeout (s)"
+      },
+      "controller": {
+        "enabled": "Enabled",
+        "max_data_age_seconds": "Max data age (s)",
+        "decision_interval_seconds": "Decision interval (s)",
+        "comfort": {
+          "room_min_c": "Minimum room temperature (°C)",
+          "room_max_c": "Maximum room temperature (°C)",
+          "dhw_min_c": "Minimum hot water temperature (°C)",
+          "dhw_max_c": "Maximum hot water temperature (°C)",
+          "max_preheat_k": "Max preheat above target (K)",
+          "quiet_hours_from": "Quiet hours from",
+          "quiet_hours_to": "Quiet hours to"
+        },
+        "optimization": {
+          "aggressiveness": "Optimization aggressiveness",
+          "pv_surplus_kw": "Solar surplus threshold (kW)",
+          "battery_soc_min_pct": "Minimum battery charge (%)",
+          "cheap_price_percentile": "Cheap price threshold (percentile)",
+          "expensive_price_percentile": "Expensive price threshold (percentile)"
+        }
+      },
+      "prediction": {
+        "enabled": "Enabled",
+        "pv_peak_kwp": "Solar peak power (kWp)",
+        "learning_days": "Learning window (days)",
+        "battery_capacity_kwh": "Battery capacity (kWh)"
+      },
+      "web": {
+        "host": "Interface address",
+        "port": "Port",
+        "password": "Password"
+      },
+      "ui": {
+        "language": "Language",
+        "animations": "Animations",
+        "theme": "Theme",
+        "currency": "Currency",
+        "brand_accent": "Accent color"
+      }
+    },
+    "help": {
+      "system": {
+        "site_name": "The name shown in the app header.",
+        "timezone": "Used for heat pump scheduling, price windows and displayed times. Requires a restart.",
+        "latitude": "The home's exact location - drives the weather forecast and the sun position used to estimate solar output. Different from \"Location name\" under Weather, which is just a display label.",
+        "longitude": "Together with latitude, sets the home's exact location for the weather forecast and solar output estimate."
+      },
+      "storage": {
+        "data_path": "Where current readings from every source are stored. A relative path is resolved against the install directory.",
+        "logs_path": "Where the application's runtime logs are written.",
+        "history_path": "Where time-series records are stored for charts and analysis.",
+        "archive_path": "Where older history is moved once it passes the age below. Leave empty to disable archiving.",
+        "archive_after_days": "How many days of history to keep before archiving.",
+        "compress_archive": "Archived files are stored compressed to save disk space.",
+        "archive_check_hours": "How often to check whether anything needs archiving."
+      },
+      "logging": {
+        "level": "How much detail is written to the log. DEBUG is most detailed, ERROR logs only failures.",
+        "max_bytes": "The log file rotates once it reaches this size.",
+        "backups": "How many rotated log files to keep."
+      },
+      "polling": {
+        "goodwe_seconds": "How often current power and battery status are read from the GoodWe inverter.",
+        "tng_seconds": "How often the heat pump's status is checked. Unrelated to the minimum gap between writes - see the Heat pump section.",
+        "shelly_seconds": "How often readings are pulled from Shelly devices.",
+        "weather_minutes": "How often the weather forecast is refreshed.",
+        "ote_minutes": "How often new electricity prices are checked. A published day's price never changes, so frequent polling isn't needed."
+      },
+      "goodwe": {
+        "enabled": "Read data from the GoodWe inverter.",
+        "host": "IP address or hostname of the GoodWe inverter on the local network.",
+        "family": "GoodWe inverter model family - affects how data is read.",
+        "timeout": "How long to wait for the inverter to respond before giving up.",
+        "retries": "How many times to retry a failed read before reporting an error.",
+        "grid_positive_is_import": "The sign convention for grid flow differs by installation - this sets how it's interpreted.",
+        "battery_positive_is_charge": "The sign convention for battery flow differs by installation - this sets how it's interpreted."
+      },
+      "tng": {
+        "enabled": "Read the TNG heat pump's status.",
+        "connect_file": "Path to the file holding the TNG login credentials. Secrets are never stored in the config or in git.",
+        "request_timeout_seconds": "How long to wait for the TNG server to respond.",
+        "minimum_change_interval_seconds": "Heat pump protection - the system won't allow two setting writes closer together than this. Do not lower without understanding the consequences.",
+        "telemetry_bootstrap_seconds": "How far back to backfill telemetry on first start, before local history exists.",
+        "telemetry_overlap_seconds": "A small safety overlap when resuming from the last fetched sample, so nothing is missed.",
+        "write_enabled": "Without this, the system only logs what it would send but never actually writes anything.",
+        "heating": { "enabled": "Enables automatic heating water temperature control from the schedule.", "default_temperature": "Used outside the schedule's time windows." },
+        "boiler": { "enabled": "Enables automatic hot water temperature control from the schedule.", "default_temperature": "Used outside the schedule's time windows." },
+        "thermostat": { "enabled": "Enables automatic room thermostat control from the schedule.", "default_temperature": "Used outside the schedule's time windows." }
+      },
+      "ote": {
+        "enabled": "Fetch day-ahead electricity prices from OTE.",
+        "eur_czk_rate": "Used only when the current rate can't be fetched from the Czech National Bank.",
+        "fetch_rate_from_cnb": "Turning this off always uses the fallback rate above.",
+        "distribution_czk_kwh": "Added to the spot price when computing the final price.",
+        "fees_czk_kwh": "Additional fees added to the final price, e.g. system services.",
+        "vat_rate": "E.g. 0.21 for 21%. Applied when computing the final price.",
+        "export_price_czk_kwh": "The price paid for exported surplus electricity."
+      },
+      "weather": {
+        "enabled": "Fetch the weather forecast.",
+        "forecast_days": "How many days ahead the forecast covers.",
+        "location_name": "Just a display label shown in the app, e.g. \"Ostrava, CZ\". The forecast itself is computed from the GPS coordinates under General."
+      },
+      "shelly": {
+        "enabled": "Read data from Shelly devices on the local network.",
+        "request_timeout_seconds": "How long to wait for a single Shelly device to respond."
+      },
+      "controller": {
+        "enabled": "Enables automatic decision-making and optimization. Without it, the system only observes and recommends.",
+        "max_data_age_seconds": "If key data is older than this, optimization stops (safe mode) instead of guessing a value.",
+        "decision_interval_seconds": "How often the controller evaluates whether any action is needed.",
+        "comfort": {
+          "room_min_c": "Below this, comfort takes priority over savings.",
+          "room_max_c": "Above this, the system won't keep heating even at a cheap price.",
+          "dhw_min_c": "Below this, hot water heating takes priority over savings.",
+          "dhw_max_c": "The upper limit hot water is preheated to, even on a cheap price or solar surplus.",
+          "max_preheat_k": "How many degrees above the target the system may preheat to on a cheap price or solar surplus.",
+          "quiet_hours_from": "From this time, noisier actions (e.g. the boiler) are avoided.",
+          "quiet_hours_to": "The quiet-hours restriction lasts until this time."
+        },
+        "optimization": {
+          "aggressiveness": "How aggressively the system optimizes for savings at the expense of comfort margin.",
+          "pv_surplus_kw": "The surplus above consumption from which it's considered usable for preheating or charging.",
+          "battery_soc_min_pct": "Below this level, the battery isn't used for anything but backing up the house.",
+          "cheap_price_percentile": "Prices in this cheapest share of the day count as cheap - e.g. 0.25 means the cheapest quarter.",
+          "expensive_price_percentile": "Prices in this most expensive share of the day count as expensive."
+        }
+      },
+      "prediction": {
+        "enabled": "Learns consumption and production from history for the forecast page.",
+        "pv_peak_kwp": "Installed peak solar capacity - used to estimate production.",
+        "learning_days": "How many recent days of history the typical consumption/production pattern is learned from.",
+        "battery_capacity_kwh": "Total home battery capacity - used to estimate state of charge in the forecast."
+      },
+      "web": {
+        "host": "Which network address the web interface listens on. 0.0.0.0 means all of them.",
+        "port": "The web interface's port number (default 8080).",
+        "password": "Password for the web interface. Originally set via .env, changed here."
+      },
+      "ui": {
+        "language": "The user interface's language.",
+        "animations": "Amount of motion and transitions in the interface.",
+        "theme": "Light, dark, or follow the system setting.",
+        "currency": "The currency prices are displayed in.",
+        "brand_accent": "The interface's accent color (hex code, e.g. #4fb3ff)."
+      }
+    }
   },
   "status": {
     "title": "System status",
