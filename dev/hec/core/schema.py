@@ -107,6 +107,9 @@ SCHEMA: dict[str, Any] = {
         "shelly_seconds": F("int", 10, minimum=2, maximum=3600),
         "weather_minutes": F("int", 15, minimum=5, maximum=180),
         "ote_minutes": F("int", 240, minimum=15, maximum=1440),
+        # Sdílení se aktualizuje jednou měsíčně ručně staženým souborem
+        # (dev/step09/SHARING_IMPORT_FORMAT.md) – denní kontrola stačí.
+        "sharing_hours": F("int", 24, minimum=1, maximum=168),
     },
     "goodwe": {
         "enabled": F("bool", False),
@@ -205,6 +208,10 @@ SCHEMA: dict[str, Any] = {
         "enabled": F("bool", False),
         "producer_ean": F("str", ""),
         "consumers": F("list", [], item=SHARING_CONSUMER),
+        # Složka s měsíčními XLSX exporty vyúčtování sdílení (GoEnergy) –
+        # žádné živé API, uživatel soubor stahuje ručně (dev/step09/
+        # SHARING_IMPORT_FORMAT.md). Prázdné = reader se ani nespustí.
+        "import_path": F("str", "", restart=True),
     },
     "forecast": {
         "enabled": F("bool", True),
