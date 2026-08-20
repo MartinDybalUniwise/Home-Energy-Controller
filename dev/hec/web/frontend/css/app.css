@@ -236,9 +236,12 @@ table.data th:first-child, table.data td:first-child { text-align: left; }
 /* Nastavení */
 .settings-group { padding: 12px 16px; }
 .settings-group h3 { margin: 16px 0 8px; font-size: .9rem; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-secondary); }
-.field { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(140px, 220px); gap: 10px; align-items: center; padding: 5px 0; }
+.settings-subgroup { margin: 4px 0 12px; padding: 4px 0 4px 14px; border-left: 2px solid var(--divider); }
+.settings-subgroup h4 { margin: 10px 0 4px; font-size: .82rem; color: var(--ink-secondary); }
+.field { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(140px, 220px); gap: 4px 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--divider); }
 .field label { font-size: .9rem; }
 .field .hint { grid-column: 1 / -1; font-size: .76rem; color: var(--ink-muted); }
+.field .field-help { grid-column: 1 / -1; margin: 0; font-size: .8rem; color: var(--ink-secondary); }
 .field input, .field select { font: inherit; padding: 7px 10px; min-height: 40px; border-radius: var(--radius-card); border: 1px solid var(--panel-border); background: var(--panel-solid); color: var(--ink-primary); }
 .error { color: var(--state-critical); }
 .notice { padding: 10px 16px; color: var(--ink-secondary); }
