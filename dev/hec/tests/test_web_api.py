@@ -118,6 +118,47 @@ def test_prediction_is_optional_until_the_module_exists(tmp_path):
     assert status == 200 and payload["available"] is False
 
 
+def test_finance_dashboard_returns_kpi_payload(tmp_path):
+    app = FakeApp(tmp_path)
+    app.config.data["finance"]["enabled"] = True
+    app.storage.append("finance_transactions", {
+        "timestamp": to_iso(now_local()),
+        "transaction_date": to_iso(now_local()),
+        "transaction_type": "CAPEX",
+        "amount_total": 1000,
+    })
+    app.storage.append("finance_transactions", {
+        "timestamp": to_iso(now_local()),
+        "transaction_date": to_iso(now_local()),
+        "transaction_type": "SUBSIDY",
+        "amount_total": 250,
+    })
+
+    status, payload = api.finance_dashboard(app, {})
+    assert status == 200
+    assert payload["available"] is True
+    assert payload["kpi"]["gross_capex"] == 1000.0
+    assert payload["kpi"]["subsidies"] == 250.0
+    assert payload["monthly_net_costs"][-1]["amount"] == 750.0
+
+
+def test_finance_manual_returns_last_items(tmp_path):
+    app = FakeApp(tmp_path)
+    app.config.data["finance"]["enabled"] = True
+    app.storage.append("finance_manual", {
+        "timestamp": to_iso(now_local()),
+        "transaction_date": "2026-08-01",
+        "transaction_type": "SERVICE",
+        "amount_total": 1200,
+        "currency": "CZK",
+    })
+
+    status, payload = api.finance_manual(app, {"limit": "10"})
+    assert status == 200
+    assert payload["count"] == 1
+    assert payload["items"][0]["transaction_type"] == "SERVICE"
+
+
 def test_translations_serves_catalogs():
     status, payload = api.translations("cs")
     assert status == 200 and payload["catalog"]["nav"]["overview"] == "Přehled"

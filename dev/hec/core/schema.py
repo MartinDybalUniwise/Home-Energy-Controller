@@ -110,6 +110,8 @@ SCHEMA: dict[str, Any] = {
         # Sdílení se aktualizuje jednou měsíčně ručně staženým souborem
         # (dev/step09/SHARING_IMPORT_FORMAT.md) – denní kontrola stačí.
         "sharing_hours": F("int", 24, minimum=1, maximum=168),
+        # HEF import dokumentů běží typicky po hodině; měnit lze podle instalace.
+        "finance_document_reader_seconds": F("int", 3600, minimum=60, maximum=86400),
     },
     "goodwe": {
         "enabled": F("bool", False),
@@ -221,6 +223,21 @@ SCHEMA: dict[str, Any] = {
         # Reálná sazba závisí na smlouvě, kterou systém nezná - 0.0 je
         # přiznaná neznalost, ne odhad (viz EXTENSION_PLAN.md kap. 8).
         "sharing_value_czk_kwh": F("float", 0.0, minimum=0, maximum=20),
+    },
+    # dev/step10: HEF (Home Energy Finance) je oddělená analytická/finanční
+    # vrstva. Výchozí stav je bezpečný: modul je vypnutý, operational část
+    # (GoodWe/TNG/OTE/controller) běží beze změny.
+    "finance": {
+        "enabled": F("bool", False),
+        "documents": {
+            "enabled": F("bool", False),
+            "inbox_path": F("str", "data/finance/inbox", restart=True),
+        },
+        "settings": {
+            "opportunity_cost_rate": F("float", 0.04, minimum=0, maximum=1),
+            "inflation_rate": F("float", 0.02, minimum=0, maximum=1),
+            "default_currency": F("enum", "CZK", choices=("CZK", "EUR")),
+        },
     },
     "web": {
         "host": F("str", "0.0.0.0", restart=True),

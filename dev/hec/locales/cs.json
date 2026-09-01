@@ -15,7 +15,9 @@
     "settings": "Nastavení",
     "menu": "Menu",
     "status": "Stav",
-    "logs": "Data"
+    "logs": "Data",
+    "finance": "Finance",
+    "finance_manual": "Finance ručně"
   },
   "unit": {
     "w": "W",
@@ -183,9 +185,18 @@
         "telemetry_bootstrap_seconds": "Historie při prvním spuštění (s)",
         "telemetry_overlap_seconds": "Překryv při dotahování telemetrie (s)",
         "write_enabled": "Povolit zápis do tepelného čerpadla",
-        "heating": { "enabled": "Řídit topení", "default_temperature": "Výchozí teplota topení (°C)" },
-        "boiler": { "enabled": "Řídit ohřev teplé vody", "default_temperature": "Výchozí teplota TUV (°C)" },
-        "thermostat": { "enabled": "Řídit termostat", "default_temperature": "Výchozí teplota místnosti (°C)" }
+        "heating": {
+          "enabled": "Řídit topení",
+          "default_temperature": "Výchozí teplota topení (°C)"
+        },
+        "boiler": {
+          "enabled": "Řídit ohřev teplé vody",
+          "default_temperature": "Výchozí teplota TUV (°C)"
+        },
+        "thermostat": {
+          "enabled": "Řídit termostat",
+          "default_temperature": "Výchozí teplota místnosti (°C)"
+        }
       },
       "ote": {
         "enabled": "Zapnuto",
@@ -290,9 +301,18 @@
         "telemetry_bootstrap_seconds": "Jak daleko do minulosti se natáhne telemetrie při prvním spuštění, než je k dispozici vlastní historie.",
         "telemetry_overlap_seconds": "Malý bezpečnostní překryv při navazování na poslední načtený vzorek, aby se nic neztratilo.",
         "write_enabled": "Bez zapnutí systém jen loguje, co by odeslal, ale nic doopravdy nezapisuje.",
-        "heating": { "enabled": "Zapíná automatické řízení teploty topné vody podle rozvrhu.", "default_temperature": "Použije se mimo časová okna v rozvrhu." },
-        "boiler": { "enabled": "Zapíná automatické řízení teploty teplé vody podle rozvrhu.", "default_temperature": "Použije se mimo časová okna v rozvrhu." },
-        "thermostat": { "enabled": "Zapíná automatické řízení pokojového termostatu podle rozvrhu.", "default_temperature": "Použije se mimo časová okna v rozvrhu." }
+        "heating": {
+          "enabled": "Zapíná automatické řízení teploty topné vody podle rozvrhu.",
+          "default_temperature": "Použije se mimo časová okna v rozvrhu."
+        },
+        "boiler": {
+          "enabled": "Zapíná automatické řízení teploty teplé vody podle rozvrhu.",
+          "default_temperature": "Použije se mimo časová okna v rozvrhu."
+        },
+        "thermostat": {
+          "enabled": "Zapíná automatické řízení pokojového termostatu podle rozvrhu.",
+          "default_temperature": "Použije se mimo časová okna v rozvrhu."
+        }
       },
       "ote": {
         "enabled": "Stahování spotových cen elektřiny z OTE.",
@@ -453,5 +473,23 @@
     "source": "Zdroj dat",
     "day": "Den",
     "no_sources": "Zatím žádná historie k zobrazení"
+  },
+  "finance": {
+    "title": "Finance",
+    "kpi": {
+      "energy_costs_ytd": "Náklady energie YTD",
+      "energy_income_ytd": "Příjmy energie YTD",
+      "net_costs_ytd": "Čisté náklady YTD",
+      "net_investment": "Čistá investice",
+      "opportunity_cost": "Náklad kapitálu",
+      "npv": "NPV"
+    },
+    "audit": {
+      "records": "Zdrojové transakce: {count}"
+    }
+  },
+  "finance_manual": {
+    "title": "Jednorázové položky",
+    "count": "Položek: {count}"
   }
 }
