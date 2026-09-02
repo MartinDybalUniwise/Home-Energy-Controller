@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from ..core.logging_setup import get_logger
 from .base import BaseReader
+from .finance_document_reader import FinanceDocumentReader
 from .goodwe import GoodWeReader
 from .ote import OteReader
 from .sharing_reader import SharingReader
@@ -22,6 +23,7 @@ READER_CLASSES: dict[str, type[BaseReader]] = {
     "weather": WeatherReader,
     "shelly": ShellyReader,
     "sharing": SharingReader,
+    "finance": FinanceDocumentReader,
 }
 
 

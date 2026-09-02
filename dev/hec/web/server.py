@@ -162,6 +162,8 @@ class Handler(BaseHTTPRequestHandler):
             "/api/decisions": lambda: api.decisions(self.app, params),
             "/api/metrics": lambda: api.metrics(self.app, params),
             "/api/heatpump": lambda: api.heatpump(self.app, params),
+            "/api/finance": lambda: api.finance_dashboard(self.app, params),
+            "/api/finance/manual": lambda: api.finance_manual(self.app, params),
             "/api/config": lambda: api.config_get(self.app),
             "/api/config/schema": lambda: api.config_schema(self.app),
         }

@@ -21,6 +21,7 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | `step07/` | Řízená optimalizace (M5) | ✅ hotovo |
 | `step08/` | Produktizace (M6) | ✅ hotovo |
 | `step09/` | Rozšíření: sdílení energie (EDC/GoEnergy), predikce, externí měření – plán a fáze A–D | 🚧 fáze A–D hotovo, E–G navrženo |
+| `step10/` | HEF (Home Energy Finance): integrovaná finanční vrstva, API/UI scaffold, import dokumentů | 🚧 MVP scaffold hotovo, další fáze navrženy |
 
 Další kroky se doplňují sem, jakmile vzniknou.
 

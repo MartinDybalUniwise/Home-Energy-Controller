@@ -9,7 +9,7 @@ const REFRESH_MS = 10000;
 // Gesto swipe zůstává jen mezi třemi hlavními stránkami (kap. 13 zadání);
 // Stav, Data a Nastavení jsou dostupné výhradně přes menu.
 const PRIMARY_ORDER = ['overview', 'history', 'prediction'];
-const ALL_PAGES = ['overview', 'history', 'prediction', 'status', 'logs', 'settings'];
+const ALL_PAGES = ['overview', 'history', 'prediction', 'finance', 'finance/manual', 'status', 'logs', 'settings'];
 
 const state = {
   page: 'overview',

@@ -24,6 +24,14 @@ def test_sharing_forecast_economics_are_safe_by_default():
     assert data["economics"]["sharing_value_czk_kwh"] == 0.0
 
 
+def test_finance_is_safe_by_default():
+    data = schema.defaults()
+    assert data["finance"]["enabled"] is False
+    assert data["finance"]["documents"]["enabled"] is False
+    assert data["finance"]["documents"]["inbox_path"] == "data/finance/inbox"
+    assert data["finance"]["settings"]["opportunity_cost_rate"] == 0.04
+
+
 def test_sharing_consumer_allocation_is_validated():
     data, errors = schema.validate({"sharing": {"consumers": [
         {"ean": "859...", "name": "Velké Bílovice", "allocation_percent": 35},
