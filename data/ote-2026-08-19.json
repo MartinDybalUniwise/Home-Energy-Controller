@@ -4,7 +4,7 @@
   "resolution": "PT15M",
   "currency": "EUR/MWh",
   "source": "https://webdav.ote-cr.cz/cs/kratkodobe-trhy/elektrina/denni-trh?date=2026-08-19&time_resolution=PT15M",
-  "fetched_at": "2026-08-19T21:55:43.853624+02:00",
+  "fetched_at": "2026-08-19T23:42:45.714213+02:00",
   "period_count": 96,
   "min_price_eur_mwh": 123.48,
   "max_price_eur_mwh": 221.78,
