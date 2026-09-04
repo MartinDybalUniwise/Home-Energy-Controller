@@ -81,7 +81,12 @@ def _traceability_errors(step_dir: Path, *, phase: str, manifest: dict) -> list[
             continue
         if phase == "done" and row[-1].upper() != "PASS":
             errors.append(f"Traceability row is not PASS in {step_dir.name}: {row[0]}")
-        id_cells = row[:4] if row[0].startswith("REQ-") else [row[0]]
+        if row[0].startswith("REQ-"):
+            id_cells = [row[0], *re.findall(r"(?:REQ|AC)-[A-Z0-9-]+|S\d{2}", row[1]), *re.findall(r"E-[A-Z0-9-]+", row[3])]
+        elif row[0].startswith("AC-"):
+            id_cells = [row[0], *re.findall(r"(?:REQ|AC)-[A-Z0-9-]+|S\d{2}|E-[A-Z0-9-]+", row[1])]
+        else:
+            id_cells = [row[0]]
         for identifier in id_cells:
             if not ID_PATTERN.search(identifier):
                 errors.append(f"Traceability row has an invalid ID: {identifier}")
