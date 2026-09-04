@@ -1,0 +1,26 @@
+{
+  "step": 13,
+  "classification": "LARGE",
+  "status": "PLANNED",
+  "gate_a": {
+    "status": "PENDING",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_b": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "NO",
+  "requested_by": "repository owner / maintainer",
+  "source": "HEC_POST_STEP12_REVIEW_REMAINING.md",
+  "branch": null,
+  "pr": null,
+  "notes": "Step 13 completes SDD workflow enforcement and dogfoods the canonical ready/done process. LAN read-only preview remains out of scope and is planned separately."
+}
