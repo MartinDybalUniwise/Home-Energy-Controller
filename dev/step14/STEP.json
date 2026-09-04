@@ -8,14 +8,15 @@
     "approved_at": "2026-09-05"
   },
   "gate_b": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null
+    "status": "NOT_REQUIRED",
+    "approved_by": "repository owner",
+    "approved_at": "2026-09-05",
+    "reason": "Step14 changes development/SDD infrastructure only. No user-visible HEC feature or production hardware behavior requires a separate human functional preview. Automated mock runtime and Playwright validation provide the required runtime evidence."
   },
   "gate_c": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "repository owner",
+    "approved_at": "2026-09-05"
   },
   "readiness": "YES",
   "requested_by": "repository owner / maintainer",
@@ -59,5 +60,18 @@
     "AC-014-019",
     "AC-014-020"
   ],
-  "evidence": []
+  "evidence": [
+    "E-014-001",
+    "E-014-002",
+    "E-014-003",
+    "E-014-004",
+    "E-014-005",
+    "E-014-006",
+    "E-014-007",
+    "E-014-008",
+    "E-014-009",
+    "E-014-010",
+    "E-014-011",
+    "E-014-012"
+  ]
 }

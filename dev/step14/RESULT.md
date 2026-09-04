@@ -2,9 +2,10 @@
 
 ## Status
 
-Step14 remains `IN_PROGRESS`. Gate A is approved. Gate B and Gate C are not
-closed. Security-owner actions are recorded as pending in
-`SECURITY_ACTIONS.md`.
+Step14 is in the controlled closure workflow. Gate A is approved, Gate B is
+`NOT_REQUIRED` with owner rationale, and Gate C is approved. The first PR
+phase intentionally keeps status `IN_PROGRESS` to verify that the changed-step
+DONE gate blocks merge.
 
 ## Planned vs implemented
 
@@ -19,9 +20,9 @@ closed. Security-owner actions are recorded as pending in
 - Implemented S08: guarded generic PR renderer.
 - Implemented S09: commit-bound validation metadata.
 - Implemented S10: README status synchronization.
-- Implemented S11: truthful non-secret security-action evidence; owner
-  confirmation remains pending.
-- S12 automated dogfood passed; final human and owner gates remain open.
+- Implemented S11: credential rotation confirmed and history rewrite declined
+  by the repository owner without recording secret values.
+- S12 automated dogfood passed; controlled merge enforcement is being verified.
 
 ## Validation
 
@@ -42,17 +43,13 @@ closed. Security-owner actions are recorded as pending in
 - Required checks: `test (3.11)`, `test (3.12)`, `sdd-validation`.
 - Pull request required, branches must be up to date, force-push and deletion
   are disabled.
-- Controlled failing-check PR verification is still outstanding.
+- Controlled failing-check PR verification is the remaining closure check.
 
-## Open blockers
+## Final readiness
 
-- Repository/security owner must confirm credential rotation with actor and UTC
-  timestamp, without recording secret values.
-- Repository owner must decide whether Git history remediation is required,
-  with actor and UTC timestamp.
-- Gate C owner approval to create the final PR is outstanding.
-- Step14 must pass changed-step DONE validation and guarded PR rendering only
-  after the blockers are resolved.
+Not yet final. The candidate must first demonstrate `MERGE BLOCKED` while
+Step14 is incomplete, then `MERGE ALLOWED` after status is changed to `DONE`
+and all required checks pass.
 
 ## Safety status
 

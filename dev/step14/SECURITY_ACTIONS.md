@@ -5,11 +5,12 @@ secret values, production data, or replacement key material.
 
 | Action | Status | Evidence required | Owner |
 |---|---|---|---|
-| Confirm rotation of credentials exposed in repository history | PENDING | Non-secret confirmation with actor and UTC timestamp | Repository/security owner |
-| Decide whether Git history remediation is required after rotation | PENDING | Explicit owner decision with actor and UTC timestamp | Repository owner |
+| Confirm rotation of credentials exposed in repository history | CONFIRMED | Confirmed by repository owner on 2026-09-05; secret values recorded in Git: NO | Repository/security owner |
+| Decide whether Git history remediation is required after rotation | NOT REQUIRED / DECLINED | Repository history will not be rewritten. Exposed credentials were rotated; current repository state is clean and preventive controls are in place. Decision by repository owner on 2026-09-05. | Repository owner |
 
 ## Current decision
 
 Implementation does not rotate credentials or rewrite history automatically.
-Until the owner supplies non-secret confirmation for both actions, the related
-blocker remains open and Step13 must not be represented as `DONE`.
+Credential rotation is confirmed outside Git. History rewrite is explicitly
+declined for this step. No original or replacement credential values are
+recorded in Git.
