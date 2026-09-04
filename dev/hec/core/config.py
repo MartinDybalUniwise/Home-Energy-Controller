@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import os
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from . import schema as schema_mod
@@ -53,6 +53,8 @@ class Config:
         raw = str(self.get(f"storage.{key}", "") or "")
         if not raw:
             return Path()
+        if raw.startswith("/"):
+            return PurePosixPath(raw)
         path = Path(raw).expanduser()
         return path if path.is_absolute() or raw.startswith("\\\\") else (self.root / path)
 
