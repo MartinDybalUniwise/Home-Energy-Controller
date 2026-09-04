@@ -212,7 +212,11 @@ def test_log_days_lists_available_days(tmp_path):
     seed(app)
 
     _, payload = api.log_days(app, {"source": "goodwe"})
-    assert payload["days"] == [now_local().date().isoformat()]
+    expected_days = sorted({
+        (now_local() - timedelta(minutes=60)).date().isoformat(),
+        now_local().date().isoformat(),
+    })
+    assert payload["days"] == expected_days
 
 
 def test_log_days_empty_for_unknown_source(tmp_path):
