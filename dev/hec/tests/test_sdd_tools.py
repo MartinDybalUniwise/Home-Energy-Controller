@@ -21,6 +21,15 @@ def test_step13_manifest_has_canonical_fields():
     assert validator._validate_schema(manifest) == []
 
 
+def test_not_required_gate_requires_reason():
+    validator = load_tool("validate_step")
+    manifest = json.loads((ROOT / "dev" / "step14" / "STEP.json").read_text(encoding="utf-8"))
+    manifest["gate_b"] = {"status": "NOT_REQUIRED", "approved_by": None, "approved_at": None}
+    assert any("reason is required" in error for error in validator._validate_schema(manifest))
+    manifest["gate_b"]["reason"] = "No user-visible behavior changed"
+    assert validator._validate_schema(manifest) == []
+
+
 def test_step12_cannot_validate_as_done():
     validator = load_tool("validate_step")
     errors = validator.validate_step(ROOT / "dev" / "step12", "done")
