@@ -3,13 +3,13 @@
 import { api } from './api.js';
 import { applyScene } from './background.js';
 import { applyTranslations, preferredLanguage, setLanguage, t, time } from './i18n.js';
-import { pages } from './pages.js';
+import { pages } from './pages.js?v=11';
 
 const REFRESH_MS = 10000;
 // Gesto swipe zůstává jen mezi třemi hlavními stránkami (kap. 13 zadání);
 // Stav, Data a Nastavení jsou dostupné výhradně přes menu.
-const PRIMARY_ORDER = ['overview', 'history', 'prediction'];
-const ALL_PAGES = ['overview', 'history', 'prediction', 'finance', 'finance/manual', 'status', 'logs', 'settings'];
+const PRIMARY_ORDER = ['overview', 'prediction', 'flow', 'history', 'finance'];
+const ALL_PAGES = ['overview', 'prediction', 'flow', 'history', 'finance', 'finance/manual', 'status', 'logs', 'settings'];
 
 const state = {
   page: 'overview',
@@ -37,7 +37,7 @@ async function render({ showLoading = true } = {}) {
   if (pageCleanup) { pageCleanup(); pageCleanup = null; }
 
   state.page = pageFromHash();
-  document.querySelectorAll('.nav a').forEach((link) => {
+  document.querySelectorAll('nav a').forEach((link) => {
     if (link.dataset.page === state.page) link.setAttribute('aria-current', 'page');
     else link.removeAttribute('aria-current');
   });
@@ -155,6 +155,16 @@ async function init() {
     nav.toggleAttribute('hidden', !expanded);
     event.currentTarget.setAttribute('aria-expanded', String(expanded));
   });
+  document.getElementById('more-toggle').addEventListener('click', (event) => {
+    const utility = document.getElementById('utility-nav');
+    const expanded = utility.hasAttribute('hidden');
+    utility.toggleAttribute('hidden', !expanded);
+    event.currentTarget.setAttribute('aria-expanded', String(expanded));
+  });
+  document.querySelectorAll('#utility-nav a').forEach((link) => link.addEventListener('click', () => {
+    document.getElementById('utility-nav').hidden = true;
+    document.getElementById('more-toggle').setAttribute('aria-expanded', 'false');
+  }));
 
   const session = await api.session().catch(() => ({ required: false, authorised: true }));
   if (session.required && !session.authorised) return askForPassword();

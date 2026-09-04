@@ -8,7 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="/icon.svg">
 <link rel="manifest" href="/manifest.json">
 <link rel="stylesheet" href="/css/tokens.css">
-<link rel="stylesheet" href="/css/app.css">
+<link rel="stylesheet" href="/css/app.css?v=13">
 </head>
 <body>
 <div id="scene" class="scene" aria-hidden="true"></div>
@@ -22,18 +22,23 @@
   <div class="topbar-status">
     <span id="status-pill" class="pill" hidden></span>
     <span id="clock" class="clock"></span>
+    <button id="more-toggle" class="more-button" type="button" aria-expanded="false" aria-controls="utility-nav" data-i18n="nav.more">Více</button>
   </div>
 </header>
 
 <nav id="nav" class="nav">
-  <a href="#/overview"   data-page="overview"   data-i18n="nav.overview">Přehled</a>
+  <a href="#/overview"   data-page="overview"   data-i18n="nav.today">Dnes</a>
+  <a href="#/prediction" data-page="prediction" data-i18n="nav.forecast">Výhled</a>
+  <a href="#/flow"       data-page="flow"       data-i18n="nav.flow">Tok energie</a>
   <a href="#/history"    data-page="history"    data-i18n="nav.history">Historie</a>
-  <a href="#/prediction" data-page="prediction" data-i18n="nav.prediction">Predikce</a>
   <a href="#/finance"    data-page="finance"    data-i18n="nav.finance">Finance</a>
+</nav>
+<nav id="utility-nav" class="utility-nav" hidden aria-label="Advanced navigation">
+  <p data-i18n="nav.advanced">Servis a diagnostika</p>
   <a href="#/finance/manual" data-page="finance/manual" data-i18n="nav.finance_manual">Finance ručně</a>
-  <a href="#/status"     data-page="status"     data-i18n="nav.status">Stav</a>
-  <a href="#/logs"       data-page="logs"       data-i18n="nav.logs">Data</a>
-  <a href="#/settings"   data-page="settings"   data-i18n="nav.settings">Nastavení</a>
+  <a href="#/settings" data-page="settings" data-i18n="nav.settings">Nastavení</a>
+  <a href="#/status" data-page="status" data-i18n="nav.status">Stav</a>
+  <a href="#/logs" data-page="logs" data-i18n="nav.logs">Data</a>
 </nav>
 
 <main id="view" class="view" tabindex="-1">
@@ -50,6 +55,6 @@
   </form>
 </dialog>
 
-<script type="module" src="/js/app.js"></script>
+<script type="module" src="/js/app.js?v=11"></script>
 </body>
 </html>

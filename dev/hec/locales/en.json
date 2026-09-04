@@ -17,7 +17,12 @@
     "status": "Status",
     "logs": "Data",
     "finance": "Finance",
-    "finance_manual": "Finance manual"
+    "finance_manual": "Finance manual",
+    "today": "Today",
+    "forecast": "Forecast",
+    "flow": "Energy flow",
+    "more": "More",
+    "advanced": "Service & diagnostics"
   },
   "unit": {
     "w": "W",
@@ -67,6 +72,84 @@
     "no_decision": "The system has not controlled anything yet",
     "phases": "Phase load",
     "imbalance": "Phase imbalance"
+  },
+  "advisor": {
+    "eyebrow": "Energy advisor",
+    "best_action": "Home recommendation",
+    "hero_best": "Best time for larger consumption: {window}",
+    "hero_export": "You are exporting surplus now — increasing consumption is reasonable.",
+    "hero_wait": "Recommendation is not available yet",
+    "based_on": "Recommendation based on the outlook for {date}",
+    "awaiting_forecast": "Waiting for a price or generation outlook.",
+    "now_pv": "PV now",
+    "grid_now": "Grid flow",
+    "section_kicker": "Energy plan",
+    "plan_title": "What to do with energy today",
+    "do_later": "Good period",
+    "avoid": "Better avoid",
+    "solar_outlook": "Expected generation",
+    "best_window_reason": "The lowest available combination of price and expected generation.",
+    "avoid_window_reason": "This is the most expensive available price period.",
+    "no_window_reason": "There is no data to recommend a period.",
+    "no_avoid_reason": "There is no price outlook for this period.",
+    "solar_confidence": "Forecast with {confidence} confidence.",
+    "timeline_title": "Energy rhythm of the day",
+    "timeline_note": "Based on spot price, solar radiation and weather. Battery level cannot be reliably estimated without an hourly forecast.",
+    "best": "Best",
+    "ok": "OK",
+    "neutral": "Neutral",
+    "unknown": "No data",
+    "appliances_title": "Appliance recommendations",
+    "recommendations_badge": "Recommendations only",
+    "appliance_window": "Recommended window {window}",
+    "window_unavailable": "No recommendation available yet",
+    "recommendation_only": "The app does not start this appliance.",
+    "controller_active": "Control is active",
+    "controller_observing": "Observing only, no control",
+    "tng_no_data": "Heat-pump state is unavailable.",
+    "dhw_temperature": "Hot water {value} °C",
+    "live_title": "Live energy situation",
+    "grid_export": "Exporting to grid",
+    "grid_import": "Importing from grid",
+    "grid_balanced": "Balanced flow",
+    "open_flow": "Open energy flow"
+    ,"open_forecast": "Open forecast"
+    ,"now": "Right now"
+    ,"now_state_reason": "Based on the live energy flow"
+    ,"avoid_window_short": "Highest available price"
+    ,"solar_peak": "Peak irradiation {value} W/m²"
+    ,"next_window": "Nearest suitable window"
+    ,"window_reason_short": "Price and solar potential"
+    ,"window_value": "Generation estimate: {value}"
+    ,"outlook_title": "The next hours"
+    ,"outlook_subtitle": "Sun and price"
+    ,"solar_curve": "Solar potential"
+    ,"price_curve": "Electricity price"
+  },
+  "forecast": {
+    "eyebrow": "Forecast and decisions",
+    "title": "What the next days bring",
+    "subtitle": "Generation, price and suitable timing in one place.",
+    "best_window": "Nearest suitable period",
+    "confidence": "Confidence: {value}",
+    "pv_expected": "Expected PV generation",
+    "irradiation": "Irradiation {value} kWh/m²",
+    "consumption": "Expected consumption",
+    "battery_floor": "Lowest battery level",
+    "price_range": "Price range",
+    "recommendation": "Recommendation"
+  },
+  "flow": {
+    "eyebrow": "Live system",
+    "title": "Energy flow at home",
+    "grid_export": "The home is exporting energy to the grid.",
+    "grid_import": "The home is importing energy from the grid.",
+    "grid_balanced": "Grid flow is balanced right now.",
+    "charging": "The battery is charging.",
+    "discharging": "The battery is covering part of the load.",
+    "idle": "The battery has no material flow.",
+    "heating_active": "Heating is active.",
+    "heating_idle": "Heating is currently off."
   },
   "history": {
     "title": "History",
@@ -137,6 +220,10 @@
     "theme_auto": "System",
     "theme_dark": "Dark",
     "theme_light": "Light",
+    "personal_title": "Your home",
+    "personal_intro": "Panel appearance and behaviour",
+    "technical_title": "Technical configuration",
+    "technical_intro": "Device connections, polling, storage and control. Change only when administering the system.",
     "tng_boiler": "Hot water",
     "tng_heating": "Heating",
     "tng_thermostat": "Thermostat",
