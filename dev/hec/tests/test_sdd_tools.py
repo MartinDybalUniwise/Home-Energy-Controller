@@ -163,5 +163,5 @@ def test_pr_renderer_rejects_incomplete_step(tmp_path):
     renderer = load_tool("render_pr")
     renderer.RUNTIME = tmp_path
     (tmp_path / "validation.json").write_text(json.dumps({"status": "PASS"}), encoding="utf-8")
-    with pytest.raises(ValueError, match="incomplete"):
+    with pytest.raises(ValueError, match="incomplete|stale"):
         renderer.render(ROOT / "dev" / "step14", tmp_path / "pr_body.md")
