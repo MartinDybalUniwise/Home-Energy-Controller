@@ -165,3 +165,17 @@ def test_pr_renderer_rejects_incomplete_step(tmp_path):
     (tmp_path / "validation.json").write_text(json.dumps({"status": "PASS"}), encoding="utf-8")
     with pytest.raises(ValueError, match="incomplete|stale"):
         renderer.render(ROOT / "dev" / "step14", tmp_path / "pr_body.md")
+
+
+def test_canonical_sdd_workflow_requires_planning_gate():
+    copilot = (ROOT / ".github" / "copilot-instructions.md").read_text(encoding="utf-8")
+    planner = (ROOT / ".github" / "agents" / "planner.agent.md").read_text(encoding="utf-8")
+    developer = (ROOT / ".github" / "agents" / "developer.agent.md").read_text(encoding="utf-8")
+    fix_prompt = (ROOT / ".github" / "prompts" / "fix.prompt.md").read_text(encoding="utf-8")
+
+    assert "A new user development request is NEVER implicit authorization to implement it." in copilot
+    assert "Do not edit application code before explicit human approval." in copilot
+    assert "SMALL" in copilot and "LARGE" in copilot
+    assert "Gate A" in planner
+    assert "explicit human approval" in developer.lower()
+    assert "WAIT FOR APPROVAL" in fix_prompt.upper()

@@ -25,7 +25,7 @@ from .maintenance import Maintenance
 from .model import Sample
 from .scheduler import Scheduler
 from .secrets import collect_secret_values
-from .timeutil import now_local, to_iso
+from .timeutil import now_local, parse_iso, to_iso
 
 
 class Application:
@@ -75,8 +75,14 @@ class Application:
     def current(self) -> dict[str, Any]:
         with self._lock:
             data = dict(self.snapshot)
+        last_measurement = None
+        for sample in data.values():
+            stamp = parse_iso(sample.get("timestamp"))
+            if stamp and (last_measurement is None or stamp > last_measurement):
+                last_measurement = stamp
         return {
             "timestamp": to_iso(now_local()),
+            "last_measurement_at": to_iso(last_measurement) if last_measurement else None,
             "sources": data,
             "status": self.status(),
         }
