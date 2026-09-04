@@ -53,7 +53,7 @@ class Config:
         raw = str(self.get(f"storage.{key}", "") or "")
         if not raw:
             return Path()
-        if raw.startswith("/"):
+        if os.name == "nt" and raw.startswith("/"):
             return PurePosixPath(raw)
         path = Path(raw).expanduser()
         return path if path.is_absolute() or raw.startswith("\\\\") else (self.root / path)
