@@ -1,0 +1,63 @@
+{
+  "step": 14,
+  "classification": "LARGE",
+  "status": "PLANNED",
+  "gate_a": {
+    "status": "PENDING",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_b": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "NO",
+  "requested_by": "repository owner / maintainer",
+  "source": "HEC_POST_STEP13_REVIEW_REMAINING.md",
+  "branch": null,
+  "pr": null,
+  "notes": "Close the operational SDD gaps identified after Step13. LAN read-only preview remains out of scope.",
+  "requirements": [
+    "REQ-014-001",
+    "REQ-014-002",
+    "REQ-014-003",
+    "REQ-014-004",
+    "REQ-014-005",
+    "REQ-014-006",
+    "REQ-014-007",
+    "REQ-014-008",
+    "REQ-014-009",
+    "REQ-014-010",
+    "REQ-014-011",
+    "REQ-014-012"
+  ],
+  "acceptance": [
+    "AC-014-001",
+    "AC-014-002",
+    "AC-014-003",
+    "AC-014-004",
+    "AC-014-005",
+    "AC-014-006",
+    "AC-014-007",
+    "AC-014-008",
+    "AC-014-009",
+    "AC-014-010",
+    "AC-014-011",
+    "AC-014-012",
+    "AC-014-013",
+    "AC-014-014",
+    "AC-014-015",
+    "AC-014-016",
+    "AC-014-017",
+    "AC-014-018",
+    "AC-014-019",
+    "AC-014-020"
+  ],
+  "evidence": []
+}

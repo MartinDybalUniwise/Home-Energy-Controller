@@ -42,7 +42,7 @@ def test_traceability_rejects_unchecked_status(tmp_path):
 
 
 def test_new_step_uses_highest_numeric_directory():
-    assert load_tool("new_step").next_step_number() == 14
+    assert load_tool("new_step").next_step_number() == 15
 
 
 def test_new_step_generates_manifest_and_readme_row(tmp_path, monkeypatch):
