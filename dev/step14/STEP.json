@@ -1,11 +1,11 @@
 {
   "step": 14,
   "classification": "LARGE",
-  "status": "PLANNED",
+  "status": "IN_PROGRESS",
   "gate_a": {
-    "status": "PENDING",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "repository owner",
+    "approved_at": "2026-09-05"
   },
   "gate_b": {
     "status": "NOT_REQUESTED",
@@ -17,10 +17,10 @@
     "approved_by": null,
     "approved_at": null
   },
-  "readiness": "NO",
+  "readiness": "YES",
   "requested_by": "repository owner / maintainer",
   "source": "HEC_POST_STEP13_REVIEW_REMAINING.md",
-  "branch": null,
+  "branch": "claude/step13-sdd-enforcement",
   "pr": null,
   "notes": "Close the operational SDD gaps identified after Step13. LAN read-only preview remains out of scope.",
   "requirements": [
