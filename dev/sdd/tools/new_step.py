@@ -66,7 +66,7 @@ def create_step(number: int) -> Path:
     }
     (target / "STEP.json").write_text(json.dumps(step_json, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-    new_line = f"| [`step{number:02d}/`](step{number:02d}/) | New step placeholder | 📝 plánováno |"
+    new_line = f"| [`step{number:02d}/`](step{number:02d}/) | New step placeholder | 📝 plánováno <!-- status: PLANNED --> |"
     insert_at = rows[-1].end()
     readme_text = readme_text[:insert_at] + "\n" + new_line + readme_text[insert_at:]
     README.write_text(readme_text, encoding="utf-8")

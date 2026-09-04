@@ -96,6 +96,10 @@ def test_validation_evidence_contains_repository_metadata():
     assert isinstance(metadata["working_tree_clean"], bool)
 
 
+def test_readme_status_matches_canonical_manifests():
+    assert load_tool("validate_readme_status").validate() == []
+
+
 def test_new_step_generates_manifest_and_readme_row(tmp_path, monkeypatch):
     generator = load_tool("new_step")
     templates = tmp_path / "templates"

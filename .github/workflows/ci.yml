@@ -31,5 +31,6 @@ jobs:
       - run: python -m playwright install --with-deps chromium
       - run: python dev/sdd/tools/validate_step.py
       - run: python dev/sdd/tools/validate_changed_steps.py --base "${{ github.event.pull_request.base.sha || github.event.before }}" --head "${{ github.sha }}"
+      - run: python dev/sdd/tools/validate_readme_status.py
       - run: python dev/sdd/tools/validate_repo.py
       - run: python dev/sdd/tools/full_validation.py
