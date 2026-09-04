@@ -129,6 +129,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
   const grid = power(Number(goodwe.grid_import_w) || Number(goodwe.grid_export_w));
   const condition = weather?.current?.condition || 'unknown';
   const solarPeak = Math.max(...timeline.map((slot) => Number(slot.solar) || 0));
+  const lastMeasurement = current?.last_measurement_at ? time(new Date(current.last_measurement_at)) : '–';
 
   view.innerHTML = `<div class="advisor-dashboard">
     <section class="advisor-brief" aria-labelledby="advisor-title">
@@ -147,6 +148,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
       <article><span>${t('entity.battery')}</span><strong>${num(goodwe.battery_soc, 0)}<small>%</small></strong><em class="kpi-battery">▣</em></article>
       <article><span>${t(`advisor.grid_${energyState(goodwe)}`)}</span><strong>${grid.value}<small>${grid.unit}</small></strong><em class="kpi-grid">⌁</em></article>
       <article><span>${t('entity.price')}</span><strong>${num(ote.price_total_czk_kwh ?? ote.price_czk_kwh, 2)}<small>${t('unit.czk_kwh')}</small></strong><em class="kpi-price">◆</em></article>
+      <article><span>${t('overview.last_data_update')}</span><strong>${lastMeasurement}</strong><em class="kpi-time">◔</em></article>
       <article><span>${t('entity.heatpump')}</span><strong>${num(tng.boiler_temperature, 0)}<small>°C</small></strong><em class="kpi-heat">♨</em></article>
     </section>
 

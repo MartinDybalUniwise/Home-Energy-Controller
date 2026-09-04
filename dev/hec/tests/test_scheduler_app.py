@@ -93,6 +93,18 @@ def test_application_restores_last_known_values_after_restart(tmp_path, monkeypa
     assert restarted.snapshot["goodwe"]["pv_w"] == 100
 
 
+def test_application_exposes_latest_measurement_timestamp(tmp_path, monkeypatch):
+    config = make_config(tmp_path)
+    monkeypatch.setattr("hec.core.app.build_readers",
+                        lambda cfg, storage: [CountingReader(cfg, storage)])
+    app = Application(config)
+
+    app.run_once()
+    current = app.current()
+
+    assert current["last_measurement_at"] == current["sources"]["goodwe"]["timestamp"]
+
+
 def test_stale_sources_are_listed_in_status(tmp_path, monkeypatch):
     config = make_config(tmp_path)
     monkeypatch.setattr("hec.core.app.build_readers",

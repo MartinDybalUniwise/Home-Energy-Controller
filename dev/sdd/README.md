@@ -23,17 +23,23 @@ The purpose is to make step creation, validation, and evidence generation consis
 ## Workflow
 
 1. Choose the next step number.
-2. Run `python dev/sdd/tools/new_step.py`.
-3. Fill in the requirement, plan, and acceptance criteria.
-4. Validate with `python dev/sdd/tools/validate_step.py`.
-5. Run repository hygiene checks and preview validation.
-6. Record execution evidence before marking a step done.
+2. Analyze the request and classify it as SMALL or LARGE.
+3. For SMALL requests, prepare a short plan and wait for explicit human approval
+   before editing application code.
+4. For LARGE requests, run `python dev/sdd/tools/new_step.py` only after the
+   requirement, plan, and acceptance criteria are prepared and Gate A is
+   approved.
+5. Validate with `python dev/sdd/tools/validate_step.py`.
+6. Run repository hygiene checks and preview validation.
+7. Record execution evidence before marking a step done.
 
 ## Definition of ready
 
-A LARGE step may be implemented only when its request, requirement, plan,
-acceptance criteria, traceability matrix, and `STEP.json` manifest exist. The
-plan must identify substeps, risks, validation, and an explicit approval gate.
+A new request never implies implementation. Before any application code edit,
+a human must approve the plan. SMALL changes require a short chat plan and
+explicit approval; LARGE steps require their request, requirement, plan,
+acceptance criteria, traceability matrix, and `STEP.json` manifest. The plan
+must identify substeps, risks, validation, and an explicit approval gate.
 
 ## Definition of done
 

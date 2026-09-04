@@ -68,6 +68,7 @@
     "today": "Today",
     "self_consumption": "Self-consumption",
     "cost_today": "Cost today",
+    "last_data_update": "Last data update",
     "last_decision": "Latest decision",
     "no_decision": "The system has not controlled anything yet",
     "phases": "Phase load",
