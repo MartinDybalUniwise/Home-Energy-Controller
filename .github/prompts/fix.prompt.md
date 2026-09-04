@@ -1,3 +1,12 @@
+---
+name: HEC small fix
+description: Implement a validated small HEC correction.
+agent: developer
+argument-hint: Fault description or failing test
+output: Minimal fix and validation evidence
+stop-conditions: Return to planning if the change is LARGE.
+---
+
 # HEC small fix prompt
 
 Read `CLAUDE.md` and inspect the affected code and tests. Confirm this is a

@@ -1,3 +1,12 @@
+---
+name: HEC feedback triage
+description: Classify and safely process HEC human feedback.
+agent: planner
+argument-hint: Human feedback and affected step
+output: Classification and approved-scope update
+stop-conditions: Stop for approval before LARGE implementation.
+---
+
 # HEC human feedback prompt
 
 Classify the feedback as **SMALL** or **LARGE** before editing.
