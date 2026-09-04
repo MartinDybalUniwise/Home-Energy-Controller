@@ -24,37 +24,49 @@ def create_step(number: int) -> Path:
     if target.exists():
         raise FileExistsError(f"Step directory already exists: {target}")
 
+    readme_text = README.read_text(encoding="utf-8")
+    if f"step{number:02d}/" in readme_text:
+        raise ValueError(f"README already references step{number:02d}")
+    rows = list(re.finditer(r"^\|.*step\d+.*\|.*$", readme_text, re.MULTILINE))
+    if not rows:
+        raise ValueError("README has no step table rows")
+
     target.mkdir(parents=True, exist_ok=False)
     for template in TEMPLATES.glob("*.md"):
         (target / template.name).write_text(template.read_text(encoding="utf-8"), encoding="utf-8")
 
     step_json = {
         "step": number,
-        "status": "PLANNED",
         "classification": "LARGE",
-        "gates": {
-            "plan_approved": False,
-            "human_preview_test": False,
-            "pr_approved": False,
+        "status": "PLANNED",
+        "gate_a": {
+            "status": "PENDING",
+            "approved_by": None,
+            "approved_at": None,
         },
-        "requirements": [],
-        "acceptance": [],
-        "evidence": [],
-        "requested_by": "",
+        "gate_b": {
+            "status": "NOT_REQUESTED",
+            "approved_by": None,
+            "approved_at": None,
+        },
+        "gate_c": {
+            "status": "NOT_REQUESTED",
+            "approved_by": None,
+            "approved_at": None,
+        },
+        "readiness": "NO",
+        "requested_by": "repository owner / maintainer",
         "source": "",
         "branch": None,
         "pr": None,
         "notes": "",
+        "requirements": [],
+        "acceptance": [],
+        "evidence": [],
     }
     (target / "STEP.json").write_text(json.dumps(step_json, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-    readme_text = README.read_text(encoding="utf-8")
     new_line = f"| [`step{number:02d}/`](step{number:02d}/) | New step placeholder | 📝 plánováno |"
-    if f"step{number:02d}/" in readme_text:
-        raise ValueError(f"README already references step{number:02d}")
-    rows = list(re.finditer(r"^\|.*step\d+.*\|.*$", readme_text, re.MULTILINE))
-    if not rows:
-        raise ValueError("README has no step table rows")
     insert_at = rows[-1].end()
     readme_text = readme_text[:insert_at] + "\n" + new_line + readme_text[insert_at:]
     README.write_text(readme_text, encoding="utf-8")

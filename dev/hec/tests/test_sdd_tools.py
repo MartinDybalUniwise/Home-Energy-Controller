@@ -80,6 +80,7 @@ def test_new_step_generates_manifest_and_readme_row(tmp_path, monkeypatch):
     target = generator.create_step(2)
     manifest = json.loads((target / "STEP.json").read_text(encoding="utf-8"))
     assert manifest["step"] == 2
+    assert load_tool("validate_step")._validate_schema(manifest) == []
     assert (target / "PLAN.md").exists()
     assert "step02/" in readme.read_text(encoding="utf-8")
 
