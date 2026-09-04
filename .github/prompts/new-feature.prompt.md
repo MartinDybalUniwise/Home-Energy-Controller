@@ -1,3 +1,12 @@
+---
+name: HEC new feature
+description: Plan a traceable HEC feature without implementation.
+agent: planner
+argument-hint: Requested feature or outcome
+output: Requirement, plan, acceptance criteria, and traceability
+stop-conditions: Stop at the human approval gate.
+---
+
 # HEC new feature prompt
 
 Treat this as a LARGE change unless analysis proves it is SMALL. Read

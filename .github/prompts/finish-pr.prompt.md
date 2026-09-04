@@ -1,3 +1,12 @@
+---
+name: HEC finish PR
+description: Produce an evidence-backed HEC pull-request summary.
+agent: reviewer
+argument-hint: Approved step directory
+output: RESULT.md and PR body
+stop-conditions: Do not create or submit a PR.
+---
+
 # HEC finish PR prompt
 
 Review the actual diff against the approved requirement and plan. Run the
