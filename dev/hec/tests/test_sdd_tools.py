@@ -1,5 +1,7 @@
 import importlib.util
 import json
+import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -114,13 +116,40 @@ def test_new_step_rejects_existing_target(tmp_path, monkeypatch):
 
 def test_pr_renderer_projects_validation_evidence(tmp_path):
     renderer = load_tool("render_pr")
+    source = ROOT / "dev" / "step13"
+    step_dir = tmp_path / "step14"
+    shutil.copytree(source, step_dir)
+    manifest = json.loads((step_dir / "STEP.json").read_text(encoding="utf-8"))
+    manifest.update({"step": 14, "status": "DONE", "readiness": "YES"})
+    for gate_name in ("gate_a", "gate_b", "gate_c"):
+        manifest[gate_name].update({"status": "APPROVED", "approved_by": "test", "approved_at": "2026-09-05T00:00:00Z"})
+    (step_dir / "STEP.json").write_text(json.dumps(manifest), encoding="utf-8")
+    (step_dir / "ACCEPTANCE_CRITERIA.md").write_text(
+        (step_dir / "ACCEPTANCE_CRITERIA.md").read_text(encoding="utf-8").replace("- [ ]", "- [x]"),
+        encoding="utf-8",
+    )
+    (step_dir / "PLAN.md").write_text(
+        (step_dir / "PLAN.md").read_text(encoding="utf-8").replace("| PLANNED |", "| PASS |"),
+        encoding="utf-8",
+    )
+    traceability = (step_dir / "TRACEABILITY.md").read_text(encoding="utf-8")
+    (step_dir / "TRACEABILITY.md").write_text(traceability.replace("| PLANNED |", "| PASS |").replace("| BLOCKED |", "| PASS |"), encoding="utf-8")
     runtime = tmp_path / "runtime"
     runtime.mkdir()
     renderer.RUNTIME = runtime
-    validation = {"status": "PASS", "counts": {"total": 2, "passed": 2, "failed": 0}}
+    sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    validation = {"status": "PASS", "git_sha": sha, "counts": {"total": 2, "passed": 2, "failed": 0}}
     (runtime / "validation.json").write_text(json.dumps(validation), encoding="utf-8")
     output = tmp_path / "pr_body.md"
-    renderer.render(ROOT / "dev" / "step13", output)
+    renderer.render(step_dir, output)
     text = output.read_text(encoding="utf-8")
-    assert "Step 13 validation evidence" in text
+    assert "Step 14 validation evidence" in text
     assert "2/2 checks passed" in text
+
+
+def test_pr_renderer_rejects_incomplete_step(tmp_path):
+    renderer = load_tool("render_pr")
+    renderer.RUNTIME = tmp_path
+    (tmp_path / "validation.json").write_text(json.dumps({"status": "PASS"}), encoding="utf-8")
+    with pytest.raises(ValueError, match="incomplete"):
+        renderer.render(ROOT / "dev" / "step14", tmp_path / "pr_body.md")
