@@ -1,6 +1,7 @@
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 
 import { renderChart, renderTable } from './chart.js';
+import { renderForecastStory, renderToday } from './advisor.js?v=11';
 import { renderFlow } from './flow.js';
 import { availableLanguages, currentLanguage, dateTime, duration, num, power, t, time, weekday } from './i18n.js';
 import { weatherIcon } from './icons.js';
@@ -48,57 +49,11 @@ const card = (titleKey, inner) => `<div class="card"><h3>${t(titleKey)}</h3>${in
 // --- Přehled ---------------------------------------------------------------
 
 export async function overview(view, { api, motion }) {
-  const [current, weather, prices] = await Promise.all([
+  const [current, weather, prices, predictionPayload] = await Promise.all([
     api.current(), api.weather().catch(() => ({})), api.prices().catch(() => ({})),
+    api.prediction().catch(() => ({})),
   ]);
-  const sources = current.sources || {};
-  const goodwe = sources.goodwe || {};
-  const tng = sources.tng || {};
-  const shelly = sources.shelly || {};
-  const ote = sources.ote || {};
-  const heatpumpW = shelly.heatpump_power_w ?? null;
-
-  view.innerHTML = `
-    <div>
-      <span class="section-tab">${t('overview.title')}</span>
-      <section class="panel">
-        <div class="stripe" id="stripe"></div>
-      </section>
-    </div>
-    <div>
-      <span class="section-tab">${t('weather.forecast_title')}</span>
-      <section class="panel"><div id="forecast-blocks"></div></section>
-    </div>
-    <div>
-      <span class="section-tab">${t('overview.flow')}</span>
-      <section class="panel">
-        <div id="flow"></div>
-        <div class="cards" id="tiles"></div>
-      </section>
-    </div>`;
-
-  renderStripe(view.querySelector('#stripe'), { goodwe, weather, prices, ote });
-  renderForecastBlocks(view.querySelector('#forecast-blocks'), weather);
-  renderFlow(view.querySelector('#flow'), { ...goodwe, heatpump_power_w: heatpumpW, devices: shelly.devices }, t, motion);
-
-  const tiles = [
-    card('entity.battery_soc', `<span class="value">${num(goodwe.battery_soc, 0)}<span class="unit">%</span></span>`),
-    card('entity.heatpump', heatpumpW === null
-      ? `<span class="value">–</span>` : bigValue(heatpumpW).replace('big', '')),
-    card('entity.dhw', `<span class="value">${num(tng.boiler_temperature, 1)}<span class="unit">°C</span></span>`
-      + `<p class="meta">${t('entity.heating')}: ${tng.heating_on === undefined ? '–' : t(tng.heating_on ? 'status.yes' : 'status.no')} · ${num(tng.heating_set_temperature, 0)} °C</p>`),
-    card('entity.outside', `<span class="value">${num(tng.outside_temperature ?? weather?.current?.temp_c, 1)}<span class="unit">°C</span></span>`),
-    card('entity.price', `<span class="value">${num(ote.price_total_czk_kwh ?? ote.price_czk_kwh, 2)}<span class="unit">${t('unit.czk_kwh')}</span></span>`),
-    card('overview.phases', phaseTile(goodwe)),
-  ].join('');
-  view.querySelector('#tiles').innerHTML = tiles;
-
-  const decision = current.status?.controller?.last_decision;
-  view.querySelector('#tiles').insertAdjacentHTML('beforeend', card('overview.last_decision',
-    decision
-      ? `<p class="meta">${t(decision.reason_key, decision.reason_params) || ''}</p>`
-      + `<p class="meta">${dateTime(decision.timestamp)}</p>`
-      : `<p class="meta">${t('overview.no_decision')}</p>`));
+  renderToday(view, { current, weather, prices, prediction: predictionPayload, motion });
 }
 
 function phaseTile(goodwe) {
@@ -308,6 +263,10 @@ export async function history(view, { api, state }) {
     const unit = isTemperature ? t('unit.celsius') : t('unit.kw');
     const scale = isTemperature ? 1 : 0.001;
 
+    // Navigace může mezitím nahradit celý view. Starý dotaz pak nesmí
+    // přepisovat novou stránku ani vyvolat chybu při hledání původní tabulky.
+    if (!chart.isConnected || !view.querySelector('#table')) return;
+
     if (state.historyView === 'table') {
       chart.innerHTML = '';
       renderTable(view.querySelector('#table'), payload.rows.map((row) => {
@@ -384,11 +343,12 @@ async function renderAnalysis(container, api) {
        <p class="meta">${t('metrics.no_counterfactual')}</p>`
     : `<p class="meta">${t('app.no_data')}</p>`));
 
-  container.innerHTML = parts.join('');
+  if (container.isConnected) container.innerHTML = parts.join('');
 }
 
 async function renderSummaries(container, api) {
   const { days } = await api.summaries(7).catch(() => ({ days: [] }));
+  if (!container.isConnected) return;
   if (!days.length) { container.innerHTML = `<p class="notice">${t('app.no_data')}</p>`; return; }
   container.innerHTML = days.slice(-7).reverse().map((day) => `
     <div class="card">
@@ -407,35 +367,33 @@ async function renderSummaries(container, api) {
 // --- Predikce ----------------------------------------------------------------
 
 export async function prediction(view, { api }) {
-  const payload = await api.prediction();
-  view.innerHTML = `<div><span class="section-tab">${t('prediction.title')}</span>
-      <section class="panel"><div class="cards" id="days"></div></section></div>`;
+  const [payload, weather, prices] = await Promise.all([
+    api.prediction(), api.weather().catch(() => ({})), api.prices().catch(() => ({})),
+  ]);
+  renderForecastStory(view, { prediction: payload, weather, prices });
+}
 
-  const container = view.querySelector('#days');
-  if (payload.available === false || !(payload.days || []).length) {
-    container.innerHTML = `<p class="notice">${t('prediction.not_enough_data')}</p>`;
-    return;
-  }
+// --- Tok energie -------------------------------------------------------------
 
-  container.innerHTML = payload.days.map((day) => `
-    <div class="card">
-      <div class="card-header">${weekday(day.date)} ${day.date}</div>
-      <span class="value">${num(day.pv_kwh_low, 0)}–${num(day.pv_kwh_high, 0)}<span class="unit">${t('unit.kwh')}</span></span>
-      <p class="meta">
-        ${t('prediction.expected_pv')} · ${t('prediction.confidence')}: ${t('prediction.confidence_' + (day.confidence || 'low'))}<br>
-        ${t('prediction.expected_consumption')}: ${num(day.consumption_kwh, 1)} ${t('unit.kwh')}<br>
-        ${t('prediction.expected_grid')}: ${num(day.grid_balance_kwh, 1)} ${t('unit.kwh')}<br>
-        ${t('prediction.expected_cost')}: ${num(day.cost_czk, 0)} Kč<br>
-        ${t('prediction.heat_demand')}: ${num(day.heat_kwh, 1)} ${t('unit.kwh')}
-      </p>
-      ${day.best_appliance_window ? `<p class="meta">${t('prediction.best_appliance_window')}: <strong>${day.best_appliance_window}</strong></p>` : ''}
-      ${day.best_dhw_window ? `<p class="meta">${t('prediction.best_dhw_window')}: <strong>${day.best_dhw_window}</strong></p>` : ''}
-    </div>`).join('');
+export async function flow(view, { api, motion }) {
+  const current = await api.current();
+  const sources = current.sources || {};
+  const goodwe = sources.goodwe || {};
+  const shelly = sources.shelly || {};
+  const tng = sources.tng || {};
+  const grid = Number(goodwe.grid_import_w) > 20 ? 'import' : Number(goodwe.grid_export_w) > 20 ? 'export' : 'balanced';
 
-  if (payload.accuracy) {
-    container.insertAdjacentHTML('beforeend', card('prediction.accuracy',
-      `<p class="meta">MAPE: ${num(payload.accuracy.pv_mape_pct, 0)} % (${payload.accuracy.samples} dní)</p>`));
-  }
+  view.innerHTML = `<section class="flow-hero">
+      <div><p>${t('flow.eyebrow')}</p><h2>${t('flow.title')}</h2><span>${t(`flow.grid_${grid}`)}</span></div>
+      <div class="flow-hero__numbers"><div><span>${t('entity.pv')}</span><strong>${bigValue(goodwe.pv_w)}</strong></div><div><span>${t('entity.house')}</span><strong>${bigValue(goodwe.house_w)}</strong></div><div><span>${t('entity.battery_soc')}</span><strong class="flow-soc">${num(goodwe.battery_soc, 0)}<small>%</small></strong></div></div>
+    </section>
+    <section class="flow-stage"><div id="live-flow"></div></section>
+    <section class="flow-details">
+      <article><span>${t('entity.grid')}</span><strong>${bigValue(Number(goodwe.grid_import_w) || Number(goodwe.grid_export_w))}</strong><p>${t(`flow.grid_${grid}`)}</p></article>
+      <article><span>${t('entity.battery')}</span><strong>${bigValue(Number(goodwe.battery_charge_w) || Number(goodwe.battery_discharge_w))}</strong><p>${Number(goodwe.battery_charge_w) > 20 ? t('flow.charging') : Number(goodwe.battery_discharge_w) > 20 ? t('flow.discharging') : t('flow.idle')}</p></article>
+      <article><span>${t('entity.heatpump')}</span><strong>${bigValue(shelly.heatpump_power_w)}</strong><p>${tng.heating_on === true ? t('flow.heating_active') : t('flow.heating_idle')}</p></article>
+    </section>`;
+  renderFlow(view.querySelector('#live-flow'), { ...goodwe, heatpump_power_w: shelly.heatpump_power_w, devices: shelly.devices }, t, motion);
 }
 
 // --- Nastavení ---------------------------------------------------------------
@@ -475,23 +433,32 @@ function groupFields(fields) {
   return groups;
 }
 
+function settingsGroup(section, group, config) {
+  return `<div class="settings-group">
+    <h3>${t(SECTION_LABELS[section] || section)}</h3>
+    ${group.direct.map((field) => fieldRow(field, valueAt(config, field.path))).join('')}
+    ${Object.entries(group.subs).map(([sub, list]) => `
+      <div class="settings-subgroup">
+        <h4>${t(SUBGROUP_LABELS[`${section}.${sub}`] || sub)}</h4>
+        ${list.map((field) => fieldRow(field, valueAt(config, field.path))).join('')}
+      </div>`).join('')}
+  </div>`;
+}
+
 export async function settings(view, { api, onUiChange }) {
   const [{ config }, { fields }] = await Promise.all([api.config(), api.configSchema()]);
   const groups = groupFields(fields);
+  const personal = Object.entries(groups).filter(([section]) => section === 'ui');
+  const technical = Object.entries(groups).filter(([section]) => section !== 'ui');
 
   view.innerHTML = `<div><span class="section-tab">${t('settings.title')}</span>
     <section class="panel">
       <form id="settings-form">
-        ${Object.entries(groups).map(([section, group]) => `
-          <div class="settings-group">
-            <h3>${t(SECTION_LABELS[section] || section)}</h3>
-            ${group.direct.map((field) => fieldRow(field, valueAt(config, field.path))).join('')}
-            ${Object.entries(group.subs).map(([sub, list]) => `
-              <div class="settings-subgroup">
-                <h4>${t(SUBGROUP_LABELS[`${section}.${sub}`] || sub)}</h4>
-                ${list.map((field) => fieldRow(field, valueAt(config, field.path))).join('')}
-              </div>`).join('')}
-          </div>`).join('')}
+        <div class="settings-intro"><p>${t('settings.personal_title')}</p><h2>${t('settings.personal_intro')}</h2></div>
+        ${personal.map(([section, group]) => settingsGroup(section, group, config)).join('')}
+        <details class="technical-settings"><summary><span>${t('settings.technical_title')}</span><small>${t('settings.technical_intro')}</small></summary>
+          ${technical.map(([section, group]) => settingsGroup(section, group, config)).join('')}
+        </details>
         <div class="controls">
           <button type="submit">${t('settings.save')}</button>
           <span id="settings-message" class="meta"></span>
@@ -750,5 +717,5 @@ export async function logsPage(view, { api }) {
   return () => clearInterval(timer);
 }
 
-export const pages = { overview, history, prediction, status, logs: logsPage, settings };
+export const pages = { overview, history, prediction, flow, status, logs: logsPage, settings };
 export const helpers = { duration, availableLanguages, currentLanguage };

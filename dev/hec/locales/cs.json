@@ -15,7 +15,12 @@
     "settings": "Nastavení",
     "menu": "Menu",
     "status": "Stav",
-    "logs": "Data"
+    "logs": "Data",
+    "today": "Dnes",
+    "forecast": "Výhled",
+    "flow": "Tok energie",
+    "more": "Více",
+    "advanced": "Servis a diagnostika"
   },
   "unit": {
     "w": "W",
@@ -65,6 +70,84 @@
     "no_decision": "Systém zatím nic neřídil",
     "phases": "Zatížení fází",
     "imbalance": "Nesymetrie fází"
+  },
+  "advisor": {
+    "eyebrow": "Energy advisor",
+    "best_action": "Doporučení pro domácnost",
+    "hero_best": "Nejlepší čas pro větší spotřebu: {window}",
+    "hero_export": "Právě posíláte přebytek do sítě — spotřebu lze zvýšit.",
+    "hero_wait": "Doporučení zatím není k dispozici",
+    "based_on": "Doporučení vychází z výhledu pro {date}",
+    "awaiting_forecast": "Čekáme na cenový nebo výrobní výhled.",
+    "now_pv": "FVE právě teď",
+    "grid_now": "Tok se sítí",
+    "section_kicker": "Plán energie",
+    "plan_title": "Co dnes udělat s energií",
+    "do_later": "Vhodné období",
+    "avoid": "Raději se vyhnout",
+    "solar_outlook": "Očekávaná výroba",
+    "best_window_reason": "Nejnižší dostupná kombinace ceny a očekávané výroby.",
+    "avoid_window_reason": "Toto je nejdražší dostupné cenové období.",
+    "no_window_reason": "Pro toto období nejsou dostupná data k doporučení.",
+    "no_avoid_reason": "Cenový výhled pro toto období není k dispozici.",
+    "solar_confidence": "Předpověď s {confidence} jistotou.",
+    "timeline_title": "Energetický rytmus dne",
+    "timeline_note": "Vyhodnoceno ze spotové ceny, slunečního záření a počasí. Stav baterie nelze bez hodinové predikce spolehlivě dopočítat.",
+    "best": "Ideální",
+    "ok": "V pořádku",
+    "neutral": "Neutrální",
+    "unknown": "Bez dat",
+    "appliances_title": "Doporučení pro spotřebiče",
+    "recommendations_badge": "Jen doporučení",
+    "appliance_window": "Doporučené okno {window}",
+    "window_unavailable": "Doporučení zatím není k dispozici",
+    "recommendation_only": "Aplikace spotřebič nespouští.",
+    "controller_active": "Řízení je aktivní",
+    "controller_observing": "Pouze sledování, bez řízení",
+    "tng_no_data": "Stav TČ není k dispozici.",
+    "dhw_temperature": "Teplá voda {value} °C",
+    "live_title": "Živá energetická situace",
+    "grid_export": "Dodávka do sítě",
+    "grid_import": "Odběr ze sítě",
+    "grid_balanced": "Vyrovnaný tok",
+    "open_flow": "Otevřít tok energie"
+    ,"open_forecast": "Otevřít výhled"
+    ,"now": "Právě teď"
+    ,"now_state_reason": "Podle živého toku energie"
+    ,"avoid_window_short": "Nejvyšší dostupná cena"
+    ,"solar_peak": "Maximum záření {value} W/m²"
+    ,"next_window": "Nejbližší vhodné okno"
+    ,"window_reason_short": "Cena a sluneční potenciál"
+    ,"window_value": "Odhad výroby: {value}"
+    ,"outlook_title": "Vývoj v dalších hodinách"
+    ,"outlook_subtitle": "Slunce a cena"
+    ,"solar_curve": "Sluneční potenciál"
+    ,"price_curve": "Cena elektřiny"
+  },
+  "forecast": {
+    "eyebrow": "Předpověď a rozhodnutí",
+    "title": "Co přinesou příští dny",
+    "subtitle": "Výroba, cena a vhodný čas jsou pohromadě.",
+    "best_window": "Nejbližší vhodné období",
+    "confidence": "Jistota: {value}",
+    "pv_expected": "Očekávaná výroba FVE",
+    "irradiation": "Záření {value} kWh/m²",
+    "consumption": "Očekávaná spotřeba",
+    "battery_floor": "Nejnižší baterie",
+    "price_range": "Rozpětí ceny",
+    "recommendation": "Doporučení"
+  },
+  "flow": {
+    "eyebrow": "Živý systém",
+    "title": "Tok energie v domě",
+    "grid_export": "Dům právě dodává energii do sítě.",
+    "grid_import": "Dům právě odebírá energii ze sítě.",
+    "grid_balanced": "Tok se sítí je nyní vyrovnaný.",
+    "charging": "Baterie se nabíjí.",
+    "discharging": "Baterie pokrývá část spotřeby.",
+    "idle": "Baterie je bez významného toku.",
+    "heating_active": "Topení je aktivní.",
+    "heating_idle": "Topení je nyní vypnuté."
   },
   "history": {
     "title": "Historie",
@@ -135,6 +218,10 @@
     "theme_auto": "Podle systému",
     "theme_dark": "Tmavý",
     "theme_light": "Světlý",
+    "personal_title": "Vaše domácnost",
+    "personal_intro": "Vzhled a chování panelu",
+    "technical_title": "Technické nastavení",
+    "technical_intro": "Připojení zařízení, intervaly, ukládání a řízení. Měňte jen při správě systému.",
     "tng_boiler": "Ohřev teplé vody (TUV)",
     "tng_heating": "Topení",
     "tng_thermostat": "Termostat",
