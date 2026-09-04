@@ -1,0 +1,26 @@
+{
+  "step": 12,
+  "classification": "LARGE",
+  "status": "PLANNED",
+  "gate_a": {
+    "status": "PENDING",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_b": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "NO",
+  "requested_by": "repository owner / maintainer",
+  "source": "HEC_STEP12_SDD_HARDENING.md",
+  "branch": null,
+  "pr": null,
+  "notes": "Step 12 is the SDD hardening and security cleanup pass. It introduces reusable dev/sdd tooling and enforces gates via validation, without changing core HEC product logic."
+}

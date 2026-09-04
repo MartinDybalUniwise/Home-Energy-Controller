@@ -23,6 +23,7 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | `step09/` | Rozšíření: sdílení energie (EDC/GoEnergy), predikce, externí měření – plán a fáze A–D | 🚧 fáze A–D hotovo, E–G navrženo |
 | `step10/` | HEF (Home Energy Finance): integrovaná finanční vrstva, API/UI scaffold, import dokumentů | 🚧 MVP scaffold hotovo, další fáze navrženy |
 | [`step11/`](step11/) | AI-first / Spec-Driven Development bootstrap, bezpečný lokální preview, Playwright a PR evidence | ✅ bootstrap implementován, čeká human test |
+| [`step12/`](step12/) | SDD hardening, security cleanup, enforcement gates, repo hygiene, reusable `dev/sdd/` platform | 📝 plánováno |
 
 Další kroky se doplňují sem, jakmile vzniknou.
 
