@@ -3,11 +3,15 @@ data/
 logs/
 history/
 archive/
+**/.runtime/
+dev/**/.runtime/
 
 # Tajemství
 .env
-.env.local
+.env.*
+connect.json
 connect.local.json
+connect.*.json
 config/config.json
 dev/hec/config/config.json
 
