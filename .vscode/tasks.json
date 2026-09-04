@@ -1,0 +1,71 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "HEC: Install Dev Dependencies",
+      "type": "shell",
+      "command": "python",
+      "args": ["-m", "pip", "install", "-r", "requirements-dev.txt"],
+      "problemMatcher": []
+    },
+    {
+      "label": "HEC: Lint",
+      "type": "shell",
+      "command": "python",
+      "args": ["-m", "ruff", "check", "."],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "HEC: Unit Tests",
+      "type": "shell",
+      "command": "python",
+      "args": ["-m", "pytest", "-m", "not e2e"],
+      "problemMatcher": "$pytest"
+    },
+    {
+      "label": "HEC: Full Tests",
+      "type": "shell",
+      "command": "python",
+      "args": ["-m", "pytest"],
+      "problemMatcher": "$pytest"
+    },
+    {
+      "label": "HEC: Start Dev Preview",
+      "type": "shell",
+      "command": "python",
+      "args": ["dev/step11/preview.py", "start"],
+      "problemMatcher": []
+    },
+    {
+      "label": "HEC: Stop Dev Preview",
+      "type": "shell",
+      "command": "python",
+      "args": ["dev/step11/preview.py", "stop"],
+      "problemMatcher": []
+    },
+    {
+      "label": "HEC: Playwright",
+      "type": "shell",
+      "command": "python",
+      "args": [
+        "-m", "pytest", "dev/hec/tests/e2e", "-o", "addopts=", "-m", "e2e",
+        "--screenshot", "only-on-failure", "--tracing", "retain-on-failure",
+        "--output", "dev/step11/.runtime/playwright"
+      ],
+      "options": {
+        "env": {
+          "HEC_RUN_E2E": "1",
+          "HEC_BASE_URL": "http://127.0.0.1:8181"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "HEC: Full Validation",
+      "type": "shell",
+      "command": "python",
+      "args": ["dev/step11/full_validation.py"],
+      "problemMatcher": []
+    }
+  ]
+}
