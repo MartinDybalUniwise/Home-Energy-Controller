@@ -88,6 +88,14 @@ def test_changed_step_names_selects_only_canonical_step_paths():
     ]) == ["step12", "step14"]
 
 
+def test_validation_evidence_contains_repository_metadata():
+    metadata = load_tool("full_validation").repository_metadata()
+    assert len(metadata["git_sha"]) == 40
+    assert metadata["timestamp_utc"].endswith("+00:00")
+    assert metadata["python"]
+    assert isinstance(metadata["working_tree_clean"], bool)
+
+
 def test_new_step_generates_manifest_and_readme_row(tmp_path, monkeypatch):
     generator = load_tool("new_step")
     templates = tmp_path / "templates"
