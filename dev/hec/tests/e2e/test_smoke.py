@@ -30,16 +30,19 @@ def test_shell_dashboard_and_settings_navigation(page: Page, viewport: tuple[int
     expect(page.locator(".notice.error")).to_have_count(0)
 
 
-def test_czech_and_english_navigation_catalogs(page: Page):
+def test_czech_navigation_catalog(page: Page):
     from playwright.sync_api import expect
 
+    page.add_init_script("localStorage.setItem('hec_lang', 'cs')")
     page.goto("/")
-    page.evaluate("localStorage.setItem('hec_lang', 'cs')")
-    page.reload()
     expect(page.locator("html")).to_have_attribute("lang", "cs")
     expect(page.locator('nav a[data-page="overview"]')).to_have_text("Dnes")
 
-    page.evaluate("localStorage.setItem('hec_lang', 'en')")
-    page.reload()
+
+def test_english_navigation_catalog(page: Page):
+    from playwright.sync_api import expect
+
+    page.add_init_script("localStorage.setItem('hec_lang', 'en')")
+    page.goto("/")
     expect(page.locator("html")).to_have_attribute("lang", "en")
     expect(page.locator('nav a[data-page="overview"]')).to_have_text("Today")

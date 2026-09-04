@@ -1,5 +1,7 @@
 import importlib.util
 import json
+import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -21,11 +23,42 @@ def test_step13_manifest_has_canonical_fields():
     assert validator._validate_schema(manifest) == []
 
 
+def test_not_required_gate_requires_reason():
+    validator = load_tool("validate_step")
+    manifest = json.loads((ROOT / "dev" / "step14" / "STEP.json").read_text(encoding="utf-8"))
+    manifest["gate_b"] = {"status": "NOT_REQUIRED", "approved_by": None, "approved_at": None}
+    assert any("reason is required" in error for error in validator._validate_schema(manifest))
+    manifest["gate_b"]["reason"] = "No user-visible behavior changed"
+    assert validator._validate_schema(manifest) == []
+
+
 def test_step12_cannot_validate_as_done():
     validator = load_tool("validate_step")
     errors = validator.validate_step(ROOT / "dev" / "step12", "done")
     assert errors
     assert any("missing required fields" in error or "Gate A is not approved" in error for error in errors)
+
+
+def test_fully_completed_step_can_pass_done(tmp_path):
+    source = ROOT / "dev" / "step13"
+    target = tmp_path / "step14"
+    import shutil
+
+    shutil.copytree(source, target)
+    manifest = json.loads((target / "STEP.json").read_text(encoding="utf-8"))
+    manifest.update({"step": 14, "status": "DONE", "readiness": "YES"})
+    for gate_name in ("gate_a", "gate_b", "gate_c"):
+        manifest[gate_name].update({"status": "APPROVED", "approved_by": "test", "approved_at": "2026-09-05T00:00:00Z"})
+    (target / "STEP.json").write_text(json.dumps(manifest), encoding="utf-8")
+    acceptance = (target / "ACCEPTANCE_CRITERIA.md").read_text(encoding="utf-8").replace("- [ ]", "- [x]")
+    (target / "ACCEPTANCE_CRITERIA.md").write_text(acceptance, encoding="utf-8")
+    plan = (target / "PLAN.md").read_text(encoding="utf-8").replace("| PLANNED |", "| PASS |")
+    (target / "PLAN.md").write_text(plan, encoding="utf-8")
+    traceability = (target / "TRACEABILITY.md").read_text(encoding="utf-8")
+    traceability = traceability.replace("| PLANNED |", "| PASS |").replace("| BLOCKED |", "| PASS |")
+    (target / "TRACEABILITY.md").write_text(traceability, encoding="utf-8")
+
+    assert load_tool("validate_step").validate_step(target, "done") == []
 
 
 def test_traceability_rejects_unchecked_status(tmp_path):
@@ -42,7 +75,29 @@ def test_traceability_rejects_unchecked_status(tmp_path):
 
 
 def test_new_step_uses_highest_numeric_directory():
-    assert load_tool("new_step").next_step_number() == 14
+    assert load_tool("new_step").next_step_number() == 15
+
+
+def test_changed_step_names_selects_only_canonical_step_paths():
+    validator = load_tool("validate_changed_steps")
+    assert validator.changed_step_names([
+        "dev/step14/PLAN.md",
+        "dev/hec/web/frontend/js/app.js",
+        "dev/step12/RESULT.md",
+        "README.md",
+    ]) == ["step12", "step14"]
+
+
+def test_validation_evidence_contains_repository_metadata():
+    metadata = load_tool("full_validation").repository_metadata()
+    assert len(metadata["git_sha"]) == 40
+    assert metadata["timestamp_utc"].endswith("+00:00")
+    assert metadata["python"]
+    assert isinstance(metadata["working_tree_clean"], bool)
+
+
+def test_readme_status_matches_canonical_manifests():
+    assert load_tool("validate_readme_status").validate() == []
 
 
 def test_new_step_generates_manifest_and_readme_row(tmp_path, monkeypatch):
@@ -58,6 +113,7 @@ def test_new_step_generates_manifest_and_readme_row(tmp_path, monkeypatch):
     target = generator.create_step(2)
     manifest = json.loads((target / "STEP.json").read_text(encoding="utf-8"))
     assert manifest["step"] == 2
+    assert load_tool("validate_step")._validate_schema(manifest) == []
     assert (target / "PLAN.md").exists()
     assert "step02/" in readme.read_text(encoding="utf-8")
 
@@ -72,13 +128,40 @@ def test_new_step_rejects_existing_target(tmp_path, monkeypatch):
 
 def test_pr_renderer_projects_validation_evidence(tmp_path):
     renderer = load_tool("render_pr")
+    source = ROOT / "dev" / "step13"
+    step_dir = tmp_path / "step14"
+    shutil.copytree(source, step_dir)
+    manifest = json.loads((step_dir / "STEP.json").read_text(encoding="utf-8"))
+    manifest.update({"step": 14, "status": "DONE", "readiness": "YES"})
+    for gate_name in ("gate_a", "gate_b", "gate_c"):
+        manifest[gate_name].update({"status": "APPROVED", "approved_by": "test", "approved_at": "2026-09-05T00:00:00Z"})
+    (step_dir / "STEP.json").write_text(json.dumps(manifest), encoding="utf-8")
+    (step_dir / "ACCEPTANCE_CRITERIA.md").write_text(
+        (step_dir / "ACCEPTANCE_CRITERIA.md").read_text(encoding="utf-8").replace("- [ ]", "- [x]"),
+        encoding="utf-8",
+    )
+    (step_dir / "PLAN.md").write_text(
+        (step_dir / "PLAN.md").read_text(encoding="utf-8").replace("| PLANNED |", "| PASS |"),
+        encoding="utf-8",
+    )
+    traceability = (step_dir / "TRACEABILITY.md").read_text(encoding="utf-8")
+    (step_dir / "TRACEABILITY.md").write_text(traceability.replace("| PLANNED |", "| PASS |").replace("| BLOCKED |", "| PASS |"), encoding="utf-8")
     runtime = tmp_path / "runtime"
     runtime.mkdir()
     renderer.RUNTIME = runtime
-    validation = {"status": "PASS", "counts": {"total": 2, "passed": 2, "failed": 0}}
+    sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    validation = {"status": "PASS", "git_sha": sha, "counts": {"total": 2, "passed": 2, "failed": 0}}
     (runtime / "validation.json").write_text(json.dumps(validation), encoding="utf-8")
     output = tmp_path / "pr_body.md"
-    renderer.render(ROOT / "dev" / "step13", output)
+    renderer.render(step_dir, output)
     text = output.read_text(encoding="utf-8")
-    assert "Step 13 validation evidence" in text
+    assert "Step 14 validation evidence" in text
     assert "2/2 checks passed" in text
+
+
+def test_pr_renderer_rejects_incomplete_step(tmp_path):
+    renderer = load_tool("render_pr")
+    renderer.RUNTIME = tmp_path
+    (tmp_path / "validation.json").write_text(json.dumps({"status": "PASS"}), encoding="utf-8")
+    with pytest.raises(ValueError, match="incomplete|stale"):
+        renderer.render(ROOT / "dev" / "step14", tmp_path / "pr_body.md")

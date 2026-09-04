@@ -5,10 +5,12 @@ from __future__ import annotations
 
 import json
 import os
+import platform
 import shutil
 import subprocess
 import sys
 import urllib.request
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -18,6 +20,18 @@ PID_FILE = ROOT / "dev" / "sdd" / ".runtime" / "preview.pid"
 VALIDATION_JSON = ROOT / "dev" / "sdd" / ".runtime" / "validation.json"
 PLAYWRIGHT_OUTPUT = ROOT / "dev" / "sdd" / ".runtime" / "playwright"
 RESULTS: list[dict[str, object]] = []
+
+
+def repository_metadata() -> dict[str, object]:
+    git_sha = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    status = subprocess.run(["git", "status", "--porcelain"], cwd=ROOT, capture_output=True, text=True, check=False)
+    return {
+        "git_sha": git_sha,
+        "timestamp_utc": datetime.now(UTC).isoformat(),
+        "platform": platform.platform(),
+        "python": sys.version.split()[0],
+        "working_tree_clean": not status.stdout.strip(),
+    }
 
 
 def run_step(label: str, command: list[str], *, env: dict[str, str] | None = None) -> None:
@@ -53,6 +67,7 @@ def runtime_smoke() -> None:
 def write_validation(success: bool) -> None:
     VALIDATION_JSON.parent.mkdir(parents=True, exist_ok=True)
     payload = {
+        **repository_metadata(),
         "status": "PASS" if success else "FAIL",
         "commands": RESULTS,
         "counts": {

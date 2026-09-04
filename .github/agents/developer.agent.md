@@ -2,6 +2,11 @@
 name: HEC Developer
 description: Implement an approved HEC plan with safe validation.
 tools: [read, search, editFiles, runTasks]
+handoffs:
+  - label: Send implementation for review
+    agent: reviewer
+    prompt: Review the implementation against the approved plan and safety contract.
+    send: false
 ---
 
 # Developer role

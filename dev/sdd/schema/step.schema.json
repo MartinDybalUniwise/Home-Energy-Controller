@@ -28,9 +28,10 @@
       "additionalProperties": false,
       "required": ["status", "approved_by", "approved_at"],
       "properties": {
-        "status": { "type": "string", "enum": ["PENDING", "APPROVED", "NOT_REQUESTED"] },
+        "status": { "type": "string", "enum": ["PENDING", "APPROVED", "NOT_REQUESTED", "NOT_REQUIRED"] },
         "approved_by": { "type": ["string", "null"] },
-        "approved_at": { "type": ["string", "null"] }
+        "approved_at": { "type": ["string", "null"] },
+        "reason": { "type": "string" }
       }
     }
   }
