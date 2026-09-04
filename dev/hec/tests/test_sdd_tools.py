@@ -2,6 +2,8 @@ import importlib.util
 import json
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[3]
 
 
@@ -41,6 +43,31 @@ def test_traceability_rejects_unchecked_status(tmp_path):
 
 def test_new_step_uses_highest_numeric_directory():
     assert load_tool("new_step").next_step_number() == 14
+
+
+def test_new_step_generates_manifest_and_readme_row(tmp_path, monkeypatch):
+    generator = load_tool("new_step")
+    templates = tmp_path / "templates"
+    templates.mkdir()
+    (templates / "PLAN.md").write_text("# Plan\n", encoding="utf-8")
+    readme = tmp_path / "README.md"
+    readme.write_text("| Krok | Obsah | Stav |\n|---|---|---|\n| [`step01/`](step01/) | Existing | done |\n", encoding="utf-8")
+    monkeypatch.setattr(generator, "ROOT", tmp_path)
+    monkeypatch.setattr(generator, "TEMPLATES", templates)
+    monkeypatch.setattr(generator, "README", readme)
+    target = generator.create_step(2)
+    manifest = json.loads((target / "STEP.json").read_text(encoding="utf-8"))
+    assert manifest["step"] == 2
+    assert (target / "PLAN.md").exists()
+    assert "step02/" in readme.read_text(encoding="utf-8")
+
+
+def test_new_step_rejects_existing_target(tmp_path, monkeypatch):
+    generator = load_tool("new_step")
+    monkeypatch.setattr(generator, "ROOT", tmp_path)
+    (tmp_path / "dev" / "step02").mkdir(parents=True)
+    with pytest.raises(FileExistsError):
+        generator.create_step(2)
 
 
 def test_pr_renderer_projects_validation_evidence(tmp_path):
