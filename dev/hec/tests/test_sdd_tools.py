@@ -28,6 +28,28 @@ def test_step12_cannot_validate_as_done():
     assert any("missing required fields" in error or "Gate A is not approved" in error for error in errors)
 
 
+def test_fully_completed_step_can_pass_done(tmp_path):
+    source = ROOT / "dev" / "step13"
+    target = tmp_path / "step14"
+    import shutil
+
+    shutil.copytree(source, target)
+    manifest = json.loads((target / "STEP.json").read_text(encoding="utf-8"))
+    manifest.update({"step": 14, "status": "DONE", "readiness": "YES"})
+    for gate_name in ("gate_a", "gate_b", "gate_c"):
+        manifest[gate_name].update({"status": "APPROVED", "approved_by": "test", "approved_at": "2026-09-05T00:00:00Z"})
+    (target / "STEP.json").write_text(json.dumps(manifest), encoding="utf-8")
+    acceptance = (target / "ACCEPTANCE_CRITERIA.md").read_text(encoding="utf-8").replace("- [ ]", "- [x]")
+    (target / "ACCEPTANCE_CRITERIA.md").write_text(acceptance, encoding="utf-8")
+    plan = (target / "PLAN.md").read_text(encoding="utf-8").replace("| PLANNED |", "| PASS |")
+    (target / "PLAN.md").write_text(plan, encoding="utf-8")
+    traceability = (target / "TRACEABILITY.md").read_text(encoding="utf-8")
+    traceability = traceability.replace("| PLANNED |", "| PASS |").replace("| BLOCKED |", "| PASS |")
+    (target / "TRACEABILITY.md").write_text(traceability, encoding="utf-8")
+
+    assert load_tool("validate_step").validate_step(target, "done") == []
+
+
 def test_traceability_rejects_unchecked_status(tmp_path):
     source = ROOT / "dev" / "step13"
     target = tmp_path / "step13"

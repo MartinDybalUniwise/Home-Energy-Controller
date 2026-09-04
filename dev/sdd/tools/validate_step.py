@@ -118,8 +118,13 @@ def _phase_errors(step_dir: Path, manifest: dict, phase: str) -> list[str]:
             errors.append(f"{gate_name} is not approved")
     if any(not item for item in manifest["evidence"]):
         errors.append("evidence contains an empty item")
-    if re.search(r"^- \[ \]", (step_dir / "ACCEPTANCE_CRITERIA.md").read_text(encoding="utf-8"), re.MULTILINE):
-        errors.append("acceptance criteria contains unchecked items")
+    acceptance_text = (step_dir / "ACCEPTANCE_CRITERIA.md").read_text(encoding="utf-8")
+    for acceptance_id in manifest["acceptance"]:
+        acceptance_lines = [line for line in acceptance_text.splitlines() if acceptance_id in line]
+        if not acceptance_lines:
+            errors.append(f"acceptance criteria is missing {acceptance_id}")
+        elif any(re.match(r"^\s*- \[ \]", line) for line in acceptance_lines):
+            errors.append(f"acceptance criteria contains unchecked item: {acceptance_id}")
     if re.search(r"\|\s*S\d+\s*\|.*\|\s*(?:PLANNED|IN_PROGRESS|BLOCKED)\s*\|", (step_dir / "PLAN.md").read_text(encoding="utf-8")):
         errors.append("plan contains unfinished steps")
     result = step_dir / "RESULT.md"
@@ -159,10 +164,6 @@ def validate_step(step_dir: Path, phase: str = "structural") -> list[str]:
     plan = step_dir / "PLAN.md"
     if plan.exists() and "## Goal" not in plan.read_text(encoding="utf-8"):
         errors.append(f"Plan is missing a goal section in {step_dir.name}")
-
-    acceptance = step_dir / "ACCEPTANCE_CRITERIA.md"
-    if acceptance.exists() and "- [ ]" not in acceptance.read_text(encoding="utf-8"):
-        errors.append(f"Acceptance criteria file is incomplete in {step_dir.name}")
 
     return errors
 
