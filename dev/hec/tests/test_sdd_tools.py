@@ -67,6 +67,16 @@ def test_new_step_uses_highest_numeric_directory():
     assert load_tool("new_step").next_step_number() == 15
 
 
+def test_changed_step_names_selects_only_canonical_step_paths():
+    validator = load_tool("validate_changed_steps")
+    assert validator.changed_step_names([
+        "dev/step14/PLAN.md",
+        "dev/hec/web/frontend/js/app.js",
+        "dev/step12/RESULT.md",
+        "README.md",
+    ]) == ["step12", "step14"]
+
+
 def test_new_step_generates_manifest_and_readme_row(tmp_path, monkeypatch):
     generator = load_tool("new_step")
     templates = tmp_path / "templates"
