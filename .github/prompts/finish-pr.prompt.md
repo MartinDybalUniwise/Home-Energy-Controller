@@ -3,14 +3,15 @@ name: HEC finish PR
 description: Produce an evidence-backed HEC pull-request summary.
 agent: reviewer
 argument-hint: Approved step directory
-output: RESULT.md and PR body
+output: Review findings and PR body inputs
 stop-conditions: Do not create or submit a PR.
 ---
 
 # HEC finish PR prompt
 
 Review the actual diff against the approved requirement and plan. Run the
-documented final validation where possible. Prepare `RESULT.md` and a PR body
+documented final validation where possible. Report the evidence needed to
+generate `RESULT.md` and a PR body
 containing source/step, planned and implemented work, deviations, exact
 ruff/pytest/runtime/Playwright results, human-test status, controller/TNG/
 GoodWe safety status, secrets/production-data status, limitations, and

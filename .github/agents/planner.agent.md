@@ -2,6 +2,11 @@
 name: HEC Planner
 description: Plan a HEC requirement without implementing application code.
 tools: [read, search, editFiles]
+handoffs:
+  - label: Start approved implementation
+    agent: developer
+    prompt: Implement the approved plan and preserve all HEC safety gates.
+    send: false
 ---
 
 # Planner role
