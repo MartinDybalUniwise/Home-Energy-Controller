@@ -28,6 +28,7 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install -r requirements-dev.txt
+      - run: python -m playwright install --with-deps chromium
       - run: python dev/sdd/tools/validate_step.py
       - run: python dev/sdd/tools/validate_repo.py
       - run: python dev/sdd/tools/full_validation.py
