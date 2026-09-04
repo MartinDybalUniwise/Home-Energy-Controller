@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "HEC: Debug Dev Preview",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/dev/run.py",
+      "args": ["--config", "${workspaceFolder}/dev/step11/config.preview.json"],
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "env": {
+        "PYTHONPATH": "${workspaceFolder}/dev"
+      },
+      "justMyCode": true
+    }
+  ]
+}

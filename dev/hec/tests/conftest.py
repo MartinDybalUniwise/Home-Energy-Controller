@@ -7,6 +7,7 @@ Testy nesmí sahat na síť ani na provozní data – všechny externí služby
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -17,6 +18,27 @@ DEV_ROOT = PROJECT_ROOT / "dev"
 for path in (str(PROJECT_ROOT), str(DEV_ROOT)):
     if path not in sys.path:
         sys.path.insert(0, path)
+
+
+def pytest_collection_modifyitems(config, items):
+    """Keep browser tests opt-in without shadowing this shared conftest."""
+    del config
+    if os.environ.get("HEC_RUN_E2E") == "1":
+        return
+    skip = pytest.mark.skip(reason="E2E requires HEC_RUN_E2E=1 and a running safe preview")
+    for item in items:
+        if "e2e" in item.nodeid:
+            item.add_marker(skip)
+
+
+@pytest.fixture(scope="session")
+def browser_context_args(browser_context_args):
+    """Configure pytest-playwright for the local preview when E2E is enabled."""
+    return {
+        **browser_context_args,
+        "base_url": os.environ.get("HEC_BASE_URL", "http://127.0.0.1:8181"),
+        "ignore_https_errors": False,
+    }
 
 
 class FakeResponse:

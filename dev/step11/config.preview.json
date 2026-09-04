@@ -1,0 +1,47 @@
+{
+  "system": {
+    "site_name": "HEC Development Preview"
+  },
+  "storage": {
+    "data_path": "dev/step11/.runtime/data",
+    "logs_path": "dev/step11/.runtime/logs",
+    "history_path": "dev/step11/.runtime/history",
+    "archive_path": "dev/step11/.runtime/archive"
+  },
+  "goodwe": {
+    "enabled": false
+  },
+  "tng": {
+    "enabled": false,
+    "write_enabled": false
+  },
+  "ote": {
+    "enabled": false
+  },
+  "weather": {
+    "enabled": false
+  },
+  "shelly": {
+    "enabled": false
+  },
+  "sharing": {
+    "enabled": false
+  },
+  "finance": {
+    "enabled": false,
+    "documents": {
+      "enabled": false
+    }
+  },
+  "controller": {
+    "enabled": false
+  },
+  "web": {
+    "host": "127.0.0.1",
+    "port": 8181,
+    "password": ""
+  },
+  "ui": {
+    "language": "cs"
+  }
+}
