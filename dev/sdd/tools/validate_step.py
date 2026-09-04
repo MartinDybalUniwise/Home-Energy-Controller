@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Validate a step directory against the mandatory SDD structure."""
+"""Validate a step directory against the canonical SDD contract."""
 
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -17,9 +18,116 @@ REQUIRED_FILES = {
     "TRACEABILITY.md",
     "STEP.json",
 }
+SCHEMA_PATH = ROOT / "dev" / "sdd" / "schema" / "step.schema.json"
+VALID_PHASES = {"structural", "ready", "done"}
+ID_PATTERN = re.compile(r"\b(?:REQ|AC|E)-[A-Z0-9-]+\b|\bS\d{2}\b")
 
 
-def validate_step(step_dir: Path) -> list[str]:
+def _validate_schema(manifest: object) -> list[str]:
+    """Validate the stable manifest contract without requiring jsonschema."""
+    if not isinstance(manifest, dict):
+        return ["STEP.json must contain an object"]
+    errors: list[str] = []
+    schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    missing = [key for key in schema["required"] if key not in manifest]
+    if missing:
+        errors.append(f"STEP.json missing required fields: {', '.join(missing)}")
+    if not isinstance(manifest.get("step"), int) or isinstance(manifest.get("step"), bool) or manifest.get("step", 0) < 1:
+        errors.append("STEP.json step must be a positive integer")
+    if manifest.get("classification") not in {"SMALL", "LARGE"}:
+        errors.append("STEP.json classification is invalid")
+    if manifest.get("status") not in {"PLANNED", "IN_PROGRESS", "DONE", "BLOCKED"}:
+        errors.append("STEP.json status is invalid")
+    if manifest.get("readiness") not in {"YES", "NO"}:
+        errors.append("STEP.json readiness is invalid")
+    for gate_name in ("gate_a", "gate_b", "gate_c"):
+        gate = manifest.get(gate_name)
+        if not isinstance(gate, dict):
+            errors.append(f"STEP.json {gate_name} must be an object")
+            continue
+        if gate.get("status") not in {"PENDING", "APPROVED", "NOT_REQUESTED"}:
+            errors.append(f"STEP.json {gate_name}.status is invalid")
+        if not (gate.get("approved_by") is None or isinstance(gate.get("approved_by"), str)):
+            errors.append(f"STEP.json {gate_name}.approved_by must be a string or null")
+        if not (gate.get("approved_at") is None or isinstance(gate.get("approved_at"), str)):
+            errors.append(f"STEP.json {gate_name}.approved_at must be a string or null")
+    for key in ("requirements", "acceptance", "evidence"):
+        if not isinstance(manifest.get(key), list) or not all(isinstance(item, str) for item in manifest[key]):
+            errors.append(f"STEP.json {key} must be an array of strings")
+    return errors
+
+
+def _table_rows(text: str) -> list[list[str]]:
+    rows = [
+        [cell.strip() for cell in line.strip().strip("|").split("|")]
+        for line in text.splitlines()
+        if line.strip().startswith("|") and "---" not in line
+    ]
+    return rows[1:]
+
+
+def _traceability_errors(step_dir: Path, *, phase: str, manifest: dict) -> list[str]:
+    errors: list[str] = []
+    rows = [
+        row for row in _table_rows((step_dir / "TRACEABILITY.md").read_text(encoding="utf-8"))
+        if row and (row[0].startswith(("REQ-", "AC-")) or re.fullmatch(r"S\d{2}", row[0]))
+    ]
+    if not rows:
+        return [f"Traceability has no data rows in {step_dir.name}"]
+    for row in rows:
+        minimum_columns = 5 if row[0].startswith("REQ-") else 3 if row[0].startswith("AC-") else 4
+        if len(row) < minimum_columns or any(not cell for cell in row[:minimum_columns]):
+            errors.append(f"Traceability contains an incomplete row in {step_dir.name}")
+            continue
+        if phase == "done" and row[-1].upper() != "PASS":
+            errors.append(f"Traceability row is not PASS in {step_dir.name}: {row[0]}")
+        id_cells = row[:4] if row[0].startswith("REQ-") else [row[0]]
+        for identifier in id_cells:
+            if not ID_PATTERN.search(identifier):
+                errors.append(f"Traceability row has an invalid ID: {identifier}")
+    declared_ids = set(manifest["requirements"] + manifest["acceptance"] + manifest["evidence"])
+    referenced_ids = {identifier for row in rows for cell in row for identifier in ID_PATTERN.findall(cell)}
+    missing = sorted(identifier for identifier in declared_ids if identifier not in referenced_ids)
+    if missing:
+        errors.append(f"Manifest IDs missing from traceability: {', '.join(missing)}")
+    return errors
+
+
+def _phase_errors(step_dir: Path, manifest: dict, phase: str) -> list[str]:
+    if phase == "structural":
+        return []
+    errors: list[str] = []
+    if manifest["gate_a"]["status"] != "APPROVED":
+        errors.append("Gate A is not approved")
+    if manifest["readiness"] != "YES":
+        errors.append("readiness is not YES")
+    if not manifest["requirements"] or not manifest["acceptance"]:
+        errors.append("planning ID lists must not be empty")
+    errors.extend(_traceability_errors(step_dir, phase=phase, manifest=manifest))
+    if phase == "ready":
+        return errors
+    if manifest["status"] != "DONE":
+        errors.append("status is not DONE")
+    for gate_name in ("gate_a", "gate_b", "gate_c"):
+        if manifest[gate_name]["status"] != "APPROVED":
+            errors.append(f"{gate_name} is not approved")
+    if any(not item for item in manifest["evidence"]):
+        errors.append("evidence contains an empty item")
+    if re.search(r"^- \[ \]", (step_dir / "ACCEPTANCE_CRITERIA.md").read_text(encoding="utf-8"), re.MULTILINE):
+        errors.append("acceptance criteria contains unchecked items")
+    if re.search(r"\|\s*S\d+\s*\|.*\|\s*(?:PLANNED|IN_PROGRESS|BLOCKED)\s*\|", (step_dir / "PLAN.md").read_text(encoding="utf-8")):
+        errors.append("plan contains unfinished steps")
+    result = step_dir / "RESULT.md"
+    if not result.exists() or "PASS" not in result.read_text(encoding="utf-8"):
+        errors.append("RESULT.md has no PASS evidence")
+    if manifest["status"] == "BLOCKED":
+        errors.append("step is BLOCKED")
+    return errors
+
+
+def validate_step(step_dir: Path, phase: str = "structural") -> list[str]:
+    if phase not in VALID_PHASES:
+        return [f"Unknown validation phase: {phase}"]
     errors: list[str] = []
     if not step_dir.is_dir():
         return [f"Missing step directory: {step_dir}"]
@@ -35,11 +143,9 @@ def validate_step(step_dir: Path) -> list[str]:
         except json.JSONDecodeError as exc:
             errors.append(f"Invalid JSON in {step_json_path}: {exc}")
         else:
-            for key in ("step", "status", "classification"):
-                if key not in manifest:
-                    errors.append(f"STEP.json missing {key!r} in {step_dir.name}")
-            if manifest.get("status") not in {"PLANNED", "IN_PROGRESS", "DONE", "BLOCKED"}:
-                errors.append(f"STEP.json status is invalid in {step_dir.name}")
+            errors.extend(_validate_schema(manifest))
+            if not errors:
+                errors.extend(_phase_errors(step_dir, manifest, phase))
 
     requirement = step_dir / "REQUIREMENT.md"
     if requirement.exists() and "## Objective" not in requirement.read_text(encoding="utf-8"):
@@ -57,12 +163,18 @@ def validate_step(step_dir: Path) -> list[str]:
 
 
 def main() -> int:
-    candidates = [
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--phase", choices=sorted(VALID_PHASES), default="structural")
+    parser.add_argument("--step", type=Path)
+    args = parser.parse_args()
+    candidates = [args.step] if args.step else [
         p for p in (ROOT / "dev").glob("step*") if p.is_dir() and (p / "STEP.json").exists()
     ]
     all_errors: list[str] = []
     for step_dir in sorted(candidates):
-        all_errors.extend(validate_step(step_dir))
+        all_errors.extend(validate_step(step_dir, args.phase))
 
     if all_errors:
         print("Step validation failed:", file=sys.stderr)

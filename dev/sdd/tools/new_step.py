@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -12,13 +13,7 @@ README = ROOT / "dev" / "README.md"
 
 
 def next_step_number() -> int:
-    existing = [p for p in (ROOT / "dev").glob("step*") if p.is_dir()]
-    nums = []
-    for folder in existing:
-        try:
-            nums.append(int(folder.name.replace("step", "")))
-        except ValueError:
-            continue
+    nums = [int(match.group(1)) for match in (re.match(r"step(\d+)$", p.name) for p in (ROOT / "dev").glob("step*")) if match]
     if not nums:
         return 1
     return max(nums) + 1
@@ -34,8 +29,7 @@ def create_step(number: int) -> Path:
         (target / template.name).write_text(template.read_text(encoding="utf-8"), encoding="utf-8")
 
     step_json = {
-        "step": f"{number:02d}",
-        "name": "",
+        "step": number,
         "status": "PLANNED",
         "classification": "LARGE",
         "gates": {
@@ -46,16 +40,24 @@ def create_step(number: int) -> Path:
         "requirements": [],
         "acceptance": [],
         "evidence": [],
+        "requested_by": "",
+        "source": "",
+        "branch": None,
+        "pr": None,
+        "notes": "",
     }
     (target / "STEP.json").write_text(json.dumps(step_json, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     readme_text = README.read_text(encoding="utf-8")
-    marker = "| [`step12/`](step12/) |"
     new_line = f"| [`step{number:02d}/`](step{number:02d}/) | New step placeholder | 📝 plánováno |"
-    if marker in readme_text and f"step{number:02d}/" not in readme_text:
-        insert_at = readme_text.index(marker) + len(marker)
-        readme_text = readme_text[:insert_at] + "\n" + new_line + readme_text[insert_at:]
-        README.write_text(readme_text, encoding="utf-8")
+    if f"step{number:02d}/" in readme_text:
+        raise ValueError(f"README already references step{number:02d}")
+    rows = list(re.finditer(r"^\|.*step\d+.*\|.*$", readme_text, re.MULTILINE))
+    if not rows:
+        raise ValueError("README has no step table rows")
+    insert_at = rows[-1].end()
+    readme_text = readme_text[:insert_at] + "\n" + new_line + readme_text[insert_at:]
+    README.write_text(readme_text, encoding="utf-8")
     return target
 
 
