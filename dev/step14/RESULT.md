@@ -26,7 +26,7 @@ blocked incomplete state and the fixed merge-ready state.
 
 ## Validation
 
-- `python dev/sdd/tools/full_validation.py`: PASS
+- `python dev/sdd/tools/full_validation.py`: PASS on commit `6e7b954`
   - Ruff: PASS
   - Pytest: 256 passed, 5 e2e deselected
   - Structural step validation: PASS for 3 canonical steps
@@ -47,7 +47,8 @@ blocked incomplete state and the fixed merge-ready state.
   `IN_PROGRESS`; GitHub reported the required check as failing and merge was
   blocked.
 - Controlled PR #24 fixed phase: Step14 was changed to `DONE`; required
-  checks passed and GitHub reported merge allowed.
+  checks passed in workflow run `33928012979` and GitHub reported
+  `mergeable_state=clean` / merge allowed.
 
 ## Human gates
 
@@ -65,8 +66,9 @@ blocked incomplete state and the fixed merge-ready state.
 
 ## Final readiness
 
-Step14 is ready for normal feature development after the final required CI
-checks for the fixed PR commit are green. No merge is performed automatically.
+Step14 is ready for normal feature development. Final local validation passed,
+all required GitHub checks passed, and PR #24 is mergeable under branch
+protection. No merge is performed automatically.
 
 ## Safety status
 
