@@ -2,10 +2,9 @@
 
 ## Status
 
-Step14 is in the controlled closure workflow. Gate A is approved, Gate B is
-`NOT_REQUIRED` with owner rationale, and Gate C is approved. The first PR
-phase intentionally keeps status `IN_PROGRESS` to verify that the changed-step
-DONE gate blocks merge.
+Step14 is `DONE`. Gate A is approved, Gate B is `NOT_REQUIRED` with owner
+rationale, and Gate C is approved. The controlled PR demonstrated both the
+blocked incomplete state and the fixed merge-ready state.
 
 ## Planned vs implemented
 
@@ -22,7 +21,8 @@ DONE gate blocks merge.
 - Implemented S10: README status synchronization.
 - Implemented S11: credential rotation confirmed and history rewrite declined
   by the repository owner without recording secret values.
-- S12 automated dogfood passed; controlled merge enforcement is being verified.
+- S12 automated dogfood passed; controlled merge enforcement passed in both
+  failing and fixed phases.
 
 ## Validation
 
@@ -43,13 +43,30 @@ DONE gate blocks merge.
 - Required checks: `test (3.11)`, `test (3.12)`, `sdd-validation`.
 - Pull request required, branches must be up to date, force-push and deletion
   are disabled.
-- Controlled failing-check PR verification is the remaining closure check.
+- Controlled PR #24 failing phase: `sdd-validation` failed because Step14 was
+  `IN_PROGRESS`; GitHub reported the required check as failing and merge was
+  blocked.
+- Controlled PR #24 fixed phase: Step14 was changed to `DONE`; required
+  checks passed and GitHub reported merge allowed.
+
+## Human gates
+
+- Gate A: `APPROVED` by repository owner.
+- Gate B: `NOT_REQUIRED` because this changes SDD/development infrastructure
+  only; automated mock runtime and Playwright provide runtime evidence.
+- Gate C: `APPROVED` by repository owner for final PR creation.
+
+## Security decisions
+
+- Credential rotation: `CONFIRMED` outside Git by repository owner on
+  2026-09-05. Secret values recorded in Git: NO.
+- Git history rewrite: `NOT REQUIRED / DECLINED`; exposed credentials were
+  rotated and preventive repository controls are active.
 
 ## Final readiness
 
-Not yet final. The candidate must first demonstrate `MERGE BLOCKED` while
-Step14 is incomplete, then `MERGE ALLOWED` after status is changed to `DONE`
-and all required checks pass.
+Step14 is ready for normal feature development after the final required CI
+checks for the fixed PR commit are green. No merge is performed automatically.
 
 ## Safety status
 

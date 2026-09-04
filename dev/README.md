@@ -25,7 +25,7 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | [`step11/`](step11/) | AI-first / Spec-Driven Development bootstrap, bezpečný lokální preview, Playwright a PR evidence | ✅ bootstrap implementován, čeká human test |
 | [`step12/`](step12/) | SDD hardening, security cleanup, enforcement gates, repo hygiene, reusable `dev/sdd/` platform | 📝 plánováno <!-- status: PLANNED --> |
 | [`step13/`](step13/) | SDD enforcement completion, canonical ready/done workflow, validation evidence, PR projection a merge gate | 🚧 implementováno, provozní uzavření pokračuje ve Step14 <!-- status: IN_PROGRESS --> |
-| [`step14/`](step14/) | SDD operational closure, changed-step DONE enforcement, guarded evidence and merge protection | 🚧 implementováno <!-- status: IN_PROGRESS --> |
+| [`step14/`](step14/) | SDD operational closure, changed-step DONE enforcement, guarded evidence and merge protection | ✅ hotovo <!-- status: DONE --> |
 
 Další kroky se doplňují sem, jakmile vzniknou.
 
