@@ -1,7 +1,7 @@
 # Home Energy Controller repository instructions
 
 Read `CLAUDE.md` before changing anything. Also use `dev/README.md`,
-`dev/step11/`, `dev/hec/docs/API.md`, and `dev/hec/docs/DEPLOYMENT.md` as the
+`dev/sdd/`, `dev/hec/docs/API.md`, and `dev/hec/docs/DEPLOYMENT.md` as the
 repository sources of truth. The root scripts are frozen production prototypes.
 
 ## Scope and safety
@@ -31,7 +31,8 @@ First create/update `REQUIREMENT.md`, `PLAN.md`, and
 tests, and stop for human approval. Do not implement before approval.
 
 For every implementation, run ruff and relevant pytest tests; run local
-Playwright for UI changes. Use the Step11 safe preview for runtime checks.
+Playwright for UI changes. Use the canonical `dev/sdd/tools/preview.py` safe
+preview for runtime checks.
 Never label automated checks as a human test.
 
 ## Completion report
