@@ -34,6 +34,8 @@ def test_czech_and_english_navigation_catalogs(page: Page):
     from playwright.sync_api import expect
 
     page.goto("/")
+    page.evaluate("localStorage.setItem('hec_lang', 'cs')")
+    page.reload()
     expect(page.locator("html")).to_have_attribute("lang", "cs")
     expect(page.locator('nav a[data-page="overview"]')).to_have_text("Dnes")
 

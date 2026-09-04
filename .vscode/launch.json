@@ -6,7 +6,7 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/dev/run.py",
-      "args": ["--config", "${workspaceFolder}/dev/step11/config.preview.json"],
+      "args": ["--config", "${workspaceFolder}/dev/sdd/config/preview.mock.json"],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
       "env": {

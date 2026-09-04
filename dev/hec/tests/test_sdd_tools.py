@@ -1,0 +1,84 @@
+import importlib.util
+import json
+from pathlib import Path
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[3]
+
+
+def load_tool(name: str):
+    path = ROOT / "dev" / "sdd" / "tools" / f"{name}.py"
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_step13_manifest_has_canonical_fields():
+    manifest = json.loads((ROOT / "dev" / "step13" / "STEP.json").read_text(encoding="utf-8"))
+    validator = load_tool("validate_step")
+    assert validator._validate_schema(manifest) == []
+
+
+def test_step12_cannot_validate_as_done():
+    validator = load_tool("validate_step")
+    errors = validator.validate_step(ROOT / "dev" / "step12", "done")
+    assert errors
+    assert any("missing required fields" in error or "Gate A is not approved" in error for error in errors)
+
+
+def test_traceability_rejects_unchecked_status(tmp_path):
+    source = ROOT / "dev" / "step13"
+    target = tmp_path / "step13"
+    target.mkdir()
+    for name in ("REQUEST.md", "REQUIREMENT.md", "PLAN.md", "ACCEPTANCE_CRITERIA.md", "TRACEABILITY.md", "RESULT.md", "STEP.json"):
+        (target / name).write_text((source / name).read_text(encoding="utf-8"), encoding="utf-8")
+    manifest = json.loads((target / "STEP.json").read_text(encoding="utf-8"))
+    manifest.update({"readiness": "YES", "requirements": ["REQ-013-001"], "acceptance": ["AC-013-001"], "evidence": ["E-013-001"]})
+    manifest["gate_a"]["status"] = "APPROVED"
+    (target / "STEP.json").write_text(json.dumps(manifest), encoding="utf-8")
+    assert any("Traceability row is not PASS" in error for error in load_tool("validate_step").validate_step(target, "done"))
+
+
+def test_new_step_uses_highest_numeric_directory():
+    assert load_tool("new_step").next_step_number() == 14
+
+
+def test_new_step_generates_manifest_and_readme_row(tmp_path, monkeypatch):
+    generator = load_tool("new_step")
+    templates = tmp_path / "templates"
+    templates.mkdir()
+    (templates / "PLAN.md").write_text("# Plan\n", encoding="utf-8")
+    readme = tmp_path / "README.md"
+    readme.write_text("| Krok | Obsah | Stav |\n|---|---|---|\n| [`step01/`](step01/) | Existing | done |\n", encoding="utf-8")
+    monkeypatch.setattr(generator, "ROOT", tmp_path)
+    monkeypatch.setattr(generator, "TEMPLATES", templates)
+    monkeypatch.setattr(generator, "README", readme)
+    target = generator.create_step(2)
+    manifest = json.loads((target / "STEP.json").read_text(encoding="utf-8"))
+    assert manifest["step"] == 2
+    assert (target / "PLAN.md").exists()
+    assert "step02/" in readme.read_text(encoding="utf-8")
+
+
+def test_new_step_rejects_existing_target(tmp_path, monkeypatch):
+    generator = load_tool("new_step")
+    monkeypatch.setattr(generator, "ROOT", tmp_path)
+    (tmp_path / "dev" / "step02").mkdir(parents=True)
+    with pytest.raises(FileExistsError):
+        generator.create_step(2)
+
+
+def test_pr_renderer_projects_validation_evidence(tmp_path):
+    renderer = load_tool("render_pr")
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    renderer.RUNTIME = runtime
+    validation = {"status": "PASS", "counts": {"total": 2, "passed": 2, "failed": 0}}
+    (runtime / "validation.json").write_text(json.dumps(validation), encoding="utf-8")
+    output = tmp_path / "pr_body.md"
+    renderer.render(ROOT / "dev" / "step13", output)
+    text = output.read_text(encoding="utf-8")
+    assert "Step 13 validation evidence" in text
+    assert "2/2 checks passed" in text

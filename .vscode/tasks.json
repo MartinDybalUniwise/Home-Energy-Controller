@@ -33,14 +33,14 @@
       "label": "HEC: Start Dev Preview",
       "type": "shell",
       "command": "python",
-      "args": ["dev/step11/preview.py", "start"],
+      "args": ["dev/sdd/tools/preview.py", "start"],
       "problemMatcher": []
     },
     {
       "label": "HEC: Stop Dev Preview",
       "type": "shell",
       "command": "python",
-      "args": ["dev/step11/preview.py", "stop"],
+      "args": ["dev/sdd/tools/preview.py", "stop"],
       "problemMatcher": []
     },
     {
@@ -50,7 +50,7 @@
       "args": [
         "-m", "pytest", "dev/hec/tests/e2e", "-o", "addopts=", "-m", "e2e",
         "--screenshot", "only-on-failure", "--tracing", "retain-on-failure",
-        "--output", "dev/step11/.runtime/playwright"
+        "--output", "dev/sdd/.runtime/playwright"
       ],
       "options": {
         "env": {
@@ -64,7 +64,7 @@
       "label": "HEC: Full Validation",
       "type": "shell",
       "command": "python",
-      "args": ["dev/step11/full_validation.py"],
+      "args": ["dev/sdd/tools/full_validation.py"],
       "problemMatcher": []
     }
   ]
