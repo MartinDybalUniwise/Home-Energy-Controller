@@ -26,7 +26,8 @@
     "shelly_seconds": 10,
     "weather_minutes": 15,
     "ote_minutes": 240,
-    "sharing_hours": 24
+    "sharing_hours": 24,
+    "finance_document_reader_seconds": 3600
   },
   "goodwe": {
     "enabled": false,
@@ -346,6 +347,18 @@
   },
   "economics": {
     "sharing_value_czk_kwh": 0.0
+  },
+  "finance": {
+    "enabled": false,
+    "documents": {
+      "enabled": false,
+      "inbox_path": "data/finance/inbox"
+    },
+    "settings": {
+      "opportunity_cost_rate": 0.04,
+      "inflation_rate": 0.02,
+      "default_currency": "CZK"
+    }
   },
   "web": {
     "host": "0.0.0.0",

@@ -14,6 +14,7 @@ from ..core import config as config_mod
 from ..core import i18n
 from ..core import schema as schema_mod
 from ..core.timeutil import now_local, parse_iso, to_iso
+from ..finance.service import FinanceService
 from ..forecast.household_consumption_forecast import forecast_household_consumption
 from ..forecast.pv_forecast import forecast_pv
 from ..storage.base import read_json
@@ -189,6 +190,19 @@ def metrics(app, params: dict) -> tuple[int, dict]:
     if reporter is None:
         return 200, {"days": 0}
     return 200, reporter.report(int(params.get("days", 30)))
+
+
+def _finance_service(app) -> FinanceService:
+    service = getattr(app, "finance", None)
+    return service if service is not None else FinanceService(app)
+
+
+def finance_dashboard(app, params: dict) -> tuple[int, dict]:
+    return 200, _finance_service(app).dashboard(params)
+
+
+def finance_manual(app, params: dict) -> tuple[int, dict]:
+    return 200, _finance_service(app).manual_items(params)
 
 
 def config_get(app) -> tuple[int, dict]:

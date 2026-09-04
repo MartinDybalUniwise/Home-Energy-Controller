@@ -1,0 +1,9 @@
+# HEC finish PR prompt
+
+Review the actual diff against the approved requirement and plan. Run the
+documented final validation where possible. Prepare `RESULT.md` and a PR body
+containing source/step, planned and implemented work, deviations, exact
+ruff/pytest/runtime/Playwright results, human-test status, controller/TNG/
+GoodWe safety status, secrets/production-data status, limitations, and
+follow-up. Use `NOT RUN` when a command was not run. Do not claim human testing,
+push, or create a PR without explicit user instruction.

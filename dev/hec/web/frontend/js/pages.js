@@ -717,5 +717,55 @@ export async function logsPage(view, { api }) {
   return () => clearInterval(timer);
 }
 
-export const pages = { overview, history, prediction, flow, status, logs: logsPage, settings };
+export async function finance(view, { api }) {
+  const dashboard = await api.financeDashboard().catch(() => ({
+    available: false, kpi: {}, monthly_net_costs: [], audit: { sources: {} },
+  }));
+  const kpi = dashboard.kpi || {};
+  view.innerHTML = `
+    <div>
+      <span class="section-tab">${t('finance.title')}</span>
+      <section class="panel">
+        <div class="cards">
+          ${card('finance.kpi.energy_costs_ytd', `<p class="value">${num(kpi.energy_costs_ytd ?? 0, 2)}</p>`)}
+          ${card('finance.kpi.energy_income_ytd', `<p class="value">${num(kpi.energy_income_ytd ?? 0, 2)}</p>`)}
+          ${card('finance.kpi.net_costs_ytd', `<p class="value">${num(kpi.net_costs_ytd ?? 0, 2)}</p>`)}
+          ${card('finance.kpi.net_investment', `<p class="value">${num(kpi.net_investment ?? 0, 2)}</p>`)}
+          ${card('finance.kpi.opportunity_cost', `<p class="value">${num(kpi.opportunity_cost ?? 0, 2)}</p>`)}
+          ${card('finance.kpi.npv', `<p class="value">${kpi.npv == null ? '–' : num(kpi.npv, 2)}</p>`)}
+        </div>
+        <p class="meta">${t('finance.audit.records', { count: dashboard.audit?.sources?.finance_transactions ?? 0 })}</p>
+      </section>
+    </div>`;
+}
+
+export async function financeManual(view, { api }) {
+  const payload = await api.financeManual({ limit: 100 }).catch(() => ({ items: [], count: 0 }));
+  const rows = payload.items || [];
+  view.innerHTML = `
+    <div>
+      <span class="section-tab">${t('finance_manual.title')}</span>
+      <section class="panel">
+        <p class="meta">${t('finance_manual.count', { count: payload.count ?? 0 })}</p>
+        ${rows.length ? '<div id=\"finance-manual-table\"></div>' : `<p class="notice">${t('app.no_data')}</p>`}
+      </section>
+    </div>`;
+  if (rows.length) {
+    renderTable(view.querySelector('#finance-manual-table'), rows, [
+      'timestamp', 'transaction_date', 'transaction_type', 'amount_total', 'currency', 'notes',
+    ]);
+  }
+}
+
+export const pages = {
+  overview,
+  history,
+  prediction,
+  flow,
+  finance,
+  'finance/manual': financeManual,
+  status,
+  logs: logsPage,
+  settings,
+};
 export const helpers = { duration, availableLanguages, currentLanguage };

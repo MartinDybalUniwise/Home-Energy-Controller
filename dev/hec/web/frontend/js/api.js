@@ -34,6 +34,8 @@ export const api = {
   heatpump: () => request('/api/heatpump'),
   metrics: (days = 30) => request(`/api/metrics?days=${days}`),
   decisions: (days = 7) => request(`/api/decisions?days=${days}`),
+  financeDashboard: (params = {}) => request('/api/finance?' + new URLSearchParams(params)),
+  financeManual: (params = {}) => request('/api/finance/manual?' + new URLSearchParams(params)),
   sources: () => request('/api/sources'),
   history: (params) => request('/api/history?' + new URLSearchParams(params)),
   logDays: (source) => request(`/api/logs/days?source=${encodeURIComponent(source)}`),

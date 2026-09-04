@@ -24,6 +24,8 @@ endpointy kromě `/api/session`, `/api/login` a `/api/i18n/*` platnou cookie
 | GET | `/api/config` | konfigurace (tajemství zamaskovaná) |
 | PUT | `/api/config` | `{"config": {...}}` – validuje, zálohuje, uloží |
 | GET | `/api/config/schema` | popis polí pro nastavení v UI |
+| GET | `/api/finance` | KPI a auditní souhrn HEF dashboardu |
+| GET | `/api/finance/manual` | seznam ručních položek HEF (`limit`) |
 | GET | `/api/i18n/{lang}` | překladový katalog |
 
 ## Časové rozsahy

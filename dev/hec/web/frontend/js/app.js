@@ -8,8 +8,8 @@ import { pages } from './pages.js?v=11';
 const REFRESH_MS = 10000;
 // Gesto swipe zůstává jen mezi třemi hlavními stránkami (kap. 13 zadání);
 // Stav, Data a Nastavení jsou dostupné výhradně přes menu.
-const PRIMARY_ORDER = ['overview', 'prediction', 'flow', 'history'];
-const ALL_PAGES = ['overview', 'prediction', 'flow', 'history', 'status', 'logs', 'settings'];
+const PRIMARY_ORDER = ['overview', 'prediction', 'flow', 'history', 'finance'];
+const ALL_PAGES = ['overview', 'prediction', 'flow', 'history', 'finance', 'finance/manual', 'status', 'logs', 'settings'];
 
 const state = {
   page: 'overview',

@@ -20,8 +20,16 @@ venv/
 .ruff_cache/
 *.egg-info/
 
+# Lokální vývojové artefakty
+dev/step11/.runtime/
+dev/hec/tests/e2e/artifacts/
+test-results/
+playwright-report/
+
 # OS / editory
 .DS_Store
 Thumbs.db
 .idea/
-.vscode/
+.vscode/*
+!.vscode/tasks.json
+!.vscode/launch.json

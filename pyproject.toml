@@ -1,7 +1,10 @@
 [tool.pytest.ini_options]
 testpaths = ["dev/hec/tests"]
 pythonpath = ["dev", "."]
-addopts = "-q"
+addopts = "-q -m 'not e2e'"
+markers = [
+    "e2e: browser smoke tests requiring a running safe preview",
+]
 
 [tool.ruff]
 line-length = 110

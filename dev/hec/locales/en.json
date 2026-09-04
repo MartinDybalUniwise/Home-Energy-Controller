@@ -16,6 +16,8 @@
     "menu": "Menu",
     "status": "Status",
     "logs": "Data",
+    "finance": "Finance",
+    "finance_manual": "Finance manual",
     "today": "Today",
     "forecast": "Forecast",
     "flow": "Energy flow",
@@ -270,9 +272,18 @@
         "telemetry_bootstrap_seconds": "History window on first start (s)",
         "telemetry_overlap_seconds": "Telemetry catch-up overlap (s)",
         "write_enabled": "Allow writing to the heat pump",
-        "heating": { "enabled": "Control heating", "default_temperature": "Default heating temperature (°C)" },
-        "boiler": { "enabled": "Control hot water", "default_temperature": "Default hot water temperature (°C)" },
-        "thermostat": { "enabled": "Control thermostat", "default_temperature": "Default room temperature (°C)" }
+        "heating": {
+          "enabled": "Control heating",
+          "default_temperature": "Default heating temperature (°C)"
+        },
+        "boiler": {
+          "enabled": "Control hot water",
+          "default_temperature": "Default hot water temperature (°C)"
+        },
+        "thermostat": {
+          "enabled": "Control thermostat",
+          "default_temperature": "Default room temperature (°C)"
+        }
       },
       "ote": {
         "enabled": "Enabled",
@@ -377,9 +388,18 @@
         "telemetry_bootstrap_seconds": "How far back to backfill telemetry on first start, before local history exists.",
         "telemetry_overlap_seconds": "A small safety overlap when resuming from the last fetched sample, so nothing is missed.",
         "write_enabled": "Without this, the system only logs what it would send but never actually writes anything.",
-        "heating": { "enabled": "Enables automatic heating water temperature control from the schedule.", "default_temperature": "Used outside the schedule's time windows." },
-        "boiler": { "enabled": "Enables automatic hot water temperature control from the schedule.", "default_temperature": "Used outside the schedule's time windows." },
-        "thermostat": { "enabled": "Enables automatic room thermostat control from the schedule.", "default_temperature": "Used outside the schedule's time windows." }
+        "heating": {
+          "enabled": "Enables automatic heating water temperature control from the schedule.",
+          "default_temperature": "Used outside the schedule's time windows."
+        },
+        "boiler": {
+          "enabled": "Enables automatic hot water temperature control from the schedule.",
+          "default_temperature": "Used outside the schedule's time windows."
+        },
+        "thermostat": {
+          "enabled": "Enables automatic room thermostat control from the schedule.",
+          "default_temperature": "Used outside the schedule's time windows."
+        }
       },
       "ote": {
         "enabled": "Fetch day-ahead electricity prices from OTE.",
@@ -540,5 +560,23 @@
     "source": "Data source",
     "day": "Day",
     "no_sources": "No history to show yet"
+  },
+  "finance": {
+    "title": "Finance",
+    "kpi": {
+      "energy_costs_ytd": "Energy costs YTD",
+      "energy_income_ytd": "Energy income YTD",
+      "net_costs_ytd": "Net costs YTD",
+      "net_investment": "Net investment",
+      "opportunity_cost": "Opportunity cost",
+      "npv": "NPV"
+    },
+    "audit": {
+      "records": "Source transactions: {count}"
+    }
+  },
+  "finance_manual": {
+    "title": "One-off items",
+    "count": "Items: {count}"
   }
 }

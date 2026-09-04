@@ -16,6 +16,7 @@ from ..analysis.phases import PhaseAnalyser
 from ..controller.controller import Controller
 from ..controller.metrics import Metrics
 from ..controller.predictor import Predictor
+from ..finance.service import FinanceService
 from ..readers.registry import build_readers
 from ..storage.jsonl import JsonlStorage
 from . import config as config_mod
@@ -50,6 +51,7 @@ class Application:
         self.predictor = Predictor(self.config, self.storage, self.summaries)
         self.heatpump = HeatPumpAnalyser(self.config, self.storage)
         self.metrics = Metrics(self.config, self.storage, self.summaries)
+        self.finance = FinanceService(self)
         self.controller = Controller(self)
         self.started_at = now_local()
 
