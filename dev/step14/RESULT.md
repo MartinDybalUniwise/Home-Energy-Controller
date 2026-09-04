@@ -26,7 +26,7 @@ blocked incomplete state and the fixed merge-ready state.
 
 ## Validation
 
-- `python dev/sdd/tools/full_validation.py`: PASS on commit `6e7b954`
+- `python dev/sdd/tools/full_validation.py`: PASS on commit `0ce3d38`
   - Ruff: PASS
   - Pytest: 256 passed, 5 e2e deselected
   - Structural step validation: PASS for 3 canonical steps
