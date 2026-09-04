@@ -1,11 +1,11 @@
 {
   "step": 13,
   "classification": "LARGE",
-  "status": "PLANNED",
+  "status": "IN_PROGRESS",
   "gate_a": {
-    "status": "PENDING",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "repository owner",
+    "approved_at": "2026-09-04"
   },
   "gate_b": {
     "status": "NOT_REQUESTED",
@@ -17,10 +17,10 @@
     "approved_by": null,
     "approved_at": null
   },
-  "readiness": "NO",
+  "readiness": "YES",
   "requested_by": "repository owner / maintainer",
   "source": "HEC_POST_STEP12_REVIEW_REMAINING.md",
-  "branch": null,
+  "branch": "claude/step13-sdd-enforcement",
   "pr": null,
   "notes": "Step 13 completes SDD workflow enforcement and dogfoods the canonical ready/done process. LAN read-only preview remains out of scope and is planned separately.",
   "requirements": [
