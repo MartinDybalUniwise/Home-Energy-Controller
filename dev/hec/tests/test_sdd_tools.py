@@ -41,3 +41,17 @@ def test_traceability_rejects_unchecked_status(tmp_path):
 
 def test_new_step_uses_highest_numeric_directory():
     assert load_tool("new_step").next_step_number() == 14
+
+
+def test_pr_renderer_projects_validation_evidence(tmp_path):
+    renderer = load_tool("render_pr")
+    runtime = tmp_path / "runtime"
+    runtime.mkdir()
+    renderer.RUNTIME = runtime
+    validation = {"status": "PASS", "counts": {"total": 2, "passed": 2, "failed": 0}}
+    (runtime / "validation.json").write_text(json.dumps(validation), encoding="utf-8")
+    output = tmp_path / "pr_body.md"
+    renderer.render(ROOT / "dev" / "step13", output)
+    text = output.read_text(encoding="utf-8")
+    assert "Step 13 validation evidence" in text
+    assert "2/2 checks passed" in text
