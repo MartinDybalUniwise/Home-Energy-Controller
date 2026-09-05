@@ -1,0 +1,42 @@
+{
+  "step": 15,
+  "classification": "LARGE",
+  "status": "IN_PROGRESS",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "user",
+    "approved_at": "2026-09-05T00:00:00Z"
+  },
+  "gate_b": {
+    "status": "PENDING",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "PENDING",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "USER_REQUEST_PROD_DEPLOY_192_168_2_115",
+  "branch": null,
+  "pr": null,
+  "notes": "Deployment runbook implemented; host inventory, production execution, rollback evidence, and final gates remain open.",
+  "requirements": [
+    "REQ-015-001",
+    "REQ-015-002",
+    "REQ-015-003",
+    "REQ-015-004"
+  ],
+  "acceptance": [
+    "AC-015-001",
+    "AC-015-002",
+    "AC-015-003",
+    "AC-015-004",
+    "AC-015-005",
+    "AC-015-006",
+    "AC-015-007"
+  ],
+  "evidence": []
+}

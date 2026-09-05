@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Validate changed canonical steps at the merge-ready DONE phase."""
+"""Validate changed canonical steps at their declared lifecycle phase."""
 
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import subprocess
 import sys
@@ -33,8 +34,15 @@ def changed_steps(base: str, head: str) -> list[Path]:
     return [ROOT / "dev" / name for name in changed_step_names(result.stdout.splitlines()) if (ROOT / "dev" / name / "STEP.json").is_file()]
 
 
+def validation_phase(step_dir: Path) -> str:
+    """Use DONE validation only after a step declares itself complete."""
+    manifest = json.loads((step_dir / "STEP.json").read_text(encoding="utf-8"))
+    return "done" if manifest.get("status") == "DONE" else "ready"
+
+
 def validate_step(step_dir: Path) -> None:
-    command = [sys.executable, str(VALIDATOR), "--phase", "done", "--step", str(step_dir)]
+    phase = validation_phase(step_dir)
+    command = [sys.executable, str(VALIDATOR), "--phase", phase, "--step", str(step_dir)]
     result = subprocess.run(command, cwd=ROOT, check=False)
     if result.returncode:
         raise SystemExit(result.returncode)
@@ -57,7 +65,7 @@ def main() -> int:
         return 0
 
     for step_dir in steps:
-        print(f"Validating changed step at DONE phase: {step_dir.relative_to(ROOT)}")
+        print(f"Validating changed step at {validation_phase(step_dir)} phase: {step_dir.relative_to(ROOT)}")
         validate_step(step_dir)
     return 0
 

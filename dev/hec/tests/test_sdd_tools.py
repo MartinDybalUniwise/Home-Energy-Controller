@@ -75,7 +75,7 @@ def test_traceability_rejects_unchecked_status(tmp_path):
 
 
 def test_new_step_uses_highest_numeric_directory():
-    assert load_tool("new_step").next_step_number() == 15
+    assert load_tool("new_step").next_step_number() == 16
 
 
 def test_changed_step_names_selects_only_canonical_step_paths():
@@ -86,6 +86,15 @@ def test_changed_step_names_selects_only_canonical_step_paths():
         "dev/step12/RESULT.md",
         "README.md",
     ]) == ["step12", "step14"]
+
+
+def test_changed_step_validation_phase_follows_manifest_status():
+    validator = load_tool("validate_changed_steps")
+    assert validator.validation_phase(ROOT / "dev" / "step15") == "ready"
+
+    manifest = json.loads((ROOT / "dev" / "step14" / "STEP.json").read_text(encoding="utf-8"))
+    assert manifest["status"] == "DONE"
+    assert validator.validation_phase(ROOT / "dev" / "step14") == "done"
 
 
 def test_validation_evidence_contains_repository_metadata():
