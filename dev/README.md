@@ -26,6 +26,7 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | [`step12/`](step12/) | SDD hardening, security cleanup, enforcement gates, repo hygiene, reusable `dev/sdd/` platform | 📝 plánováno <!-- status: PLANNED --> |
 | [`step13/`](step13/) | SDD enforcement completion, canonical ready/done workflow, validation evidence, PR projection a merge gate | 🚧 implementováno, provozní uzavření pokračuje ve Step14 <!-- status: IN_PROGRESS --> |
 | [`step14/`](step14/) | SDD operational closure, changed-step DONE enforcement, guarded evidence and merge protection | ✅ hotovo <!-- status: DONE --> |
+| [`step15/`](step15/) | Production deployment readiness for 192.168.2.115, safe host update, validation, and rollback | 🚧 implementováno, produkční ověření otevřeno <!-- status: IN_PROGRESS --> |
 
 Další kroky se doplňují sem, jakmile vzniknou.
 

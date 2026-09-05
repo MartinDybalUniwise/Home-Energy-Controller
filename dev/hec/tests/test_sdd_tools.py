@@ -75,7 +75,7 @@ def test_traceability_rejects_unchecked_status(tmp_path):
 
 
 def test_new_step_uses_highest_numeric_directory():
-    assert load_tool("new_step").next_step_number() == 15
+    assert load_tool("new_step").next_step_number() == 16
 
 
 def test_changed_step_names_selects_only_canonical_step_paths():
