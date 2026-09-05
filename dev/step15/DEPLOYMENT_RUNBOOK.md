@@ -43,6 +43,24 @@ from the approved inventory. A mismatch is a deployment blocker.
 The update must be repeatable: selecting the same approved SHA again must not
 replace runtime data, regenerate secrets, or change host-local credentials.
 
+The repository helper `setup-prod.ps1` runs on the Linux host under PowerShell
+7. It is check-only by default:
+
+```powershell
+pwsh ./dev/step15/setup-prod.ps1 -ApprovedCommit <approved-sha>
+```
+
+After the check-only run has passed and the maintenance window is approved,
+apply the selected revision and restart explicitly:
+
+```powershell
+pwsh ./dev/step15/setup-prod.ps1 -ApprovedCommit <approved-sha> -Apply -Restart
+```
+
+The script refuses a wrong host, dirty checkout, missing prerequisite, unsafe
+write-enabled configuration, or mismatched deployed SHA. It never prints
+secret contents and does not enable physical-device writes.
+
 ## S03 - Rollback and recovery
 
 Start rollback when the service does not become active, the HTTP check fails,
