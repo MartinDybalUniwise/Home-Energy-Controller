@@ -33,6 +33,10 @@ The purpose is to make step creation, validation, and evidence generation consis
 6. Run repository hygiene checks and preview validation.
 7. Record execution evidence before marking a step done.
 
+Changed-step CI validation follows the manifest lifecycle: planned or
+in-progress steps must pass the `ready` phase, while steps marked `DONE` must
+pass the stricter `done` phase.
+
 ## Definition of ready
 
 A new request never implies implementation. Before any application code edit,

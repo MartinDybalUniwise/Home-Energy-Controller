@@ -17,7 +17,7 @@
     "approved_by": null,
     "approved_at": null
   },
-  "readiness": "NO",
+  "readiness": "YES",
   "requested_by": "repository owner / maintainer",
   "source": "USER_REQUEST_PROD_DEPLOY_192_168_2_115",
   "branch": null,
