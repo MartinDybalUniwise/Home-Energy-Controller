@@ -24,9 +24,10 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | `step10/` | HEF (Home Energy Finance): integrovaná finanční vrstva, API/UI scaffold, import dokumentů | 🚧 MVP scaffold hotovo, další fáze navrženy |
 | [`step11/`](step11/) | AI-first / Spec-Driven Development bootstrap, bezpečný lokální preview, Playwright a PR evidence | ✅ bootstrap implementován, čeká human test |
 | [`step12/`](step12/) | SDD hardening, security cleanup, enforcement gates, repo hygiene, reusable `dev/sdd/` platform | 📝 plánováno <!-- status: PLANNED --> |
-| [`step13/`](step13/) | SDD enforcement completion, canonical ready/done workflow, validation evidence, PR projection a merge gate | 🚧 implementováno, provozní uzavření pokračuje ve Step14 <!-- status: IN_PROGRESS --> |
+| [`step13/`](step13/) | SDD enforcement completion, canonical ready/done workflow, validation evidence, PR projection a merge gate | 🚧 implementováno, provozní uzavření pokračuje |
 | [`step14/`](step14/) | SDD operational closure, changed-step DONE enforcement, guarded evidence and merge protection | ✅ hotovo <!-- status: DONE --> |
 | [`step15/`](step15/) | Production deployment readiness for 192.168.2.115, safe host update, validation, and rollback | 🚧 implementováno, produkční ověření otevřeno <!-- status: IN_PROGRESS --> |
+| [`step16/`](step16/) | GoodWe Integration Refactor – nový GoodWeManager, reader/writer bez kolizí, SDG do role logger | 📝 plán schválený, design & příprava <!-- status: PLANNED --> |
 
 Další kroky se doplňují sem, jakmile vzniknou.
 
@@ -46,3 +47,22 @@ Každý `stepNN/` obsahuje minimálně:
 | [`step01/PROJECT_STRUCTURE.md`](step01/PROJECT_STRUCTURE.md) | Kompletní adresářová struktura se seznamem skriptů a % dokončení |
 | [`step01/UI_DESIGN.md`](step01/UI_DESIGN.md) | Vizuální jazyk webu podle televizní meteo grafiky, design tokeny, ověřená paleta grafů |
 | [`step01/I18N.md`](step01/I18N.md) | Jazykové mutace CZ/EN a postup přidání dalšího jazyka |
+
+## Aktuálně připravovaný Step 16
+
+Refaktor integrace GoodWe: HEC se stane jediným aktivním controller/writer, 
+SDG zůstane v roli diagnostiky a loggování.
+
+Vychází z dokumentu `HEC_FTE_READER_WRITER_UPRAVA.md`.
+
+**Komponenty:**
+- Centrální `GoodWeManager` s lock/mutex, retry, read-back verification
+- Přepracovaný `FTEReader` primárně přes knihovnu GoodWe
+- Nový `FTEWriter` s idempotentními příkazy
+- `SDGHistoryReader` pro import historických dat
+- Plně konfigurovatelná cesta k SDG logům
+- Testy a web diagnostika
+
+**Odhad:** 11–17 dní vývoje + hardware test
+
+Viz [`step16/DEVELOPMENT_PLAN.md`](step16/DEVELOPMENT_PLAN.md)
