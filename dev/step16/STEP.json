@@ -1,0 +1,25 @@
+{
+  "step": 16,
+  "title": "GoodWe Integration Refactor",
+  "status": "PLANNED",
+  "created_at": "2026-09-07T17:15:00Z",
+  "phase": "Design & Preparation (Fáze A)",
+  "scope": "GoodWeManager, FTEReader refactor, FTEWriter, SDGHistoryReader, config, web UI, tests",
+  "estimated_days": 11,
+  "estimated_max_days": 17,
+  "critical_dependencies": [
+    "GoodWe Python library availability",
+    "Access to real GoodWe inverter 192.168.2.116",
+    "SDG logs available for import testing"
+  ],
+  "blockers": [],
+  "parent_step": null,
+  "child_steps": [],
+  "related_documents": [
+    "HEC_FTE_READER_WRITER_UPRAVA.md",
+    "dev/step16/DEVELOPMENT_PLAN.md",
+    "dev/step16/REQUEST.md",
+    "dev/step16/REQUIREMENT.md",
+    "dev/step16/ACCEPTANCE_CRITERIA.md"
+  ]
+}
