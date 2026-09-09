@@ -33,7 +33,6 @@ def test_shell_dashboard_and_settings_navigation(page: Page, viewport: tuple[int
 def test_czech_navigation_catalog(page: Page):
     from playwright.sync_api import expect
 
-    page.add_init_script("localStorage.setItem('hec_lang', 'cs')")
     page.goto("/")
     expect(page.locator("html")).to_have_attribute("lang", "cs")
     expect(page.locator('nav a[data-page="overview"]')).to_have_text("Dnes")
@@ -42,7 +41,10 @@ def test_czech_navigation_catalog(page: Page):
 def test_english_navigation_catalog(page: Page):
     from playwright.sync_api import expect
 
-    page.add_init_script("localStorage.setItem('hec_lang', 'en')")
     page.goto("/")
+    page.locator("#more-toggle").click()
+    page.locator('#utility-nav a[data-page="settings"]').click()
+    page.locator("#f_ui_language").select_option("en")
+    page.locator("#settings-form button[type='submit']").click()
     expect(page.locator("html")).to_have_attribute("lang", "en")
     expect(page.locator('nav a[data-page="overview"]')).to_have_text("Today")

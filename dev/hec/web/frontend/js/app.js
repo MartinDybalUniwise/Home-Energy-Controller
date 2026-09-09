@@ -2,7 +2,7 @@
 
 import { api } from './api.js';
 import { applyScene } from './background.js';
-import { applyTranslations, preferredLanguage, setLanguage, t, time } from './i18n.js';
+import { applyTranslations, setLanguage, t, time } from './i18n.js';
 import { pages } from './pages.js?v=11';
 
 const REFRESH_MS = 10000;
@@ -28,6 +28,22 @@ function applyPreferences({ animations, theme } = {}) {
   document.body.dataset.motion = state.motion;
 }
 
+const SUPPORTED_LANGUAGES = ['cs', 'en'];
+const CONFIG_DEFAULT_LANGUAGE = 'cs';
+
+function languageFromConfig(ui = {}) {
+  const configured = typeof ui.language === 'string' ? ui.language : '';
+  return SUPPORTED_LANGUAGES.includes(configured) ? configured : CONFIG_DEFAULT_LANGUAGE;
+}
+
+async function applyUiChange(ui = {}) {
+  applyPreferences(ui);
+  if (ui.language !== undefined) {
+    await setLanguage(languageFromConfig(ui), api);
+    applyTranslations(document);
+  }
+}
+
 function pageFromHash() {
   const name = (location.hash.replace('#/', '') || 'overview').split('?')[0];
   return ALL_PAGES.includes(name) ? name : 'overview';
@@ -49,7 +65,7 @@ async function render({ showLoading = true } = {}) {
   try {
     // Stránky Stav a Data se samy obnovují a vrací úklidovou funkci pro
     // zastavení časovače při odchodu jinam – ostatní stránky nic nevrací.
-    const cleanup = await pages[state.page](view, { api, state, motion: state.motion, onUiChange: applyPreferences });
+    const cleanup = await pages[state.page](view, { api, state, motion: state.motion, onUiChange: applyUiChange });
     if (typeof cleanup === 'function') pageCleanup = cleanup;
   } catch (error) {
     if (error.unauthorised) return askForPassword();
@@ -123,7 +139,16 @@ function enableSwipe() {
 }
 
 async function start() {
-  await setLanguage(preferredLanguage(), api);
+  let configuredUi = {};
+  try {
+    const status = await api.status();
+    configuredUi = status?.ui || {};
+  } catch {
+    configuredUi = { language: CONFIG_DEFAULT_LANGUAGE };
+  }
+
+  await setLanguage(languageFromConfig(configuredUi), api);
+  applyPreferences(configuredUi);
   applyTranslations(document);
   await refreshStatus();
   await render();

@@ -411,6 +411,7 @@ const SECTION_LABELS = {
 // oddělily – jinak by rozvrh ohřevu, topení a termostatu splynul do jednoho
 // nepřehledného seznamu.
 const SUBGROUP_LABELS = {
+  'goodwe.sdg': 'settings.goodwe_sdg',
   'tng.boiler': 'settings.tng_boiler', 'tng.heating': 'settings.tng_heating',
   'tng.thermostat': 'settings.tng_thermostat',
   'controller.comfort': 'settings.comfort', 'controller.optimization': 'settings.optimization',
@@ -478,7 +479,7 @@ export async function settings(view, { api, onUiChange }) {
       const result = await api.saveConfig(payload);
       message.textContent = t('settings.saved')
         + (result.restart_required?.length ? ` · ${t('settings.restart_required')}` : '');
-      onUiChange?.(payload.ui || {});
+      await onUiChange?.(payload.ui || {});
     } catch (error) {
       message.innerHTML = `<span class="error">${(error.payload?.errors || [t('error.save_failed')]).join('<br>')}</span>`;
     }
