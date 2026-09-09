@@ -30,6 +30,11 @@ export async function setLanguage(lang, api) {
 
 export function currentLanguage() { return state.lang; }
 export function availableLanguages() { return state.available; }
+// Backward-compatible export for temporarily cached older app.js bundles.
+export function preferredLanguage(fallback = 'cs') {
+  const cached = localStorage.getItem('hec_lang') || '';
+  return SUPPORTED.includes(cached) ? cached : fallback;
+}
 
 export function applyTranslations(root) {
   root.querySelectorAll('[data-i18n]').forEach((element) => {
