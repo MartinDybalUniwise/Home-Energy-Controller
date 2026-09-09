@@ -1,6 +1,7 @@
 // Překlady a formátování. V šablonách nikdy nestojí hotový text, jen klíč.
 
 const state = { lang: 'cs', catalog: {}, available: ['cs', 'en'] };
+const SUPPORTED = ['cs', 'en'];
 
 const LOCALE = { cs: 'cs-CZ', en: 'en-GB' };
 
@@ -16,7 +17,8 @@ export function t(key, params) {
 }
 
 export async function setLanguage(lang, api) {
-  const payload = await api.translations(lang);
+  const requested = SUPPORTED.includes(lang) ? lang : SUPPORTED[0];
+  const payload = await api.translations(requested);
   state.lang = payload.lang;
   state.catalog = payload.catalog;
   state.available = payload.available;
@@ -28,8 +30,10 @@ export async function setLanguage(lang, api) {
 
 export function currentLanguage() { return state.lang; }
 export function availableLanguages() { return state.available; }
+// Backward-compatible export for temporarily cached older app.js bundles.
 export function preferredLanguage(fallback = 'cs') {
-  return localStorage.getItem('hec_lang') || (navigator.language || '').slice(0, 2) || fallback;
+  const cached = localStorage.getItem('hec_lang') || '';
+  return SUPPORTED.includes(cached) ? cached : fallback;
 }
 
 export function applyTranslations(root) {

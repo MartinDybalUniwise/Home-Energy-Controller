@@ -12,6 +12,13 @@ if TYPE_CHECKING:
 pytestmark = pytest.mark.e2e
 
 
+def set_language_in_settings(page: Page, language: str) -> None:
+    page.locator("#more-toggle").click()
+    page.locator('#utility-nav a[data-page="settings"]').click()
+    page.locator("#f_ui_language").select_option(language)
+    page.locator("#settings-form button[type='submit']").click()
+
+
 @pytest.mark.parametrize("viewport", [(1280, 800), (1920, 1080), (390, 844)])
 def test_shell_dashboard_and_settings_navigation(page: Page, viewport: tuple[int, int]):
     from playwright.sync_api import expect
@@ -33,8 +40,8 @@ def test_shell_dashboard_and_settings_navigation(page: Page, viewport: tuple[int
 def test_czech_navigation_catalog(page: Page):
     from playwright.sync_api import expect
 
-    page.add_init_script("localStorage.setItem('hec_lang', 'cs')")
     page.goto("/")
+    set_language_in_settings(page, "cs")
     expect(page.locator("html")).to_have_attribute("lang", "cs")
     expect(page.locator('nav a[data-page="overview"]')).to_have_text("Dnes")
 
@@ -42,7 +49,7 @@ def test_czech_navigation_catalog(page: Page):
 def test_english_navigation_catalog(page: Page):
     from playwright.sync_api import expect
 
-    page.add_init_script("localStorage.setItem('hec_lang', 'en')")
     page.goto("/")
+    set_language_in_settings(page, "en")
     expect(page.locator("html")).to_have_attribute("lang", "en")
     expect(page.locator('nav a[data-page="overview"]')).to_have_text("Today")
