@@ -1,71 +1,585 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "HEC: Install Dev Dependencies",
-      "type": "shell",
-      "command": "python",
-      "args": ["-m", "pip", "install", "-r", "requirements-dev.txt"],
-      "problemMatcher": []
-    },
-    {
-      "label": "HEC: Lint",
-      "type": "shell",
-      "command": "python",
-      "args": ["-m", "ruff", "check", "."],
-      "problemMatcher": "$msCompile"
-    },
-    {
-      "label": "HEC: Unit Tests",
-      "type": "shell",
-      "command": "python",
-      "args": ["-m", "pytest", "-m", "not e2e"],
-      "problemMatcher": "$pytest"
-    },
-    {
-      "label": "HEC: Full Tests",
-      "type": "shell",
-      "command": "python",
-      "args": ["-m", "pytest"],
-      "problemMatcher": "$pytest"
-    },
-    {
-      "label": "HEC: Start Dev Preview",
-      "type": "shell",
-      "command": "python",
-      "args": ["dev/sdd/tools/preview.py", "start"],
-      "problemMatcher": []
-    },
-    {
-      "label": "HEC: Stop Dev Preview",
-      "type": "shell",
-      "command": "python",
-      "args": ["dev/sdd/tools/preview.py", "stop"],
-      "problemMatcher": []
-    },
-    {
-      "label": "HEC: Playwright",
-      "type": "shell",
-      "command": "python",
-      "args": [
-        "-m", "pytest", "dev/hec/tests/e2e", "-o", "addopts=", "-m", "e2e",
-        "--screenshot", "only-on-failure", "--tracing", "retain-on-failure",
-        "--output", "dev/sdd/.runtime/playwright"
-      ],
-      "options": {
-        "env": {
-          "HEC_RUN_E2E": "1",
-          "HEC_BASE_URL": "http://127.0.0.1:8181"
-        }
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "HEC: Full Validation",
-      "type": "shell",
-      "command": "python",
-      "args": ["dev/sdd/tools/full_validation.py"],
-      "problemMatcher": []
-    }
-  ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "HEC: Install Dev Dependencies",
+			"type": "shell",
+			"command": "python",
+			"args": ["-m", "pip", "install", "-r", "requirements-dev.txt"],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Lint",
+			"type": "shell",
+			"command": "python",
+			"args": ["-m", "ruff", "check", "."],
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "HEC: Unit Tests",
+			"type": "shell",
+			"command": "python",
+			"args": ["-m", "pytest", "-m", "not e2e"],
+			"problemMatcher": "$pytest"
+		},
+		{
+			"label": "HEC: Full Tests",
+			"type": "shell",
+			"command": "python",
+			"args": ["-m", "pytest"],
+			"problemMatcher": "$pytest"
+		},
+		{
+			"label": "HEC: Start Dev Preview",
+			"type": "shell",
+			"command": "python",
+			"args": ["dev/sdd/tools/preview.py", "start"],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Stop Dev Preview",
+			"type": "shell",
+			"command": "python",
+			"args": ["dev/sdd/tools/preview.py", "stop"],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Playwright",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-m", "pytest", "dev/hec/tests/e2e", "-o", "addopts=", "-m", "e2e",
+				"--screenshot", "only-on-failure", "--tracing", "retain-on-failure",
+				"--output", "dev/sdd/.runtime/playwright"
+			],
+			"options": {
+				"env": {
+					"HEC_RUN_E2E": "1",
+					"HEC_BASE_URL": "http://127.0.0.1:8181"
+				}
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Full Validation",
+			"type": "shell",
+			"command": "python",
+			"args": ["dev/sdd/tools/full_validation.py"],
+			"problemMatcher": []
+		}
+	]
+}{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "HEC: Install Dev Dependencies",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-m",
+				"pip",
+				"install",
+				"-r",
+				"requirements-dev.txt"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Lint",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-m",
+				"ruff",
+				"check",
+				"."
+			],
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "HEC: Unit Tests",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-m",
+				"pytest",
+				"-m",
+				"not e2e"
+			],
+			"problemMatcher": "$pytest"
+		},
+		{
+			"label": "HEC: Full Tests",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-m",
+				"pytest"
+			],
+			"problemMatcher": "$pytest"
+		},
+		{
+			"label": "HEC: Start Dev Preview",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"dev/sdd/tools/preview.py",
+				"start"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Stop Dev Preview",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"dev/sdd/tools/preview.py",
+				"stop"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Playwright",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-m",
+				"pytest",
+				"dev/hec/tests/e2e",
+				"-o",
+				"addopts=",
+				"-m",
+				"e2e",
+				"--screenshot",
+				"only-on-failure",
+				"--tracing",
+				"retain-on-failure",
+				"--output",
+				"dev/sdd/.runtime/playwright"
+			],
+			"options": {
+				"env": {
+					"HEC_RUN_E2E": "1",
+					"HEC_BASE_URL": "http://127.0.0.1:8181"
+				}
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Full Validation",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"dev/sdd/tools/full_validation.py"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Validate SDD",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"dev/sdd/tools/validate_step.py"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Validate README Status",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"dev/sdd/tools/validate_readme_status.py"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Validate Repo Hygiene",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"dev/sdd/tools/validate_repo.py"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Validate SDD Retry",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"dev/sdd/tools/validate_step.py"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Validate SDD Final",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"dev/sdd/tools/validate_step.py"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Validate Step16 Ready",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"dev/sdd/tools/validate_step.py",
+				"--phase",
+				"ready",
+				"--step",
+				"dev/step16"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Validate Step15 Ready",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"dev/sdd/tools/validate_step.py",
+				"--phase",
+				"ready",
+				"--step",
+				"dev/step15"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Validate Step16 Not Done",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"dev/sdd/tools/validate_step.py",
+				"--phase",
+				"done",
+				"--step",
+				"dev/step16"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Branch Status",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"branch",
+				"--show-current"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Create Hardening Branch",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"switch",
+				"-c",
+				"sdd/step16-hardening"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Final Git Status",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short",
+				"--branch"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Changed Step Self Check",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"dev/sdd/tools/validate_changed_steps.py",
+				"--base",
+				"HEAD",
+				"--head",
+				"HEAD"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Ruff Final",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-m",
+				"ruff",
+				"check",
+				"."
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Final Summary",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--stat"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Inspect Git State",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short",
+				"--branch"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Inspect Diff Names",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--name-only"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Check GitHub CLI",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"auth",
+				"status"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Stage SDD Hardening",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"add",
+				"dev/README.md",
+				"dev/hec/tests/test_sdd_tools.py",
+				"dev/sdd/tools/validate_step.py",
+				"dev/step15/STEP.json",
+				"dev/step15/RESULT.md",
+				"dev/step16/ACCEPTANCE_CRITERIA.md",
+				"dev/step16/PLAN.md",
+				"dev/step16/REQUEST.md",
+				"dev/step16/REQUIREMENT.md",
+				"dev/step16/RESULT.md",
+				"dev/step16/STEP.json",
+				"dev/step16/TRACEABILITY.md"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Commit SDD Hardening",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"commit",
+				"-m",
+				"Harden SDD workflow and canonicalize Step16"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Push Hardening Branch",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"push",
+				"--set-upstream",
+				"origin",
+				"sdd/step16-hardening"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Create SDD Hardening PR",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"pr",
+				"create",
+				"--base",
+				"main",
+				"--head",
+				"sdd/step16-hardening",
+				"--title",
+				"Harden SDD workflow and canonicalize Step16",
+				"--body",
+				"## Summary\n- restore green SDD validation and README status synchronization\n- canonicalize Step15/Step16 manifests and Step16 planning artifacts\n- remove hardcoded next-step test assumptions\n- keep Step16 PLANNED with no GoodWe implementation or device writes\n\n## Validation\n- Ruff: PASS\n- pytest -m \"not e2e\": 259 passed, 5 deselected\n- SDD validation: PASS\n- repository hygiene: PASS\n- safe preview runtime smoke: PASS\n- Playwright smoke: 5 passed\n- full_validation.py: PASS\n\nStep16 remains PLANNED. No physical-device write was performed."
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Wait for PR Checks",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"pr",
+				"checks",
+				"27",
+				"--watch"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Inspect PR Checks",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"pr",
+				"checks",
+				"27",
+				"--json",
+				"name,state,workflow,link"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Inspect PR Runs",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"run",
+				"list",
+				"--branch",
+				"sdd/step16-hardening",
+				"--limit",
+				"10"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Read Failed CI Log",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"run",
+				"view",
+				"34355874370",
+				"--job",
+				"102480283401",
+				"--log-failed"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Commit CI Fix",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"add",
+				".github/workflows/ci.yml"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Commit CI Repair",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"commit",
+				"-m",
+				"Fix changed-step CI base resolution"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Push CI Repair",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"push"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Wait for Repaired PR Checks",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"pr",
+				"checks",
+				"27",
+				"--watch"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Merge SDD Hardening PR",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"pr",
+				"merge",
+				"27",
+				"--merge",
+				"--delete-branch"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Verify Main State",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short",
+				"--branch"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Verify PR Merged",
+			"type": "shell",
+			"command": "gh",
+			"args": [
+				"pr",
+				"view",
+				"27",
+				"--json",
+				"state,mergedAt,mergeCommit,url"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Inspect Local Task Diff",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--.vscode/tasks.json"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Inspect Local Status",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Read Task Diff",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"diff",
+				"--",
+				".vscode/tasks.json"
+			],
+			"problemMatcher": []
+		}
+	]
 }
