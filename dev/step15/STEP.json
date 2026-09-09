@@ -22,7 +22,7 @@
   "source": "USER_REQUEST_PROD_DEPLOY_192_168_2_115",
   "branch": null,
   "pr": null,
-  "notes": "Deployment runbook implemented; host inventory, production execution, rollback evidence, and final gates remain open.",
+  "notes": "Deployment runbook documented; host inventory, production execution, rollback evidence, and final gates remain open.",
   "requirements": [
     "REQ-015-001",
     "REQ-015-002",
@@ -38,5 +38,10 @@
     "AC-015-006",
     "AC-015-007"
   ],
-  "evidence": []
+  "evidence": [
+    "E-015-001",
+    "E-015-002",
+    "E-015-003",
+    "E-015-004"
+  ]
 }

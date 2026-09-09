@@ -32,7 +32,16 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: python -m playwright install --with-deps chromium
       - run: python dev/sdd/tools/validate_step.py
-      - run: python dev/sdd/tools/validate_changed_steps.py --base "${{ github.event.pull_request.base.sha || github.event.before }}" --head "${{ github.sha }}"
+      - name: Resolve changed-step validation base
+        id: changed-step-base
+        shell: bash
+        run: |
+          base_sha="${{ github.event.pull_request.base.sha || github.event.before }}"
+          if [[ "$base_sha" == "0000000000000000000000000000000000000000" ]]; then
+            base_sha="$(git rev-parse HEAD^1)"
+          fi
+          echo "base_sha=$base_sha" >> "$GITHUB_OUTPUT"
+      - run: python dev/sdd/tools/validate_changed_steps.py --base "${{ steps.changed-step-base.outputs.base_sha }}" --head "${{ github.sha }}"
       - run: python dev/sdd/tools/validate_readme_status.py
       - run: python dev/sdd/tools/validate_repo.py
       - run: python dev/sdd/tools/full_validation.py

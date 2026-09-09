@@ -1,5 +1,11 @@
 # GoodWe Integration Refactor – Requirement
 
+## Objective
+
+Prepare a future GoodWe integration refactor in which HEC owns the active
+controller/writer path and SDG is limited to reading and diagnostics. This
+step defines the contract only; it does not implement the feature.
+
 ## Základ
 
 Z dokumentu `HEC_FTE_READER_WRITER_UPRAVA.md`:
@@ -8,6 +14,15 @@ Z dokumentu `HEC_FTE_READER_WRITER_UPRAVA.md`:
 - Reader čte primárně přes knihovnu GoodWe
 - Writer je idempotentní, fallback jen pro nepodporované funkce
 - Historická data z SDG jako volitelný import
+
+## Requirements
+
+- REQ-016-001: Define one serialized GoodWe communication boundary with safe
+    retry and read-back requirements.
+- REQ-016-002: Define a normalized, graceful-degrading GoodWe reader contract.
+- REQ-016-003: Define idempotent writer commands without bypassing safety gates.
+- REQ-016-004: Define optional SDG history import with configurable paths.
+- REQ-016-005: Define configuration, diagnostics, i18n, and test contracts.
 
 ## Komponenty
 

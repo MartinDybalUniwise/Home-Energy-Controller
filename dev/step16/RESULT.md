@@ -1,6 +1,6 @@
 # GoodWe Integration Refactor – Result
 
-> Status: 📝 PLANNED (soubory struktury, implementace nespuštěna)
+> Status: PLANNED. No implementation or completion evidence exists.
 
 ## Definice DONE
 

@@ -17,6 +17,7 @@ REQUIRED_FILES = {
     "ACCEPTANCE_CRITERIA.md",
     "TRACEABILITY.md",
     "STEP.json",
+    "RESULT.md",
 }
 SCHEMA_PATH = ROOT / "dev" / "sdd" / "schema" / "step.schema.json"
 VALID_PHASES = {"structural", "ready", "done"}
@@ -29,6 +30,10 @@ def _validate_schema(manifest: object) -> list[str]:
         return ["STEP.json must contain an object"]
     errors: list[str] = []
     schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
+    allowed = set(schema["properties"])
+    unexpected = sorted(set(manifest) - allowed)
+    if unexpected:
+        errors.append(f"STEP.json contains unexpected fields: {', '.join(unexpected)}")
     missing = [key for key in schema["required"] if key not in manifest]
     if missing:
         errors.append(f"STEP.json missing required fields: {', '.join(missing)}")
@@ -44,6 +49,10 @@ def _validate_schema(manifest: object) -> list[str]:
         gate = manifest.get(gate_name)
         if not isinstance(gate, dict):
             errors.append(f"STEP.json {gate_name} must be an object")
+            continue
+        missing_gate_fields = [key for key in ("status", "approved_by", "approved_at") if key not in gate]
+        if missing_gate_fields:
+            errors.append(f"STEP.json {gate_name} missing required fields: {', '.join(missing_gate_fields)}")
             continue
         if gate.get("status") not in {"PENDING", "APPROVED", "NOT_REQUESTED", "NOT_REQUIRED"}:
             errors.append(f"STEP.json {gate_name}.status is invalid")

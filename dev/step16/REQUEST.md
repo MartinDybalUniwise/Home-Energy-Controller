@@ -1,5 +1,11 @@
 # GoodWe Integration Refactor – Request
 
+## Objective
+
+Define the future GoodWe integration boundary so HEC is the only active
+controller/writer and SDG remains a reader/logger. This request is planning
+only; it authorizes no implementation or physical-device access.
+
 HEC musí být jediný aktivní controller/writer FVE. SDG bude pouze reader/logger.
 
 Potřebujeme:

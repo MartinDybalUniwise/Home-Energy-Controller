@@ -2,16 +2,26 @@
 
 ## Requirements → Acceptance Criteria Mapping
 
-| Requirement | Acceptance Criterion | Status |
-|---|---|---|
-| Centrální GoodWeManager s lock | AC 1.1–1.6 | 📝 planned |
-| FTEReader primárně přes knihovnu | AC 2.1–2.7 | 📝 planned |
-| FTEWriter idempotentní | AC 3.1–3.7 | 📝 planned |
-| SDGHistoryReader s incremental import | AC 4.1–4.5 | 📝 planned |
-| Konfigurovatelná cesta k SDG | AC 5.1–5.4 | 📝 planned |
-| Web diagnostika a settings | AC 6.1–6.3 | 📝 planned |
-| Testy pro všechny komponenty | AC 7.1–7.5 | 📝 planned |
-| Hardware test na 192.168.2.116 | AC 8.1–8.6 | 📝 planned |
+| Requirement | Acceptance Criterion | Substeps | Evidence | Status |
+|---|---|---|---|---|
+| REQ-016-001 | AC-016-001 | S01, S02, S03 | - | PLANNED |
+| REQ-016-002 | AC-016-002 | S02, S06 | - | PLANNED |
+| REQ-016-003 | AC-016-003 | S03, S06 | - | PLANNED |
+| REQ-016-004 | AC-016-004 | S04, S06 | - | PLANNED |
+| REQ-016-005 | AC-016-005, AC-016-006, AC-016-007, AC-016-008 | S05, S06, S07 | - | PLANNED |
+
+## Acceptance criteria → substeps
+
+| Acceptance criterion | Requirement | Substeps | Status |
+|---|---|---|---|
+| AC-016-001 | REQ-016-001 | S01, S02, S03 | PLANNED |
+| AC-016-002 | REQ-016-002 | S02, S06 | PLANNED |
+| AC-016-003 | REQ-016-003 | S03, S06 | PLANNED |
+| AC-016-004 | REQ-016-004 | S04, S06 | PLANNED |
+| AC-016-005 | REQ-016-005 | S05, S06 | PLANNED |
+| AC-016-006 | REQ-016-005 | S06 | PLANNED |
+| AC-016-007 | REQ-016-005 | S07 | PLANNED |
+| AC-016-008 | REQ-016-005 | S05, S07 | PLANNED |
 
 ## Komponenta → Soubor Mapping
 
