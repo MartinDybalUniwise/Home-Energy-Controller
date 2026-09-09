@@ -75,7 +75,9 @@ def test_traceability_rejects_unchecked_status(tmp_path):
 
 
 def test_new_step_uses_highest_numeric_directory():
-    assert load_tool("new_step").next_step_number() == 16
+    generator = load_tool("new_step")
+    step_numbers = [int(path.name[4:]) for path in (ROOT / "dev").glob("step*") if path.name[4:].isdigit()]
+    assert generator.next_step_number() == max(step_numbers) + 1
 
 
 def test_changed_step_names_selects_only_canonical_step_paths():

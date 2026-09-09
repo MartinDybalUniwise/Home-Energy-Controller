@@ -1,25 +1,47 @@
 {
   "step": 16,
-  "title": "GoodWe Integration Refactor",
+  "classification": "LARGE",
   "status": "PLANNED",
-  "created_at": "2026-09-07T17:15:00Z",
-  "phase": "Design & Preparation (Fáze A)",
-  "scope": "GoodWeManager, FTEReader refactor, FTEWriter, SDGHistoryReader, config, web UI, tests",
-  "estimated_days": 11,
-  "estimated_max_days": 17,
-  "critical_dependencies": [
-    "GoodWe Python library availability",
-    "Access to real GoodWe inverter 192.168.2.116",
-    "SDG logs available for import testing"
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner",
+    "approved_at": "2026-09-09",
+    "reason": "Design and preparation are approved; implementation remains a future step."
+  },
+  "gate_b": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null,
+    "reason": "Human preview is not applicable before implementation."
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null,
+    "reason": "Completion review is not applicable before implementation."
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "APPROVED_STEP16_GOODWE_DESIGN",
+  "branch": null,
+  "pr": null,
+  "notes": "Canonical design only. No GoodWeManager, FTEWriter, SDGHistoryReader, controller enablement, or physical-device writes are implemented or evidenced.",
+  "requirements": [
+    "REQ-016-001",
+    "REQ-016-002",
+    "REQ-016-003",
+    "REQ-016-004",
+    "REQ-016-005"
   ],
-  "blockers": [],
-  "parent_step": null,
-  "child_steps": [],
-  "related_documents": [
-    "HEC_FTE_READER_WRITER_UPRAVA.md",
-    "dev/step16/DEVELOPMENT_PLAN.md",
-    "dev/step16/REQUEST.md",
-    "dev/step16/REQUIREMENT.md",
-    "dev/step16/ACCEPTANCE_CRITERIA.md"
-  ]
+  "acceptance": [
+    "AC-016-001",
+    "AC-016-002",
+    "AC-016-003",
+    "AC-016-004",
+    "AC-016-005",
+    "AC-016-006",
+    "AC-016-007",
+    "AC-016-008"
+  ],
+  "evidence": []
 }
