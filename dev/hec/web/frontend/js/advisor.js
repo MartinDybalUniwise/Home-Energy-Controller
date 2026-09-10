@@ -2,7 +2,7 @@
 // rozhraní dostává z API: cenou, hodinovou předpovědí, predikcí a aktuálním
 // stavem. Neovládá spotřebiče ani nedopočítává neznámé hodnoty.
 
-import { num, power, t, time } from './i18n.js';
+import { dateTime, num, power, t, time, weekday } from './i18n.js';
 import { applianceIcon, weatherIcon } from './icons.js';
 
 const dateKey = (value) => {
@@ -12,10 +12,6 @@ const dateKey = (value) => {
 };
 
 const values = (items, key) => items.map((item) => Number(item?.[key])).filter(Number.isFinite);
-const average = (items, key) => {
-  const list = values(items, key);
-  return list.length ? list.reduce((sum, value) => sum + value, 0) / list.length : null;
-};
 const percentile = (list, ratio) => {
   if (!list.length) return null;
   const sorted = [...list].sort((a, b) => a - b);
@@ -88,7 +84,7 @@ function bestAdvice(prediction, prices) {
   return {
     day,
     best: day?.best_appliance_window || null,
-    avoid: high === null ? null : rangeFor(priceDay.periods, (period) => Number(period.price_total_czk_kwh) >= high),
+    avoid: high === null || !priceDay?.periods ? null : rangeFor(priceDay.periods, (period) => Number(period.price_total_czk_kwh) >= high),
   };
 }
 
@@ -104,13 +100,53 @@ function adviceCopy(advice, goodwe) {
   return { key: 'advisor.hero_wait' };
 }
 
-function applianceCard(type, key, advice) {
-  const window = advice.best;
-  return `<article class="appliance-advice ${window ? 'is-recommended' : ''}">
-    <div class="appliance-advice__icon">${applianceIcon(type)}</div>
-    <div><p>${t(key)}</p><strong>${window ? t('advisor.appliance_window', { window }) : t('advisor.window_unavailable')}</strong>
-    <small>${t('advisor.recommendation_only')}</small></div>
-  </article>`;
+function translatedText(key, params, fallback = '') {
+  if (!key) return fallback;
+  const text = t(key, params);
+  return text === key ? fallback : text;
+}
+
+function dayLabel(value) {
+  const stamp = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(stamp.getTime())) return value || '–';
+  return `${weekday(stamp)}, ${time(stamp, { day: '2-digit', month: '2-digit' })}`;
+}
+
+function formatRange(low, high, digits, unitKey) {
+  const a = Number(low);
+  const b = Number(high);
+  if (Number.isFinite(a) && Number.isFinite(b)) return `${num(a, digits)}–${num(b, digits)} ${t(unitKey)}`;
+  if (Number.isFinite(a)) return `${num(a, digits)} ${t(unitKey)}`;
+  if (Number.isFinite(b)) return `${num(b, digits)} ${t(unitKey)}`;
+  return '–';
+}
+
+function formatPrice(value) {
+  return Number.isFinite(Number(value)) ? `${num(value, 2)} ${t('unit.czk_kwh')}` : '–';
+}
+
+function formatCurrency(value) {
+  return Number.isFinite(Number(value)) ? `${num(value, 0)} ${t('unit.czk')}` : '–';
+}
+
+function controllerSummary(controller) {
+  if (controller?.safe_mode) {
+    return translatedText(controller.safe_mode_reason?.reason_key, controller.safe_mode_reason?.reason_params, t('status.safe_mode_active'));
+  }
+  return controller?.enabled ? t('status.controller_running') : t('status.controller_disabled');
+}
+
+function latestDecisionSummary(decision) {
+  if (!decision) return t('overview.no_decision');
+  return translatedText(decision.reason_key, decision.reason_params, `${decision.rule} → ${decision.action}`);
+}
+
+function recommendationRow(type, window) {
+  return `<div class="story-appliance-row${window ? ' is-recommended' : ''}">
+    <div class="story-appliance-row__icon">${applianceIcon(type)}</div>
+    <span>${t(`entity.${type}`)}</span>
+    <strong>${window || t('advisor.window_unavailable')}</strong>
+  </div>`;
 }
 
 export function renderToday(view, { current, weather, prices, prediction }) {
@@ -118,88 +154,211 @@ export function renderToday(view, { current, weather, prices, prediction }) {
   const goodwe = sources.goodwe || {};
   const tng = sources.tng || {};
   const ote = sources.ote || {};
+  const controller = current?.status?.controller || {};
+  const staleSources = current?.status?.stale_sources || [];
   const advice = bestAdvice(prediction, prices);
   const headline = adviceCopy(advice, goodwe);
-  // Today je živý plán aktuálního dne. Predikce začíná záměrně až D+1,
-  // ale nesmí proto přepnout dnešní ceny a rytmus na zítřek.
   const todayDate = dateKey(new Date());
   const timeline = timelineFor(todayDate, weather, prices);
   const pv = power(goodwe.pv_w);
   const house = power(goodwe.house_w);
-  const grid = power(Number(goodwe.grid_import_w) || Number(goodwe.grid_export_w));
+  const priceNow = ote.price_total_czk_kwh ?? ote.price_czk_kwh;
   const condition = weather?.current?.condition || 'unknown';
-  const solarPeak = Math.max(...timeline.map((slot) => Number(slot.solar) || 0));
-  const lastMeasurement = current?.last_measurement_at ? time(new Date(current.last_measurement_at)) : '–';
+  const solarPeak = Math.max(...timeline.map((slot) => Number(slot.solar) || 0), 0);
+  const lastMeasurement = current?.last_measurement_at ? dateTime(current.last_measurement_at) : '–';
+  const decision = controller.last_decision || null;
+  const heroSummary = advice.best ? t('advisor.based_on', { date: dayLabel(advice.day?.date) }) : t('advisor.awaiting_forecast');
+  const liveBadges = [
+    controller.enabled
+      ? `<span class="pill" data-level="ok">${t('status.controller_running')}</span>`
+      : `<span class="pill" data-level="neutral">${t('status.controller_disabled')}</span>`,
+    controller.safe_mode ? `<span class="pill" data-level="warning">${t('status.safe_mode')}</span>` : '',
+    controller.write_enabled === false ? `<span class="pill" data-level="neutral">${t('status.write_disabled')}</span>` : '',
+    staleSources.length ? `<span class="pill" data-level="critical">${t('status.stale')}: ${staleSources.join(', ')}</span>` : '',
+  ].filter(Boolean).join('');
 
-  view.innerHTML = `<div class="advisor-dashboard">
-    <section class="advisor-brief" aria-labelledby="advisor-title">
-      <div class="advisor-brief__weather">${weatherIcon(condition, weather?.current?.is_day !== false, 'advisor-brief__weather-icon')}<div><strong>${num(weather?.current?.temp_c, 0)}°</strong><span>${t(`weather.${condition}`)}</span></div></div>
-      <div class="advisor-brief__main"><p>${t('advisor.best_action')}</p><h2 id="advisor-title">${t(headline.key, headline.params)}</h2><span>${advice.best ? t('advisor.based_on', { date: advice.day.date }) : t('advisor.awaiting_forecast')}</span><a href="#/prediction">${t('advisor.open_forecast')} <b aria-hidden="true">→</b></a></div>
-      <div class="advisor-brief__states">
-        <article class="brief-state brief-state--now"><span>${t('advisor.now')}</span><strong>${t(`advisor.grid_${energyState(goodwe)}`)}</strong><small>${t('advisor.now_state_reason')}</small></article>
-        <article class="brief-state brief-state--avoid"><span>${t('advisor.avoid')}</span><strong>${advice.avoid || '–'}</strong><small>${t('advisor.avoid_window_short')}</small></article>
-        <article class="brief-state brief-state--solar"><span>${t('advisor.solar_outlook')}</span><strong>${advice.day ? `${num(advice.day.pv_kwh_low, 0)}–${num(advice.day.pv_kwh_high, 0)} ${t('unit.kwh')}` : '–'}</strong><small>${advice.day ? t('advisor.solar_peak', { value: num(solarPeak, 0) }) : t('advisor.awaiting_forecast')}</small></article>
+  view.innerHTML = `<div class="story-page story-page--today">
+    <section class="story-hero story-hero--today" aria-labelledby="advisor-title">
+      <div class="story-hero__main">
+        <p class="story-hero__eyebrow">${t('advisor.eyebrow')}</p>
+        <h2 id="advisor-title">${t(headline.key, headline.params)}</h2>
+        <p class="story-hero__summary">${heroSummary}</p>
+        <div class="story-hero__actions">
+          <a class="story-link" href="#/prediction">${t('advisor.open_forecast')} <b aria-hidden="true">→</b></a>
+          <a class="story-link story-link--secondary" href="#/flow">${t('advisor.open_flow')} <b aria-hidden="true">→</b></a>
+        </div>
+      </div>
+      <div class="story-hero__aside">
+        <div class="story-weather">
+          ${weatherIcon(condition, weather?.current?.is_day !== false, 'story-weather__icon')}
+          <div>
+            <strong>${num(weather?.current?.temp_c, 0)}<small>${t('unit.celsius')}</small></strong>
+            <span>${t(`weather.${condition}`)}</span>
+          </div>
+        </div>
+        <dl class="story-hero__stats">
+          <div><dt>${t('entity.pv')}</dt><dd>${pv.value}<small>${pv.unit}</small></dd></div>
+          <div><dt>${t('entity.house')}</dt><dd>${house.value}<small>${house.unit}</small></dd></div>
+          <div><dt>${t('entity.battery_soc')}</dt><dd>${num(goodwe.battery_soc, 0)}<small>${t('unit.percent')}</small></dd></div>
+          <div><dt>${t('entity.price')}</dt><dd>${formatPrice(priceNow)}</dd></div>
+        </dl>
       </div>
     </section>
 
-    <section class="advisor-kpis" aria-label="${t('advisor.live_title')}">
-      <article><span>${t('entity.pv')}</span><strong>${pv.value}<small>${pv.unit}</small></strong><em class="kpi-pv">↗</em></article>
-      <article><span>${t('entity.house')}</span><strong>${house.value}<small>${house.unit}</small></strong><em class="kpi-house">⌂</em></article>
-      <article><span>${t('entity.battery')}</span><strong>${num(goodwe.battery_soc, 0)}<small>%</small></strong><em class="kpi-battery">▣</em></article>
-      <article><span>${t(`advisor.grid_${energyState(goodwe)}`)}</span><strong>${grid.value}<small>${grid.unit}</small></strong><em class="kpi-grid">⌁</em></article>
-      <article><span>${t('entity.price')}</span><strong>${num(ote.price_total_czk_kwh ?? ote.price_czk_kwh, 2)}<small>${t('unit.czk_kwh')}</small></strong><em class="kpi-price">◆</em></article>
-      <article><span>${t('overview.last_data_update')}</span><strong>${lastMeasurement}</strong><em class="kpi-time">◔</em></article>
-      <article><span>${t('entity.heatpump')}</span><strong>${num(tng.boiler_temperature, 0)}<small>°C</small></strong><em class="kpi-heat">♨</em></article>
+    <section class="story-card-grid story-card-grid--three" aria-label="${t('advisor.plan_title')}">
+      <article class="story-card story-card--accent-good">
+        <p class="story-card__eyebrow">${t('advisor.best')}</p>
+        <strong class="story-card__value">${advice.best || '–'}</strong>
+        <p class="story-card__meta">${advice.best ? t('advisor.best_window_reason') : t('advisor.no_window_reason')}</p>
+      </article>
+      <article class="story-card story-card--accent-warm">
+        <p class="story-card__eyebrow">${t('advisor.avoid')}</p>
+        <strong class="story-card__value">${advice.avoid || '–'}</strong>
+        <p class="story-card__meta">${advice.avoid ? t('advisor.avoid_window_reason') : t('advisor.no_avoid_reason')}</p>
+      </article>
+      <article class="story-card story-card--accent-solar">
+        <p class="story-card__eyebrow">${t('advisor.solar_outlook')}</p>
+        <strong class="story-card__value">${advice.day ? formatRange(advice.day.pv_kwh_low, advice.day.pv_kwh_high, 0, 'unit.kwh') : '–'}</strong>
+        <p class="story-card__meta">${advice.day ? t('advisor.solar_peak', { value: num(solarPeak, 0) }) : t('advisor.awaiting_forecast')}</p>
+      </article>
     </section>
 
-    <section class="rhythm-panel" aria-labelledby="timeline-title">
-      <header><div><p>${t('advisor.section_kicker')}</p><h2 id="timeline-title">${t('advisor.timeline_title')}</h2></div><div class="rhythm-legend"><span class="timeline-legend--best">${t('advisor.best')}</span><span class="timeline-legend--ok">${t('advisor.ok')}</span><span class="timeline-legend--avoid">${t('advisor.avoid')}</span></div></header>
+    <section class="story-surface story-surface--timeline" aria-labelledby="timeline-title">
+      <header class="story-surface__header">
+        <div>
+          <p>${t('advisor.section_kicker')}</p>
+          <h3 id="timeline-title">${t('advisor.timeline_title')}</h3>
+        </div>
+        <div class="rhythm-legend">
+          <span class="timeline-legend--best">${t('advisor.best')}</span>
+          <span class="timeline-legend--ok">${t('advisor.ok')}</span>
+          <span class="timeline-legend--avoid">${t('advisor.avoid')}</span>
+        </div>
+      </header>
       <div class="energy-timeline energy-timeline--dense" role="list" aria-label="${t('advisor.timeline_title')}">
-        ${timeline.map((slot) => `<article class="timeline-slot timeline-slot--${slot.level}" role="listitem"><time>${String(slot.start).padStart(2, '0')}:00</time><div class="timeline-slot__weather">${slot.hour ? weatherIcon(slot.hour.condition, daylight(slot.hour) > 0, 'timeline-weather') : ''}<span>${slot.hour ? `${num(slot.hour.temp_c, 0)}°` : '–'}</span></div><span class="timeline-slot__state">${t(`advisor.${slot.level}`)}</span><strong class="timeline-slot__price">${slot.price === null ? '–' : `${num(slot.price, 2)} ${t('unit.czk_kwh')}`}</strong><small class="timeline-slot__solar">${slot.solar === null ? '–' : `${num(slot.solar, 0)} W/m²`}</small></article>`).join('')}
+        ${timeline.map((slot) => `<article class="timeline-slot timeline-slot--${slot.level}" role="listitem"><time>${String(slot.start).padStart(2, '0')}:00</time><div class="timeline-slot__weather">${slot.hour ? weatherIcon(slot.hour.condition, daylight(slot.hour) > 0, 'timeline-weather') : ''}<span>${slot.hour ? `${num(slot.hour.temp_c, 0)}${t('unit.celsius')}` : '–'}</span></div><span class="timeline-slot__state">${t(`advisor.${slot.level}`)}</span><strong class="timeline-slot__price">${formatPrice(slot.price)}</strong><small class="timeline-slot__solar">${slot.solar === null ? '–' : `${num(slot.solar, 0)} ${t('unit.wm2')}`}</small></article>`).join('')}
       </div>
+      <p class="timeline-note">${t('advisor.timeline_note')}</p>
     </section>
 
-    <section class="advisor-workspace">
-      <article class="workspace-card appliance-workspace"><header><p>${t('advisor.appliances_title')}</p><span>${t('advisor.recommendations_badge')}</span></header><div class="compact-appliances">
-        ${['washing_machine', 'dishwasher', 'dryer'].map((type) => `<div>${applianceIcon(type)}<span>${t(`entity.${type}`)}</span><strong>${advice.best || '–'}</strong><i>★</i></div>`).join('')}
-        <div>${applianceIcon('heatpump')}<span>${t('entity.heatpump')}</span><strong>${current.status?.controller?.enabled ? t('advisor.controller_active') : t('advisor.controller_observing')}</strong><i>•</i></div>
-      </div></article>
-      <article class="workspace-card next-window"><header><p>${t('advisor.next_window')}</p></header><div class="window-ring"><span>${t('advisor.best')}</span><strong>${advice.best || '–'}</strong><small>${t('advisor.window_reason_short')}</small></div><p>${t('advisor.window_value', { value: advice.day ? `${num(advice.day.pv_kwh_low, 0)}–${num(advice.day.pv_kwh_high, 0)} ${t('unit.kwh')}` : '–' })}</p></article>
-      <article class="workspace-card outlook-workspace"><header><p>${t('advisor.outlook_title')}</p><span>${t('advisor.outlook_subtitle')}</span></header>${renderOutlookChart(timeline)}</article>
+    <section class="story-card-grid story-card-grid--support">
+      <article class="story-card story-card--soft">
+        <div class="story-card__header-row">
+          <p class="story-card__eyebrow">${t('advisor.live_title')}</p>
+        </div>
+        <div class="story-card__status">${liveBadges}</div>
+        <div class="story-data-rows">
+          <div class="story-data-row"><span>${t('advisor.now')}</span><strong>${t(`advisor.grid_${energyState(goodwe)}`)}</strong></div>
+          <div class="story-data-row"><span>${t('overview.last_data_update')}</span><strong>${lastMeasurement}</strong></div>
+          <div class="story-data-row"><span>${t('settings.controller')}</span><strong>${controllerSummary(controller)}</strong></div>
+          <div class="story-data-row"><span>${t('entity.heatpump')}</span><strong>${Number.isFinite(Number(tng.boiler_temperature)) ? t('advisor.dhw_temperature', { value: num(tng.boiler_temperature, 0) }) : t('advisor.tng_no_data')}</strong></div>
+        </div>
+      </article>
+      <article class="story-card story-card--soft">
+        <p class="story-card__eyebrow">${t('overview.last_decision')}</p>
+        <strong class="story-card__value story-card__value--copy">${latestDecisionSummary(decision)}</strong>
+        <p class="story-card__meta">${decision?.timestamp ? dateTime(decision.timestamp) : '–'}</p>
+      </article>
+      <article class="story-card story-card--soft">
+        <div class="story-card__header-row">
+          <p class="story-card__eyebrow">${t('advisor.appliances_title')}</p>
+          <span class="story-card__hint">${t('advisor.recommendations_badge')}</span>
+        </div>
+        <div class="story-appliance-list">
+          ${['washing_machine', 'dishwasher', 'dryer'].map((type) => recommendationRow(type, advice.best)).join('')}
+        </div>
+        <p class="story-card__meta">${t('advisor.recommendation_only')}</p>
+      </article>
     </section>
   </div>`;
 }
 
-function linePath(values, width, height, pad) {
-  const max = Math.max(...values, 1);
-  return values.map((value, index) => {
-    const x = pad + index * ((width - pad * 2) / Math.max(values.length - 1, 1));
-    const y = height - pad - (Math.max(0, value) / max) * (height - pad * 2);
-    return `${index ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`;
-  }).join(' ');
-}
-
-function renderOutlookChart(timeline) {
-  const solar = timeline.map((slot) => Number(slot.solar) || 0);
-  const price = timeline.map((slot) => Number(slot.price) || 0);
-  const width = 500; const height = 166; const pad = 20;
-  return `<div class="outlook-chart"><div class="outlook-chart__legend"><span class="solar">${t('advisor.solar_curve')}</span><span class="price">${t('advisor.price_curve')}</span></div><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${t('advisor.outlook_title')}"><path class="outlook-grid" d="M${pad} 40H${width - pad}M${pad} 82H${width - pad}M${pad} 124H${width - pad}"/><path class="outlook-solar" d="${linePath(solar, width, height, pad)}"/><path class="outlook-price" d="${linePath(price, width, height, pad)}"/>${timeline.map((slot, index) => `<text x="${pad + index * ((width - pad * 2) / 7)}" y="157" text-anchor="middle">${String(slot.start).padStart(2, '0')}</text>`).join('')}</svg></div>`;
-}
-
 export function renderForecastStory(view, { prediction, weather, prices }) {
   const days = prediction?.days || [];
-  view.innerHTML = `<section class="forecast-hero"><div><p>${t('forecast.eyebrow')}</p><h2>${t('forecast.title')}</h2><span>${t('forecast.subtitle')}</span></div><div class="forecast-hero__metric"><span>${t('forecast.best_window')}</span><strong>${days.find((day) => day.best_appliance_window)?.best_appliance_window || '–'}</strong></div></section>
-    <section class="forecast-grid" id="forecast-grid"></section>`;
+  const bestDay = days.find((day) => day.best_appliance_window) || days[0] || null;
+  const dhwDay = days.find((day) => day.best_dhw_window) || days[0] || null;
+  const costDay = days.find((day) => Number.isFinite(Number(day.cost_czk))) || days[0] || null;
+  const accuracy = prediction?.accuracy || null;
+  const hasWeatherDetails = Boolean(weather?.forecast_hourly?.length);
+
+  view.innerHTML = `<div class="story-page story-page--forecast">
+    <section class="story-hero story-hero--forecast">
+      <div class="story-hero__main">
+        <p class="story-hero__eyebrow">${t('forecast.eyebrow')}</p>
+        <h2>${t('forecast.title')}</h2>
+        <p class="story-hero__summary">${t('forecast.subtitle')}</p>
+      </div>
+      <div class="story-hero__aside">
+        <dl class="story-hero__stats">
+          <div><dt>${t('prediction.best_appliance_window')}</dt><dd>${bestDay?.best_appliance_window || '–'}</dd></div>
+          <div><dt>${t('prediction.best_dhw_window')}</dt><dd>${dhwDay?.best_dhw_window || '–'}</dd></div>
+          <div><dt>${t('prediction.confidence')}</dt><dd>${bestDay ? t(`prediction.confidence_${bestDay.confidence || 'low'}`) : '–'}</dd></div>
+          <div><dt>${t('prediction.accuracy')}</dt><dd>${accuracy ? `${num(accuracy.pv_mape_pct, 1)}<small>${t('unit.percent')}</small>` : '–'}</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="story-surface story-surface--forecast">
+      <header class="story-surface__header">
+        <div>
+          <p>${t('nav.forecast')}</p>
+          <h3>${t('forecast.title')}</h3>
+        </div>
+        <span class="story-surface__meta">${prediction?.generated_at ? t('app.updated', { time: dateTime(prediction.generated_at) }) : ''}</span>
+      </header>
+      <div class="forecast-grid" id="forecast-grid"></div>
+    </section>
+
+    <section class="story-card-grid story-card-grid--support">
+      <article class="story-card story-card--accent-good">
+        <p class="story-card__eyebrow">${t('forecast.recommendation')}</p>
+        <strong class="story-card__value">${bestDay?.best_appliance_window || '–'}</strong>
+        <div class="story-data-rows">
+          <div class="story-data-row"><span>${t('prediction.best_appliance_window')}</span><strong>${bestDay?.best_appliance_window || '–'}</strong></div>
+          <div class="story-data-row"><span>${t('prediction.best_dhw_window')}</span><strong>${dhwDay?.best_dhw_window || '–'}</strong></div>
+          <div class="story-data-row"><span>${t('overview.last_data_update')}</span><strong>${prediction?.generated_at ? dateTime(prediction.generated_at) : '–'}</strong></div>
+        </div>
+      </article>
+      <article class="story-card story-card--soft">
+        <p class="story-card__eyebrow">${t('prediction.confidence')}</p>
+        <strong class="story-card__value">${bestDay ? t(`prediction.confidence_${bestDay.confidence || 'low'}`) : '–'}</strong>
+        <div class="story-data-rows">
+          <div class="story-data-row"><span>${t('prediction.accuracy')}</span><strong>${accuracy ? `${num(accuracy.pv_mape_pct, 1)} ${t('unit.percent')}` : '–'}</strong></div>
+          <div class="story-data-row"><span>${t('nav.forecast')}</span><strong>${days.length ? `${days.length}` : '–'}</strong></div>
+        </div>
+      </article>
+      <article class="story-card story-card--soft">
+        <p class="story-card__eyebrow">${t('prediction.expected_cost')}</p>
+        <strong class="story-card__value">${formatCurrency(costDay?.cost_czk)}</strong>
+        <div class="story-data-rows">
+          <div class="story-data-row"><span>${t('prediction.expected_grid')}</span><strong>${Number.isFinite(Number(costDay?.grid_balance_kwh)) ? `${num(costDay.grid_balance_kwh, 1)} ${t('unit.kwh')}` : '–'}</strong></div>
+          <div class="story-data-row"><span>${t('prediction.expected_consumption')}</span><strong>${Number.isFinite(Number(costDay?.consumption_kwh)) ? `${num(costDay.consumption_kwh, 1)} ${t('unit.kwh')}` : '–'}</strong></div>
+        </div>
+      </article>
+    </section>
+
+    ${hasWeatherDetails ? `<section class="story-surface story-surface--details"><header class="story-surface__header"><div><p>${t('nav.forecast')}</p><h3>${t('entity.weather')}</h3></div></header><div id="forecast-details"></div></section>` : ''}
+  </div>`;
+
   const grid = view.querySelector('#forecast-grid');
-  if (!days.length) { grid.innerHTML = `<p class="notice">${t('prediction.not_enough_data')}</p>`; return; }
+  if (!days.length) {
+    grid.innerHTML = `<p class="notice">${t('prediction.not_enough_data')}</p>`;
+    return;
+  }
+
   grid.innerHTML = days.map((day) => {
     const weatherDay = (weather?.forecast_daily || []).find((item) => item.date === day.date) || {};
     const priceDay = dayFor(day.date, prices);
     const periods = values(priceDay?.periods || [], 'price_total_czk_kwh');
     return `<article class="forecast-day-card">
-      <header><div><p>${day.date}</p><h3>${weatherIcon(weatherDay.condition || 'unknown', true, 'forecast-weather-icon')} ${t(`weather.${weatherDay.condition || 'unknown'}`)}</h3></div><span class="confidence confidence--${day.confidence || 'low'}">${t('forecast.confidence', { value: t(`prediction.confidence_${day.confidence || 'low'}`) })}</span></header>
-      <div class="forecast-day-card__main"><span>${t('forecast.pv_expected')}</span><strong>${num(day.pv_kwh_low, 0)}–${num(day.pv_kwh_high, 0)} <small>${t('unit.kwh')}</small></strong><p>${t('forecast.irradiation', { value: num(day.irradiation_kwh_m2, 1) })}</p></div>
-      <dl><div><dt>${t('forecast.consumption')}</dt><dd>${num(day.consumption_kwh, 1)} ${t('unit.kwh')}</dd></div><div><dt>${t('forecast.battery_floor')}</dt><dd>${num(day.battery_soc_min_pct, 0)} %</dd></div><div><dt>${t('forecast.price_range')}</dt><dd>${periods.length ? `${num(Math.min(...periods), 2)}–${num(Math.max(...periods), 2)} ${t('unit.czk_kwh')}` : '–'}</dd></div></dl>
+      <header><div><p>${dayLabel(day.date)}</p><h3>${weatherIcon(weatherDay.condition || 'unknown', true, 'forecast-weather-icon')} ${t(`weather.${weatherDay.condition || 'unknown'}`)}</h3></div><span class="confidence confidence--${day.confidence || 'low'}">${t('forecast.confidence', { value: t(`prediction.confidence_${day.confidence || 'low'}`) })}</span></header>
+      <div class="forecast-day-card__main"><span>${t('forecast.pv_expected')}</span><strong>${formatRange(day.pv_kwh_low, day.pv_kwh_high, 0, 'unit.kwh')}</strong><p>${t('forecast.irradiation', { value: num(day.irradiation_kwh_m2, 1) })}</p></div>
+      <dl>
+        <div><dt>${t('forecast.consumption')}</dt><dd>${Number.isFinite(Number(day.consumption_kwh)) ? `${num(day.consumption_kwh, 1)} ${t('unit.kwh')}` : '–'}</dd></div>
+        <div><dt>${t('forecast.battery_floor')}</dt><dd>${Number.isFinite(Number(day.battery_soc_min_pct)) ? `${num(day.battery_soc_min_pct, 0)} ${t('unit.percent')}` : '–'}</dd></div>
+        <div><dt>${t('forecast.price_range')}</dt><dd>${periods.length ? `${num(Math.min(...periods), 2)}–${num(Math.max(...periods), 2)} ${t('unit.czk_kwh')}` : '–'}</dd></div>
+        <div><dt>${t('prediction.expected_cost')}</dt><dd>${formatCurrency(day.cost_czk)}</dd></div>
+      </dl>
       <footer>${day.best_appliance_window ? `<span>${t('forecast.recommendation')}</span><strong>${t('advisor.appliance_window', { window: day.best_appliance_window })}</strong>` : `<span>${t('advisor.window_unavailable')}</span>`}</footer>
     </article>`;
   }).join('');
