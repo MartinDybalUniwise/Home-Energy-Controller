@@ -113,15 +113,18 @@ class ShellyReader(BaseReader):
         if not devices and errors:
             raise RuntimeError("; ".join(f"{k}: {v}" for k, v in errors.items()))
 
+        heatpump_devices = [v for v in devices.values() if v.get("role") == "heatpump_meter"]
         total = sum(float(v.get("power_w") or 0) for v in devices.values()
                     if v.get("role") != "heatpump_meter")
-        heatpump = sum(float(v.get("power_w") or 0) for v in devices.values()
-                       if v.get("role") == "heatpump_meter")
+        # Bez nakonfigurovaného Pro 3EM na TČ je hodnota "neměřeno", ne "0 W" –
+        # jinak by UI hlásilo naměřenou nulu u zařízení, které vůbec nesleduje.
+        heatpump = (sum(float(v.get("power_w") or 0) for v in heatpump_devices)
+                    if heatpump_devices else None)
         return {
             "devices": devices,
             "errors": errors or None,
             "appliances_power_w": round(total, 1),
-            "heatpump_power_w": round(heatpump, 1),
+            "heatpump_power_w": round(heatpump, 1) if heatpump is not None else None,
         }
 
     def history_targets(self, values: dict, sample: Sample) -> list[tuple[str, dict]]:
