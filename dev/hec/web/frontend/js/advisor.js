@@ -5,6 +5,23 @@
 import { dateTime, num, power, t, time, weekday } from './i18n.js';
 import { applianceIcon, weatherIcon } from './icons.js';
 
+const HTML_ESCAPES = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
+}
+
+function escapeParams(params) {
+  if (!params || typeof params !== 'object') return params;
+  return Object.fromEntries(Object.entries(params).map(([key, value]) => [key, escapeHtml(value)]));
+}
+
 const dateKey = (value) => {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return '';
@@ -101,9 +118,10 @@ function adviceCopy(advice, goodwe) {
 }
 
 function translatedText(key, params, fallback = '') {
-  if (!key) return fallback;
-  const text = t(key, params);
-  return text === key ? fallback : text;
+  const safeFallback = escapeHtml(fallback);
+  if (!key) return safeFallback;
+  const text = t(key, escapeParams(params));
+  return text === key ? safeFallback : text;
 }
 
 function dayLabel(value) {
@@ -145,7 +163,7 @@ function recommendationRow(type, window) {
   return `<div class="story-appliance-row${window ? ' is-recommended' : ''}">
     <div class="story-appliance-row__icon">${applianceIcon(type)}</div>
     <span>${t(`entity.${type}`)}</span>
-    <strong>${window || t('advisor.window_unavailable')}</strong>
+    <strong>${window ? escapeHtml(window) : t('advisor.window_unavailable')}</strong>
   </div>`;
 }
 
@@ -167,21 +185,21 @@ export function renderToday(view, { current, weather, prices, prediction }) {
   const solarPeak = Math.max(...timeline.map((slot) => Number(slot.solar) || 0), 0);
   const lastMeasurement = current?.last_measurement_at ? dateTime(current.last_measurement_at) : '–';
   const decision = controller.last_decision || null;
-  const heroSummary = advice.best ? t('advisor.based_on', { date: dayLabel(advice.day?.date) }) : t('advisor.awaiting_forecast');
+  const heroSummary = advice.best ? translatedText('advisor.based_on', { date: dayLabel(advice.day?.date) }) : t('advisor.awaiting_forecast');
   const liveBadges = [
     controller.enabled
       ? `<span class="pill" data-level="ok">${t('status.controller_running')}</span>`
       : `<span class="pill" data-level="neutral">${t('status.controller_disabled')}</span>`,
     controller.safe_mode ? `<span class="pill" data-level="warning">${t('status.safe_mode')}</span>` : '',
     controller.write_enabled === false ? `<span class="pill" data-level="neutral">${t('status.write_disabled')}</span>` : '',
-    staleSources.length ? `<span class="pill" data-level="critical">${t('status.stale')}: ${staleSources.join(', ')}</span>` : '',
+    staleSources.length ? `<span class="pill" data-level="critical">${t('status.stale')}: ${staleSources.map(escapeHtml).join(', ')}</span>` : '',
   ].filter(Boolean).join('');
 
   view.innerHTML = `<div class="story-page story-page--today">
     <section class="story-hero story-hero--today" aria-labelledby="advisor-title">
       <div class="story-hero__main">
         <p class="story-hero__eyebrow">${t('advisor.eyebrow')}</p>
-        <h2 id="advisor-title">${t(headline.key, headline.params)}</h2>
+        <h2 id="advisor-title">${translatedText(headline.key, headline.params)}</h2>
         <p class="story-hero__summary">${heroSummary}</p>
         <div class="story-hero__actions">
           <a class="story-link" href="#/prediction">${t('advisor.open_forecast')} <b aria-hidden="true">→</b></a>
@@ -208,12 +226,12 @@ export function renderToday(view, { current, weather, prices, prediction }) {
     <section class="story-card-grid story-card-grid--three" aria-label="${t('advisor.plan_title')}">
       <article class="story-card story-card--accent-good">
         <p class="story-card__eyebrow">${t('advisor.best')}</p>
-        <strong class="story-card__value">${advice.best || '–'}</strong>
+        <strong class="story-card__value">${advice.best ? escapeHtml(advice.best) : '–'}</strong>
         <p class="story-card__meta">${advice.best ? t('advisor.best_window_reason') : t('advisor.no_window_reason')}</p>
       </article>
       <article class="story-card story-card--accent-warm">
         <p class="story-card__eyebrow">${t('advisor.avoid')}</p>
-        <strong class="story-card__value">${advice.avoid || '–'}</strong>
+        <strong class="story-card__value">${advice.avoid ? escapeHtml(advice.avoid) : '–'}</strong>
         <p class="story-card__meta">${advice.avoid ? t('advisor.avoid_window_reason') : t('advisor.no_avoid_reason')}</p>
       </article>
       <article class="story-card story-card--accent-solar">
@@ -290,8 +308,8 @@ export function renderForecastStory(view, { prediction, weather, prices }) {
       </div>
       <div class="story-hero__aside">
         <dl class="story-hero__stats">
-          <div><dt>${t('prediction.best_appliance_window')}</dt><dd>${bestDay?.best_appliance_window || '–'}</dd></div>
-          <div><dt>${t('prediction.best_dhw_window')}</dt><dd>${dhwDay?.best_dhw_window || '–'}</dd></div>
+          <div><dt>${t('prediction.best_appliance_window')}</dt><dd>${bestDay?.best_appliance_window ? escapeHtml(bestDay.best_appliance_window) : '–'}</dd></div>
+          <div><dt>${t('prediction.best_dhw_window')}</dt><dd>${dhwDay?.best_dhw_window ? escapeHtml(dhwDay.best_dhw_window) : '–'}</dd></div>
           <div><dt>${t('prediction.confidence')}</dt><dd>${bestDay ? t(`prediction.confidence_${bestDay.confidence || 'low'}`) : '–'}</dd></div>
           <div><dt>${t('prediction.accuracy')}</dt><dd>${accuracy ? `${num(accuracy.pv_mape_pct, 1)}<small>${t('unit.percent')}</small>` : '–'}</dd></div>
         </dl>
@@ -312,10 +330,10 @@ export function renderForecastStory(view, { prediction, weather, prices }) {
     <section class="story-card-grid story-card-grid--support">
       <article class="story-card story-card--accent-good">
         <p class="story-card__eyebrow">${t('forecast.recommendation')}</p>
-        <strong class="story-card__value">${bestDay?.best_appliance_window || '–'}</strong>
+        <strong class="story-card__value">${bestDay?.best_appliance_window ? escapeHtml(bestDay.best_appliance_window) : '–'}</strong>
         <div class="story-data-rows">
-          <div class="story-data-row"><span>${t('prediction.best_appliance_window')}</span><strong>${bestDay?.best_appliance_window || '–'}</strong></div>
-          <div class="story-data-row"><span>${t('prediction.best_dhw_window')}</span><strong>${dhwDay?.best_dhw_window || '–'}</strong></div>
+          <div class="story-data-row"><span>${t('prediction.best_appliance_window')}</span><strong>${bestDay?.best_appliance_window ? escapeHtml(bestDay.best_appliance_window) : '–'}</strong></div>
+          <div class="story-data-row"><span>${t('prediction.best_dhw_window')}</span><strong>${dhwDay?.best_dhw_window ? escapeHtml(dhwDay.best_dhw_window) : '–'}</strong></div>
           <div class="story-data-row"><span>${t('overview.last_data_update')}</span><strong>${prediction?.generated_at ? dateTime(prediction.generated_at) : '–'}</strong></div>
         </div>
       </article>
@@ -359,7 +377,7 @@ export function renderForecastStory(view, { prediction, weather, prices }) {
         <div><dt>${t('forecast.price_range')}</dt><dd>${periods.length ? `${num(Math.min(...periods), 2)}–${num(Math.max(...periods), 2)} ${t('unit.czk_kwh')}` : '–'}</dd></div>
         <div><dt>${t('prediction.expected_cost')}</dt><dd>${formatCurrency(day.cost_czk)}</dd></div>
       </dl>
-      <footer>${day.best_appliance_window ? `<span>${t('forecast.recommendation')}</span><strong>${t('advisor.appliance_window', { window: day.best_appliance_window })}</strong>` : `<span>${t('advisor.window_unavailable')}</span>`}</footer>
+      <footer>${day.best_appliance_window ? `<span>${t('forecast.recommendation')}</span><strong>${translatedText('advisor.appliance_window', { window: day.best_appliance_window }, day.best_appliance_window)}</strong>` : `<span>${t('advisor.window_unavailable')}</span>`}</footer>
     </article>`;
   }).join('');
 }

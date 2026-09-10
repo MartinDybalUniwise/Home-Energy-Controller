@@ -1,10 +1,27 @@
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 
 import { renderChart, renderTable } from './chart.js';
-import { renderForecastStory, renderToday } from './advisor.js?v=12';
+import { renderForecastStory, renderToday } from './advisor.js?v=13';
 import { renderFlow } from './flow.js';
 import { availableLanguages, currentLanguage, dateTime, duration, num, power, t, time, weekday } from './i18n.js';
 import { weatherIcon } from './icons.js';
+
+const HTML_ESCAPES = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
+}
+
+function escapeParams(params) {
+  if (!params || typeof params !== 'object') return params;
+  return Object.fromEntries(Object.entries(params).map(([key, value]) => [key, escapeHtml(value)]));
+}
 
 const SERIES_COLORS = {
   pv_w: 'var(--series-pv)',
@@ -230,7 +247,7 @@ export async function history(view, { api, state }) {
       <section class="panel">
         <div class="controls">
           <select id="source">${sources.map((name) =>
-            `<option value="${name}"${name === state.historySource ? ' selected' : ''}>${name}</option>`).join('')}</select>
+            `<option value="${escapeHtml(name)}"${name === state.historySource ? ' selected' : ''}>${escapeHtml(name)}</option>`).join('')}</select>
           ${RANGES.map((range) => `<button data-range="${range.from}" aria-pressed="${state.historyRange === range.from}">${t(range.key)}</button>`).join('')}
           <button id="toggle-view" aria-pressed="${state.historyView === 'table'}">${t('history.table')}</button>
         </div>
@@ -315,8 +332,8 @@ async function renderAnalysis(container, api) {
     ? ['l1_w', 'l2_w', 'l3_w'].map((phase, index) =>
         `<div class="meta">L${index + 1}: ⌀ ${num(phases.phases[phase].mean_w, 0)} W · p95 ${num(phases.phases[phase].p95_w, 0)} W</div>`).join('')
       + (phases.recommendations || []).map((item) =>
-        `<p class="meta">${t(item.reason_key, item.reason_params)}</p>`).join('')
-    : `<p class="meta">${t(phases.reason_key || 'app.no_data')}</p>`));
+        `<p class="meta">${translatedText(item.reason_key, item.reason_params, item.reason_key || '')}</p>`).join('')
+    : `<p class="meta">${phases.reason_key ? translatedText(phases.reason_key, undefined, phases.reason_key) : t('app.no_data')}</p>`));
 
   parts.push(card('analysis.heatpump_energy', heatpump.measured
     ? `<span class="value">${num(heatpump.energy_kwh, 1)}<span class="unit">${t('unit.kwh')}</span></span>`
@@ -327,7 +344,7 @@ async function renderAnalysis(container, api) {
 
   const recent = (cycles.cycles || []).slice(-6).reverse();
   parts.push(card('history.appliance_cycles', recent.length
-    ? recent.map((cycle) => `<p class="meta"><strong>${cycle.name}</strong> ${dateTime(cycle.started)}<br>`
+    ? recent.map((cycle) => `<p class="meta"><strong>${escapeHtml(cycle.name)}</strong> ${dateTime(cycle.started)}<br>`
         + `${t('history.duration')}: ${duration(cycle.duration_min)} · ${t('history.energy')}: ${num(cycle.energy_kwh, 2)} ${t('unit.kwh')}`
         + ` · ${t('history.peak')}: ${num(cycle.peak_w, 0)} W</p>`).join('')
     : `<p class="meta">${t('app.no_data')}</p>`));
@@ -352,7 +369,7 @@ async function renderSummaries(container, api) {
   if (!days.length) { container.innerHTML = `<p class="notice">${t('app.no_data')}</p>`; return; }
   container.innerHTML = days.slice(-7).reverse().map((day) => `
     <div class="card">
-      <div class="card-header">${day.date}</div>
+      <div class="card-header">${escapeHtml(day.date)}</div>
       <p class="meta">
         ${t('entity.pv')}: ${num(day.pv_kwh, 1)} ${t('unit.kwh')}<br>
         ${t('entity.house')}: ${num(day.house_kwh, 1)} ${t('unit.kwh')}<br>
@@ -378,9 +395,10 @@ export async function prediction(view, { api }) {
 // --- Tok energie -------------------------------------------------------------
 
 function translatedText(key, params, fallback = '') {
-  if (!key) return fallback;
-  const text = t(key, params);
-  return text === key ? fallback : text;
+  const safeFallback = escapeHtml(fallback);
+  if (!key) return safeFallback;
+  const text = t(key, escapeParams(params));
+  return text === key ? safeFallback : text;
 }
 
 function batteryStateText(goodwe) {
@@ -420,7 +438,7 @@ export async function flow(view, { api, motion }) {
       : `<span class="pill" data-level="neutral">${t('status.controller_disabled')}</span>`,
     controller.safe_mode ? `<span class="pill" data-level="warning">${t('status.safe_mode')}</span>` : '',
     controller.write_enabled === false ? `<span class="pill" data-level="neutral">${t('status.write_disabled')}</span>` : '',
-    staleSources.length ? `<span class="pill" data-level="critical">${t('status.stale')}: ${staleSources.join(', ')}</span>` : '',
+    staleSources.length ? `<span class="pill" data-level="critical">${t('status.stale')}: ${staleSources.map(escapeHtml).join(', ')}</span>` : '',
   ].filter(Boolean).join('');
 
   view.innerHTML = `<div class="story-page story-page--flow">
@@ -569,34 +587,35 @@ export async function settings(view, { api, onUiChange }) {
         + (result.restart_required?.length ? ` · ${t('settings.restart_required')}` : '');
       onUiChange?.(payload.ui || {});
     } catch (error) {
-      message.innerHTML = `<span class="error">${(error.payload?.errors || [t('error.save_failed')]).join('<br>')}</span>`;
+      message.innerHTML = `<span class="error">${(error.payload?.errors || [t('error.save_failed')]).map(escapeHtml).join('<br>')}</span>`;
     }
   });
 }
 
 function fieldRow(field, value) {
-  const id = `f_${field.path.replace(/\./g, '_')}`;
+  const id = escapeHtml(`f_${field.path.replace(/\./g, '_')}`);
+  const fieldPath = escapeHtml(field.path);
   const labelKey = `settings.field.${field.path}`;
   const helpKey = `settings.help.${field.path}`;
   // t() echoes back an unknown key verbatim – fall back to the raw config
   // path rather than show a translation key like "settings.field.x.y" in
   // the UI if a field is ever added to the schema without a translation.
   const translatedLabel = t(labelKey);
-  const label = translatedLabel === labelKey ? field.path.split('.').slice(1).join('.') : translatedLabel;
+  const label = escapeHtml(translatedLabel === labelKey ? field.path.split('.').slice(1).join('.') : translatedLabel);
   const translatedHelp = t(helpKey);
-  const help = translatedHelp === helpKey ? '' : `<p class="field-help">${translatedHelp}</p>`;
+  const help = translatedHelp === helpKey ? '' : `<p class="field-help">${escapeHtml(translatedHelp)}</p>`;
   let input;
   if (field.kind === 'bool') {
-    input = `<input id="${id}" data-path="${field.path}" type="checkbox"${value ? ' checked' : ''}>`;
+    input = `<input id="${id}" data-path="${fieldPath}" type="checkbox"${value ? ' checked' : ''}>`;
   } else if (field.kind === 'enum') {
-    input = `<select id="${id}" data-path="${field.path}">${field.choices.map((choice) =>
-      `<option value="${choice}"${String(choice) === String(value) ? ' selected' : ''}>${choice}</option>`).join('')}</select>`;
+    input = `<select id="${id}" data-path="${fieldPath}">${field.choices.map((choice) =>
+      `<option value="${escapeHtml(choice)}"${String(choice) === String(value) ? ' selected' : ''}>${escapeHtml(choice)}</option>`).join('')}</select>`;
   } else if (field.kind === 'int' || field.kind === 'float') {
     const step = field.kind === 'int' ? '1' : 'any';
-    input = `<input id="${id}" data-path="${field.path}" type="number" step="${step}"`
-      + `${field.min !== null ? ` min="${field.min}"` : ''}${field.max !== null ? ` max="${field.max}"` : ''} value="${value ?? ''}">`;
+    input = `<input id="${id}" data-path="${fieldPath}" type="number" step="${step}"`
+      + `${field.min !== null ? ` min="${field.min}"` : ''}${field.max !== null ? ` max="${field.max}"` : ''} value="${escapeHtml(value ?? '')}">`;
   } else {
-    input = `<input id="${id}" data-path="${field.path}" type="${field.secret ? 'password' : 'text'}" value="${value ?? ''}">`;
+    input = `<input id="${id}" data-path="${fieldPath}" type="${field.secret ? 'password' : 'text'}" value="${escapeHtml(value ?? '')}">`;
   }
   const hint = field.restart ? `<span class="hint">${t('settings.restart_required')}</span>` : '';
   return `<div class="field"><label for="${id}">${label}</label>${input}${hint}${help}</div>`;
@@ -641,13 +660,13 @@ function renderReaderRow(reader) {
     : statusPill(!reader.stale, 'status.ok', 'status.stale');
   const age = reader.age_seconds === null ? '–' : `${Math.round(reader.age_seconds)} s`;
   return `<tr>
-      <td>${reader.name}</td>
+      <td>${escapeHtml(reader.name)}</td>
       <td>${state}</td>
       <td>${reader.last_success ? dateTime(reader.last_success) : '–'}</td>
       <td>${age}</td>
       <td>${reader.success_count}</td>
       <td>${reader.error_count}</td>
-      <td>${reader.last_error || '–'}</td>
+      <td>${reader.last_error ? escapeHtml(reader.last_error) : '–'}</td>
     </tr>`;
 }
 
@@ -677,17 +696,17 @@ function renderStatusReport(payload) {
     </p>
     <p class="meta">
       ${t('overview.last_decision')}:<br>
-      ${decision ? `<strong>${decision.rule} → ${decision.action}</strong> (${dateTime(decision.timestamp)})<br>${t(decision.reason_key, decision.reason_params) || ''}`
+      ${decision ? `<strong>${escapeHtml(decision.rule)} → ${escapeHtml(decision.action)}</strong> (${dateTime(decision.timestamp)})<br>${translatedText(decision.reason_key, decision.reason_params)}`
                  : t('overview.no_decision')}
     </p>`);
 
   const stale = payload.stale_sources || [];
   const infoCard = card('status.title', `
     <p class="meta">
-      ${t('app.name')} v${payload.version || '–'}<br>
+      ${t('app.name')} v${payload.version ? escapeHtml(payload.version) : '–'}<br>
       ${t('status.started')}: ${payload.started_at ? dateTime(payload.started_at) : '–'}<br>
       ${stale.length
-        ? `<span class="pill" data-level="critical">${t('status.stale')}: ${stale.join(', ')}</span>`
+        ? `<span class="pill" data-level="critical">${t('status.stale')}: ${stale.map(escapeHtml).join(', ')}</span>`
         : `<span class="pill" data-level="ok">${t('status.ok')}</span>`}
     </p>`);
 
@@ -755,7 +774,7 @@ export async function logsPage(view, { api }) {
       <section class="panel">
         <div class="controls">
           <select id="log-source" aria-label="${t('logs.source')}">
-            ${sources.map((source) => `<option value="${source}">${source}</option>`).join('')}
+            ${sources.map((source) => `<option value="${escapeHtml(source)}">${escapeHtml(source)}</option>`).join('')}
           </select>
           <select id="log-day" aria-label="${t('logs.day')}">
             <option value="">${t('logs.tail', { count: 300 })}</option>
@@ -777,7 +796,7 @@ export async function logsPage(view, { api }) {
     const { days } = await api.logDays(sourceSelect.value).catch(() => ({ days: [] }));
     const current = daySelect.value;
     daySelect.innerHTML = `<option value="">${t('logs.tail', { count: 300 })}</option>`
-      + days.slice().reverse().map((day) => `<option value="${day}">${day}</option>`).join('');
+      + days.slice().reverse().map((day) => `<option value="${escapeHtml(day)}">${escapeHtml(day)}</option>`).join('');
     if (days.includes(current)) daySelect.value = current;
   }
 
