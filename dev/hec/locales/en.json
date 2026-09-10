@@ -225,6 +225,7 @@
     "personal_intro": "Panel appearance and behaviour",
     "technical_title": "Technical configuration",
     "technical_intro": "Device connections, polling, storage and control. Change only when administering the system.",
+    "goodwe_sdg": "Promotic SDG",
     "tng_boiler": "Hot water",
     "tng_heating": "Heating",
     "tng_thermostat": "Thermostat",
@@ -263,7 +264,10 @@
         "timeout": "Timeout (s)",
         "retries": "Retries",
         "grid_positive_is_import": "Positive value = grid import",
-        "battery_positive_is_charge": "Positive value = battery charging"
+        "battery_positive_is_charge": "Positive value = battery charging",
+        "sdg": {
+          "log_root_path": "Promotic SDG path"
+        }
       },
       "tng": {
         "enabled": "Enabled",
@@ -379,7 +383,10 @@
         "timeout": "How long to wait for the inverter to respond before giving up.",
         "retries": "How many times to retry a failed read before reporting an error.",
         "grid_positive_is_import": "The sign convention for grid flow differs by installation - this sets how it's interpreted.",
-        "battery_positive_is_charge": "The sign convention for battery flow differs by installation - this sets how it's interpreted."
+        "battery_positive_is_charge": "The sign convention for battery flow differs by installation - this sets how it's interpreted.",
+        "sdg": {
+          "log_root_path": "UNC path to the Promotic SDG folder used for diagnostics/import."
+        }
       },
       "tng": {
         "enabled": "Read the TNG heat pump's status.",
