@@ -1,7 +1,7 @@
 {
   "step": 18,
   "classification": "LARGE",
-  "status": "PLANNED",
+  "status": "IN_PROGRESS",
   "gate_a": {
     "status": "APPROVED",
     "approved_by": "repository owner / user",
@@ -25,7 +25,7 @@
   "source": "2026-09-12 request: prepare first step for read-only SDG Log Reader",
   "branch": "SDG-log-reader",
   "pr": null,
-  "notes": "Read-only SDG log reader with unchanged FTE/GoodWe fallback. UNC root is readable; DBF schema still requires sanitized discovery before implementation.",
+  "notes": "Read-only SDG log reader implemented with unchanged FTE/GoodWe fallback. Production DBF field schema and incremental checkpoint behavior remain open for review.",
   "requirements": [
     "REQ-018-001",
     "REQ-018-002",

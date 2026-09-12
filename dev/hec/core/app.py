@@ -67,10 +67,32 @@ class Application:
     def accept(self, sample: Sample, reader=None) -> None:
         if not sample.ok:
             return
+        if sample.source in {"goodwe", "sdg"}:
+            sample = self._select_goodwe_source(sample)
+            if sample is None:
+                return
         with self._lock:
             self.snapshot[sample.source] = sample.to_dict()
         if self.controller is not None:
             self.controller.on_sample(sample)
+
+    def _select_goodwe_source(self, sample: Sample) -> Sample | None:
+        """Keep one GoodWe snapshot while preferring fresh SDG telemetry."""
+        current = self.snapshot.get("goodwe")
+        current_stamp = parse_iso(current.get("timestamp")) if current else None
+        if sample.source == "sdg":
+            values = dict(sample.values)
+            values["telemetry_source"] = "sdg"
+            return Sample(source="goodwe", values=values, timestamp=sample.timestamp)
+
+        sdg_freshness = int(self.config.get("goodwe.sdg.freshness_seconds", 180))
+        if current and current.get("telemetry_source") == "sdg" and current_stamp:
+            age = (now_local() - current_stamp).total_seconds()
+            if age <= sdg_freshness and sample.timestamp <= current_stamp:
+                return None
+        values = dict(sample.values)
+        values["telemetry_source"] = "fte_backup" if self.config.get("goodwe.sdg.enabled", False) else "fte"
+        return Sample(source="goodwe", values=values, timestamp=sample.timestamp)
 
     def current(self) -> dict[str, Any]:
         with self._lock:

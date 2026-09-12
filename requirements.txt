@@ -11,3 +11,6 @@ beautifulsoup4>=4.12.0
 # Volitelné: import měsíčního vyúčtování sdílení (dev/step09). Potřeba jen
 # když je sharing.enabled zapnuté.
 # openpyxl>=3.1.0
+
+# Optional: read-only SDG DBF log import.
+dbfread>=2.0.7

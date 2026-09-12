@@ -13,7 +13,7 @@ def test_defaults_cover_every_section():
     assert data["polling"]["goodwe_seconds"] == 10
     assert data["tng"]["minimum_change_interval_seconds"] == 900
     assert data["ui"]["languages"] == ["cs", "en"]
-    assert data["goodwe"]["sdg"]["log_root_path"] == "\\\\192.168.2.115\\Promotic"
+    assert data["goodwe"]["sdg"]["log_root_path"] == "\\\\192.168.2.115\\Promotic\\Apps\\SDGeco\\Data"
 
 
 def test_sharing_forecast_economics_are_safe_by_default():

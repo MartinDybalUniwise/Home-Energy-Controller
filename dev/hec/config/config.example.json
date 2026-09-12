@@ -22,6 +22,7 @@
   },
   "polling": {
     "goodwe_seconds": 10,
+    "sdg_seconds": 30,
     "tng_seconds": 300,
     "shelly_seconds": 10,
     "weather_minutes": 15,
@@ -38,7 +39,15 @@
     "grid_positive_is_import": true,
     "battery_positive_is_charge": true,
     "sdg": {
-      "log_root_path": "\\\\192.168.2.115\\Promotic"
+      "enabled": false,
+      "log_root_path": "\\\\192.168.2.115\\Promotic\\Apps\\SDGeco\\Data",
+      "freshness_seconds": 180,
+      "directories": [
+        "trend/min",
+        "trend/solar",
+        "Event2",
+        "Alarm"
+      ]
     }
   },
   "tng": {

@@ -2,9 +2,9 @@
 
 ## Status
 
-Step18 is `PLANNED` with Gate A `PENDING`. This document records the planning
-outcome only; it does not claim implementation, runtime validation, or hardware
-verification.
+Step18 is `IN_PROGRESS` with Gate A `APPROVED`. The read-only implementation
+and automated validation are complete for the current scope; review remains
+open for production DBF schema coverage and incremental import hardening.
 
 ## Planning-only outcome
 
@@ -15,8 +15,33 @@ verification.
   `trend\solar`, `Event2`, and `Alarm`, with DBF files present.
 - Existing FTE/GoodWe reading remains the planned backup path and is explicitly
   outside the planned edit set.
-- No application code, root prototype, runtime configuration, or physical
-  device write behavior has changed.
+- No root prototype or physical-device write behavior has changed.
+
+## Implementation outcome
+
+- Added `SdgLogReader` with read-only DBF access, explicit field aliases,
+  timestamp preservation, freshness checks, and source provenance.
+- Registered SDG as a disabled-by-default reader.
+- Added SDG/FTE source arbitration while preserving the public `goodwe`
+  snapshot and leaving `dev/hec/readers/goodwe.py` unchanged.
+- Added safe schema/example/preview configuration for the verified SDG root.
+- Added sanitized unit coverage for normalization, newest-record selection,
+  SDG priority, and FTE fallback.
+
+## Validation evidence
+
+- Ruff: PASS (`python -m ruff check .`).
+- Unit tests: PASS (`264 passed, 5 deselected`).
+- Full SDD validation: PASS before final metadata-only updates, including safe
+  preview, repository hygiene, and mock Playwright.
+
+## Open review items
+
+- Confirm actual DBF field names and timestamp semantics against sanitized
+  production samples.
+- Add durable incremental checkpoints and deterministic deduplication before
+  marking the step DONE.
+- Repeat full validation after reviewer-approved mapping/checkpoint changes.
 
 ## Open before implementation
 

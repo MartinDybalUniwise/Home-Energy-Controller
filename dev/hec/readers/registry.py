@@ -11,6 +11,7 @@ from .base import BaseReader
 from .finance_document_reader import FinanceDocumentReader
 from .goodwe import GoodWeReader
 from .ote import OteReader
+from .sdg_log import SdgLogReader
 from .sharing_reader import SharingReader
 from .shelly import ShellyReader
 from .tng import TngReader
@@ -24,6 +25,7 @@ READER_CLASSES: dict[str, type[BaseReader]] = {
     "shelly": ShellyReader,
     "sharing": SharingReader,
     "finance": FinanceDocumentReader,
+    "sdg": SdgLogReader,
 }
 
 
