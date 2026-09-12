@@ -181,16 +181,12 @@ export function renderToday(view, { current, weather, prices, prediction }) {
             <span class="detail-label">${t('advisor.wind_speed')}</span>
             <span class="detail-val">${windSpeed} km/h</span>
           </div>
-          <div class="weather-badge-fve">
-            <span class="badge-icon">✓</span>
-            <span>${t('advisor.solar_badge_great')}</span>
-          </div>
         </div>
       </div>
     </header>
 
-    <!-- 2. HERO DOPORUČENÍ: Dominantní okno + 3 stavové karty -->
-    <section class="today-hero-grid" aria-labelledby="hero-rec-title">
+    <!-- 2. KOMPAKTNÍ DOPORUČENÍ DNE -->
+    <section class="today-recommendation-panel" aria-labelledby="hero-rec-title">
       <div class="hero-primary-card">
         <div class="hero-card-kicker">${t('advisor.best_action')}</div>
         <h3 id="hero-rec-title" class="hero-card-heading">${t('advisor.best_time_consumption')}</h3>
@@ -201,33 +197,16 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         </div>
       </div>
 
-      <div class="hero-status-cards">
-        <article class="status-card status-card--now">
-          <div class="status-card-header">
-            <span class="status-indicator-icon status-indicator-icon--good">😊</span>
-            <span class="status-card-label">${t('advisor.now_is')}</span>
-          </div>
-          <h4 class="status-card-val">${t('advisor.good_time')}</h4>
-          <p class="status-card-desc">${t('advisor.can_turn_on_appliances')}</p>
-        </article>
-
-        <article class="status-card status-card--avoid">
-          <div class="status-card-header">
-            <span class="status-indicator-icon status-indicator-icon--avoid">⊘</span>
-            <span class="status-card-label">${t('advisor.avoid_label')}</span>
-          </div>
-          <h4 class="status-card-val">${advice.avoid}</h4>
-          <p class="status-card-desc">${t('advisor.high_price_low_pv')}</p>
-        </article>
-
-        <article class="status-card status-card--expected">
-          <div class="status-card-header">
-            <span class="status-indicator-icon status-indicator-icon--solar">📊</span>
-            <span class="status-card-label">${t('advisor.expected_label')}</span>
-          </div>
-          <h4 class="status-card-val">${t('advisor.high_production')}</h4>
-          <p class="status-card-desc">${t('advisor.max_production_window')}</p>
-        </article>
+      <div class="recommendation-statuses">
+        <div class="recommendation-status recommendation-status--now">
+          <span>${t('advisor.now_is')}</span><strong>● ${t('advisor.good_time')}</strong>
+        </div>
+        <div class="recommendation-status recommendation-status--avoid">
+          <span>${t('advisor.avoid_label')}</span><strong>⚠ ${advice.avoid}</strong>
+        </div>
+        <div class="recommendation-status recommendation-status--solar">
+          <span>${t('advisor.expected_label')}</span><strong>☀ ${t('advisor.daily_pv_max_time', { time: '13:00' })}</strong>
+        </div>
       </div>
     </section>
 
@@ -293,6 +272,11 @@ export function renderToday(view, { current, weather, prices, prediction }) {
       <div class="rhythm-left-panel">
         <header class="rhythm-header">
           <h3 id="rhythm-title" class="rhythm-heading">${t('advisor.timeline_title')}</h3>
+          <div class="rhythm-production-summary">
+            <span>${t('advisor.daily_pv_estimate_title')}</span>
+            <strong>52 – 108 kWh</strong>
+            <small>${t('advisor.daily_pv_max_time', { time: '13:00' })}</small>
+          </div>
           <div class="rhythm-legend-tags">
             <span class="legend-tag legend-tag--best">● ${t('advisor.best')}</span>
             <span class="legend-tag legend-tag--ok">● ${t('advisor.ok')}</span>
@@ -338,15 +322,9 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         </div>
       </div>
 
-      <div class="rhythm-pv-estimate-card">
-        <div class="estimate-kicker">${t('advisor.daily_pv_estimate_title')}</div>
-        <div class="estimate-val">52 – 108 <span class="estimate-unit">kWh</span></div>
-        <p class="estimate-peak">${t('advisor.daily_pv_max_time', { time: '13:00' })}</p>
-        <button type="button" class="btn btn--outline btn--touch estimate-remind-btn">🔔 ${t('advisor.remind_at', { time: '12:00' })}</button>
-      </div>
     </section>
 
-    <!-- 5. SPODNÍ PRACOVNÍ PLOCHA (3 panely) -->
+    <!-- 5. SPODNÍ PRACOVNÍ PLOCHA: spotřebiče + graf -->
     <section class="today-workspace-grid">
       <!-- Panel 1: Doporučení spotřebičů -->
       <article class="workspace-card appliances-card">
@@ -401,52 +379,10 @@ export function renderToday(view, { current, weather, prices, prediction }) {
 
         <footer class="appliances-footer">
           <span class="savings-text">${t('advisor.estimated_savings_today', { value: '18,4 Kč' })}</span>
-          <button type="button" class="btn btn--secondary btn--sm">${t('advisor.plan_all_btn')}</button>
         </footer>
       </article>
 
-      <!-- Panel 2: Nejbližší vhodné okno (Donut Gauge) -->
-      <article class="workspace-card next-window-card">
-        <header class="workspace-card-header">
-          <h4>${t('advisor.next_window')}</h4>
-        </header>
-        <div class="next-window-donut-area">
-          <div class="donut-container">
-            <svg class="donut-svg" viewBox="0 0 160 160">
-              <circle cx="80" cy="80" r="70" class="donut-bg"/>
-              <circle cx="80" cy="80" r="70" class="donut-fg" stroke-dasharray="440" stroke-dashoffset="120"/>
-            </svg>
-            <div class="donut-center-text">
-              <span class="donut-countdown-sub">${t('advisor.starts_in', { duration: '3 h 55 m' })}</span>
-              <strong class="donut-window-time">11:30 – 14:30</strong>
-            </div>
-          </div>
-
-          <div class="window-badges-row">
-            <div class="w-badge">
-              <span class="w-badge-label">${t('advisor.low_price')}</span>
-              <strong class="w-badge-val">2,01 Kč/kWh</strong>
-            </div>
-            <div class="w-badge">
-              <span class="w-badge-label">${t('advisor.high_production_short')}</span>
-              <strong class="w-badge-val">~4,2 kW peak</strong>
-            </div>
-          </div>
-
-          <div class="window-stats-line">
-            <span>${t('advisor.window_duration', { duration: '3 h 00 m' })}</span>
-            <span>${t('advisor.expected_benefit', { benefit: '2,1 kWh / ~5,1 Kč' })}</span>
-          </div>
-
-          <div class="other-windows-row">
-            <span class="other-label">${t('advisor.next_windows')}:</span>
-            <span class="window-pill">16:20 – 17:40 <em class="ok">Možné</em></span>
-            <span class="window-pill">09:10 – 10:20 <em class="good">OK</em></span>
-          </div>
-        </div>
-      </article>
-
-      <!-- Panel 3: Vývoj v dalších hodinách (Graf) -->
+      <!-- Panel 2: Vývoj v dalších hodinách (Graf) -->
       <article class="workspace-card forecast-chart-card">
         <header class="workspace-card-header forecast-chart-header">
           <h4>${t('advisor.outlook_title')}</h4>
@@ -508,19 +444,6 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         </div>
       </article>
     </section>
-
-    <!-- 6. SPODNÍ AKČNÍ LIŠTA -->
-    <footer class="today-bottom-action-bar">
-      <div class="bottom-tip-box">
-        <span class="tip-icon" aria-hidden="true">🌱</span>
-        <div class="tip-text">${t('advisor.tip_of_day')}</div>
-      </div>
-      <div class="bottom-actions">
-        <span class="bottom-savings-text">${t('advisor.estimated_savings_today', { value: '18,4 Kč' })}</span>
-        <button type="button" class="btn btn--outline btn--touch">${t('advisor.savings_simulation_btn')} &gt;</button>
-        <a href="#/prediction" class="btn btn--primary btn--touch">${t('advisor.view_detailed_forecast')} →</a>
-      </div>
-    </footer>
   </div>`;
 
   const btnWhyNow = view.querySelector('#btn-why-now');

@@ -1,12 +1,12 @@
 {
   "step": 19,
   "classification": "LARGE",
-  "status": "PLANNED",
+  "status": "IN_PROGRESS",
   "gate_a": {
-    "status": "PENDING",
-    "approved_by": null,
-    "approved_at": null,
-    "reason": "Awaiting explicit approval of the Step 19 no-scroll Today cockpit planning package."
+    "status": "APPROVED",
+    "approved_by": "repository owner / maintainer",
+    "approved_at": "2026-09-12T18:15:00+02:00",
+    "reason": "Explicit human approval granted in chat for Step 19 implementation."
   },
   "gate_b": {
     "status": "NOT_REQUESTED",
@@ -18,12 +18,12 @@
     "approved_by": null,
     "approved_at": null
   },
-  "readiness": "NO",
+  "readiness": "YES",
   "requested_by": "repository owner / maintainer",
   "source": "No-scroll Home / Today cockpit redesign request dated 2026-09-12",
   "branch": null,
   "pr": null,
-  "notes": "Planning only. Frontend implementation is blocked until Gate A approval.",
+  "notes": "Gate A approved. Frontend implementation is in progress; Gate B remains pending.",
   "requirements": [
     "REQ-019-001", "REQ-019-002", "REQ-019-003", "REQ-019-004",
     "REQ-019-005", "REQ-019-006", "REQ-019-007", "REQ-019-008",

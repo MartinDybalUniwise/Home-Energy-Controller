@@ -10,13 +10,13 @@ behavior, remove repetition, and keep Daily Energy Rhythm dominant.
 
 | Step | Purpose | Status |
 |---|---|---|
-| S01 | Establish browser geometry baseline and regression assertions | PLANNED |
-| S02 | Compact the shared desktop sidebar without breaking navigation | PLANNED |
-| S03 | Consolidate the header and recommendation hierarchy | PLANNED |
-| S04 | Compact the KPI strip and expand Daily Energy Rhythm | PLANNED |
-| S05 | Replace the three-panel workspace with appliances plus chart | PLANNED |
-| S06 | Complete responsive, i18n, fallback, and accessibility checks | PLANNED |
-| S07 | Run validation and prepare human 1920x1080 acceptance preview | PLANNED |
+| S01 | Establish browser geometry baseline and regression assertions | DONE |
+| S02 | Compact the shared desktop sidebar without breaking navigation | DONE |
+| S03 | Consolidate the header and recommendation hierarchy | DONE |
+| S04 | Compact the KPI strip and expand Daily Energy Rhythm | DONE |
+| S05 | Replace the three-panel workspace with appliances plus chart | DONE |
+| S06 | Complete responsive, i18n, fallback, and accessibility checks | DONE |
+| S07 | Run validation and prepare human 1920x1080 acceptance preview | BLOCKED |
 
 ## Detailed strategy
 

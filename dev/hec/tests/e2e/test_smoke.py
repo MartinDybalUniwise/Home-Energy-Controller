@@ -91,12 +91,69 @@ def test_today_screen_touchscreen_redesign(page: Page, viewport: tuple[int, int]
     page.set_viewport_size({"width": viewport[0], "height": viewport[1]})
     page.goto("/")
     expect(page.locator(".today-screen")).to_be_visible()
-    expect(page.locator(".hero-primary-card")).to_be_visible()
+    expect(page.locator(".today-recommendation-panel")).to_be_visible()
     expect(page.locator(".today-kpi-strip")).to_be_visible()
     expect(page.locator(".rhythm-section")).to_be_visible()
     expect(page.locator(".today-workspace-grid")).to_be_visible()
-    expect(page.locator(".today-bottom-action-bar")).to_be_visible()
+    expect(page.locator(".recommendation-status")).to_have_count(3)
+    expect(page.locator(".next-window-card")).to_have_count(0)
+    expect(page.locator(".today-bottom-action-bar")).to_have_count(0)
     expect(page.locator(".notice.error")).to_have_count(0)
+
+
+def test_today_cockpit_fits_full_hd_without_page_scroll(page: Page):
+        from playwright.sync_api import expect
+
+        page.set_viewport_size({"width": 1920, "height": 1080})
+        page.goto("/")
+        expect(page.locator(".today-screen")).to_be_visible()
+
+        geometry = page.evaluate("""() => {
+            const root = document.documentElement;
+            const box = (selector) => document.querySelector(selector).getBoundingClientRect();
+            const selectors = [
+                '.today-header',
+                '.today-recommendation-panel',
+                '.today-kpi-strip',
+                '.rhythm-section',
+                '.today-workspace-grid',
+                '.appliances-card',
+                '.forecast-chart-card',
+            ];
+            const sidebar = box('#sidebar');
+            const cockpit = box('.today-screen');
+            const sections = selectors.slice(0, 5).map(box);
+            return {
+                viewportHeight: window.innerHeight,
+                pageHeight: root.scrollHeight,
+                pageWidth: root.scrollWidth,
+                viewportWidth: window.innerWidth,
+                cockpitBottom: cockpit.bottom,
+                sidebarWidth: sidebar.width,
+                headerHeight: box('.today-header').height,
+                recommendationHeight: box('.today-recommendation-panel').height,
+                kpiHeight: box('.today-kpi-strip').height,
+                rhythmHeight: box('.rhythm-section').height,
+                workspaceHeight: box('.today-workspace-grid').height,
+                clipped: selectors.filter((selector) => {
+                    const element = document.querySelector(selector);
+                    return element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1;
+                }),
+                overlap: sections.some((section, index) => index > 0 && section.top < sections[index - 1].bottom),
+            };
+        }""")
+
+        assert 190 <= geometry["sidebarWidth"] <= 210
+        assert geometry["pageHeight"] <= geometry["viewportHeight"]
+        assert geometry["pageWidth"] <= geometry["viewportWidth"]
+        assert geometry["cockpitBottom"] <= geometry["viewportHeight"]
+        assert 100 <= geometry["headerHeight"] <= 120
+        assert 90 <= geometry["recommendationHeight"] <= 110
+        assert 90 <= geometry["kpiHeight"] <= 105
+        assert 260 <= geometry["rhythmHeight"] <= 290
+        assert 300 <= geometry["workspaceHeight"] <= 330
+        assert geometry["clipped"] == []
+        assert geometry["overlap"] is False
 
 
 def test_why_now_dialog_modal(page: Page):
