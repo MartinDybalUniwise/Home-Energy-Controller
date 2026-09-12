@@ -32,25 +32,33 @@ two-panel appliances/chart workspace.
 - `python -m pytest -m "not e2e"`: PASS (`260 passed, 17 deselected`).
 - `python -m pytest dev/hec/tests/e2e -o addopts= -m e2e`: PASS
 	(`17 passed`).
-- `python dev/sdd/tools/full_validation.py`: PARTIAL. Ruff, pytest, and eight
-	Step validations passed; repository hygiene then failed because tracked file
-	`dev/sdd/config/preview.mock.backup-20260912-171713.json` is already missing
-	from the working tree. That deletion is outside Step 19 and was not reverted.
+- `python dev/sdd/tools/full_validation.py`: PASS. Ruff, pytest, eight Step
+	validations, repository hygiene, runtime smoke, and 23 Playwright scenarios
+	all passed (`SDD VALIDATION PASSED`).
 
 ## Open gates and limitations
 
-- AC-019-012 remains open until Full Validation can run past repository hygiene.
 - Human review FAILED: the rendered page still scrolls and removed cards leave
 	unused right-side grid columns at the tested browser width.
 - The later instruction to remove the recommendation band was revoked; the
 	implemented compact horizontal band remains part of the approved design.
-- AC-019-014, AC-019-015, and Gate B remain open pending responsive grid fixes
-	and another human visual/touch review.
+- AC-019-014 and Gate B remain open pending another human visual/touch review.
+
+## Responsive revision
+
+- The recommendation band remains intact.
+- Daily Energy Rhythm and the appliances/chart workspace now consume the full
+	available width from 1024 px upward.
+- The compact no-scroll cockpit now applies at 1440x900 and 1280x800 using
+	bounded viewport-relative row heights.
+- Playwright verifies no page scroll, clipping, overlap, or empty grid tracks at
+	1920x1080, 1440x900, 1280x800, and 1024x768.
+- Latest focused results: Ruff PASS, non-E2E pytest `260 passed, 23 deselected`,
+	Playwright `23 passed`.
 
 ## Deviations
 
-No scope deviation. Full Validation is blocked by a pre-existing tracked-file
-deletion unrelated to Step 19.
+No scope deviation. The compact recommendation band remains preserved.
 
 ## Safety status
 

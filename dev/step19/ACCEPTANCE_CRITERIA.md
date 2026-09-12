@@ -30,14 +30,14 @@ checks do not replace the human 1920x1080 review.
   use existing fallbacks, and no fake business logic is added.
 - [x] AC-019-011: Non-Today routes and shared sidebar behavior pass smoke checks
   across 1920x1080, 1440x900, 1280x800, 1024x768, and 390x844.
-- [ ] AC-019-012: Ruff, non-E2E pytest, Playwright, Step validation, hygiene, and
+- [x] AC-019-012: Ruff, non-E2E pytest, Playwright, Step validation, hygiene, and
   full validation pass with exact commands/results recorded.
 - [x] AC-019-013: Safety settings remain disabled, no physical write occurs, and
   no backend/API/storage/controller contract changes are present.
 - [ ] AC-019-014: A human confirms at 1920x1080 that there is no scroll,
   clipping, overlap, repetition, unreadable text, undersized touch control, or
   loss of Daily Energy Rhythm hierarchy.
-- [ ] AC-019-015: At 1920, 1440, 1280, and 1024 px widths, removed panels leave
+- [x] AC-019-015: At 1920, 1440, 1280, and 1024 px widths, removed panels leave
   no empty grid column; rhythm and the two-panel lower workspace consume the
   available content width.
 

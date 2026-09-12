@@ -139,6 +139,25 @@ def test_today_cockpit_fits_full_hd_without_page_scroll(page: Page):
                     const element = document.querySelector(selector);
                     return element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1;
                 }),
+                clipDetails: selectors.map((selector) => {
+                    const element = document.querySelector(selector);
+                    return {
+                        selector,
+                        clientWidth: element.clientWidth,
+                        scrollWidth: element.scrollWidth,
+                        clientHeight: element.clientHeight,
+                        scrollHeight: element.scrollHeight,
+                    };
+                }),
+                recommendationDimensions: (() => {
+                    const element = document.querySelector('.today-recommendation-panel');
+                    return {
+                        clientWidth: element.clientWidth,
+                        scrollWidth: element.scrollWidth,
+                        clientHeight: element.clientHeight,
+                        scrollHeight: element.scrollHeight,
+                    };
+                })(),
                 overlap: sections.some((section, index) => index > 0 && section.top < sections[index - 1].bottom),
             };
         }""")
@@ -152,7 +171,91 @@ def test_today_cockpit_fits_full_hd_without_page_scroll(page: Page):
         assert 90 <= geometry["kpiHeight"] <= 105
         assert 260 <= geometry["rhythmHeight"] <= 290
         assert 300 <= geometry["workspaceHeight"] <= 330
-        assert geometry["clipped"] == []
+        assert geometry["clipped"] == [], geometry["recommendationDimensions"]
+        assert geometry["overlap"] is False
+
+
+@pytest.mark.parametrize("viewport", [(1920, 1080), (1440, 900), (1280, 800), (1024, 768)])
+def test_today_desktop_panels_use_full_content_width(page: Page, viewport: tuple[int, int]):
+        from playwright.sync_api import expect
+
+        page.set_viewport_size({"width": viewport[0], "height": viewport[1]})
+        page.goto("/")
+        expect(page.locator(".today-recommendation-panel")).to_be_visible()
+
+        widths = page.evaluate("""() => {
+            const box = (selector) => document.querySelector(selector).getBoundingClientRect();
+            const cockpit = box('.today-screen');
+            const rhythm = box('.rhythm-section');
+            const workspace = box('.today-workspace-grid');
+            const appliances = box('.appliances-card');
+            const chart = box('.forecast-chart-card');
+            return {
+                cockpit: cockpit.width,
+                rhythm: rhythm.width,
+                workspace: workspace.width,
+                lowerUsed: appliances.width + chart.width + Math.max(0, chart.left - appliances.right),
+            };
+        }""")
+
+        assert abs(widths["rhythm"] - widths["cockpit"]) <= 1
+        assert abs(widths["workspace"] - widths["cockpit"]) <= 1
+        assert abs(widths["lowerUsed"] - widths["workspace"]) <= 1
+
+
+@pytest.mark.parametrize("viewport", [(1440, 900), (1280, 800)])
+def test_today_cockpit_fits_scaled_desktop_display(page: Page, viewport: tuple[int, int]):
+        from playwright.sync_api import expect
+
+        page.set_viewport_size({"width": viewport[0], "height": viewport[1]})
+        page.goto("/")
+        expect(page.locator(".today-recommendation-panel")).to_be_visible()
+
+        geometry = page.evaluate("""() => {
+            const selectors = [
+                '.today-header',
+                '.today-recommendation-panel',
+                '.today-kpi-strip',
+                '.rhythm-section',
+                '.today-workspace-grid',
+                '.appliances-card',
+                '.forecast-chart-card',
+            ];
+            const sections = selectors.slice(0, 5).map((selector) => document.querySelector(selector).getBoundingClientRect());
+            return {
+                viewportHeight: window.innerHeight,
+                pageHeight: document.documentElement.scrollHeight,
+                cockpitBottom: document.querySelector('.today-screen').getBoundingClientRect().bottom,
+                clipped: selectors.filter((selector) => {
+                    const element = document.querySelector(selector);
+                    return element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1;
+                }),
+                clipDetails: selectors.map((selector) => {
+                    const element = document.querySelector(selector);
+                    return {
+                        selector,
+                        clientWidth: element.clientWidth,
+                        scrollWidth: element.scrollWidth,
+                        clientHeight: element.clientHeight,
+                        scrollHeight: element.scrollHeight,
+                    };
+                }),
+                recommendationDimensions: (() => {
+                    const element = document.querySelector('.today-recommendation-panel');
+                    return {
+                        clientWidth: element.clientWidth,
+                        scrollWidth: element.scrollWidth,
+                        clientHeight: element.clientHeight,
+                        scrollHeight: element.scrollHeight,
+                    };
+                })(),
+                overlap: sections.some((section, index) => index > 0 && section.top < sections[index - 1].bottom),
+            };
+        }""")
+
+        assert geometry["pageHeight"] <= geometry["viewportHeight"]
+        assert geometry["cockpitBottom"] <= geometry["viewportHeight"]
+        assert geometry["clipped"] == [], geometry["recommendationDimensions"]
         assert geometry["overlap"] is False
 
 

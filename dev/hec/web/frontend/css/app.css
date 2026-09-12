@@ -1195,3 +1195,60 @@ dialog button { min-height: 48px; color: #06243b; border-radius: 8px; background
   .appliances-footer { margin-top: 4px; padding-top: 6px; }
   .multi-curve-container { min-height: 0; }
 }
+
+@media (min-width: 1024px) {
+  .rhythm-section { grid-template-columns: minmax(0, 1fr); }
+  .today-workspace-grid { grid-template-columns: minmax(320px, 38%) minmax(0, 62%); }
+  .forecast-chart-card { grid-column: auto; }
+}
+
+@media (min-width: 1024px) and (max-width: 1499px) and (min-height: 780px) {
+  .today-screen {
+    display: grid;
+    grid-template-rows:
+      clamp(80px, 10vh, 96px)
+      clamp(103px, 12vh, 108px)
+      clamp(72px, 9vh, 84px)
+      clamp(205px, 27vh, 245px)
+      minmax(260px, 1fr);
+    gap: 8px;
+    min-height: calc(100vh - 28px);
+    max-height: calc(100vh - 28px);
+  }
+  .today-header { min-height: 0; padding: 9px 14px; }
+  .greeting-box { justify-content: center; gap: 1px; }
+  .greeting-title h2 { font-size: var(--text-xl); }
+  .greeting-sub { margin-top: 0; }
+  .weather-station-widget { padding: 6px 11px; }
+  .today-recommendation-panel .hero-primary-card { padding: 8px 12px; }
+  .today-recommendation-panel .hero-main-window { font-size: var(--text-2xl); }
+  .recommendation-status { gap: 4px; padding: 8px 11px; }
+  .today-kpi-strip { min-height: 0; gap: 7px; }
+  .kpi-card { min-width: 0; padding: 6px 8px; gap: 7px; }
+  .kpi-icon-wrap { width: 32px; height: 32px; }
+  .kpi-value { font-size: var(--text-lg); }
+  .rhythm-section { min-height: 0; padding: 10px 14px; }
+  .rhythm-left-panel { min-height: 0; gap: 5px; }
+  .rhythm-header { min-height: 26px; gap: 10px; }
+  .rhythm-slots-grid { gap: 5px; margin-top: 0; }
+  .rhythm-slot { min-height: 0; padding: 5px 3px; }
+  .today-workspace-grid { min-height: 0; gap: 8px; }
+  .workspace-card { min-height: 0; height: 100%; padding: 10px 12px; }
+  .workspace-card-header { margin-bottom: 5px; }
+  .appliances-list { gap: 3px; }
+  .appliance-row { min-height: 48px; padding: 4px 7px; }
+  .appliances-footer { margin-top: 3px; padding-top: 5px; }
+  .multi-curve-container { min-height: 0; }
+}
+
+@media (min-width: 1024px) and (max-width: 1300px) and (min-height: 780px) {
+  .today-recommendation-panel { grid-template-columns: minmax(300px, 1fr) minmax(0, 2fr); }
+  .today-recommendation-panel .hero-primary-card { padding: 5px 9px; column-gap: 8px; }
+  .today-recommendation-panel .hero-card-heading { font-size: var(--text-sm); }
+  .today-recommendation-panel .hero-main-window { font-size: var(--text-xl); }
+  .today-recommendation-panel #btn-why-now { min-height: 44px; padding: 6px 9px; font-size: var(--text-sm); }
+  .recommendation-status { gap: 2px; padding: 6px 8px; }
+  .recommendation-status strong { font-size: var(--text-sm); }
+  .appliance-row { min-height: 44px; padding-block: 2px; }
+  .appliances-footer { border-top: 0; }
+}

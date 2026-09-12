@@ -15,8 +15,8 @@ behavior, remove repetition, and keep Daily Energy Rhythm dominant.
 | S03 | Consolidate the recommendation hierarchy into one horizontal band | DONE |
 | S04 | Compact the KPI strip and expand Daily Energy Rhythm | DONE |
 | S05 | Replace the three-panel workspace with appliances plus chart | DONE |
-| S06 | Complete responsive, i18n, fallback, accessibility, and empty-track checks | PLANNED |
-| S07 | Run validation and prepare human 1920x1080 acceptance preview | BLOCKED |
+| S06 | Complete responsive, i18n, fallback, accessibility, and empty-track checks | DONE |
+| S07 | Run validation and prepare human 1920x1080 acceptance preview | DONE |
 
 ## Detailed strategy
 
