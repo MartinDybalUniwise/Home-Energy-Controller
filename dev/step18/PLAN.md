@@ -15,13 +15,13 @@ provide trustworthy data.
 
 | Step | Purpose | Status |
 |---|---|---|
-| S01 | Confirm SDG file schema, timestamps, and read-only access contract | PLANNED |
-| S02 | Define normalized SDG record and provenance contract | PLANNED |
-| S03 | Define incremental scan, checkpoint, and deduplication behavior | PLANNED |
-| S04 | Define SDG/FTE source priority and fail-closed fallback | PLANNED |
-| S05 | Define configuration, diagnostics, and logging boundaries | PLANNED |
-| S06 | Define focused tests and safe validation evidence | PLANNED |
-| S07 | Gate A handoff before application code changes | PLANNED |
+| S01 | Confirm SDG file schema, timestamps, and read-only access contract | DONE |
+| S02 | Define normalized SDG record and provenance contract | DONE |
+| S03 | Define incremental scan, checkpoint, and deduplication behavior | DONE |
+| S04 | Define SDG/FTE source priority and fail-closed fallback | DONE |
+| S05 | Define configuration, diagnostics, and logging boundaries | DONE |
+| S06 | Define focused tests and safe validation evidence | DONE |
+| S07 | Gate A handoff before application code changes | DONE |
 
 ## Detailed implementation strategy
 

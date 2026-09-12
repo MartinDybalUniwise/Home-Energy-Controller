@@ -161,6 +161,265 @@
 			"type": "shell",
 			"command": "git add .vscode/tasks.json; git commit -m 'Update VS Code task definitions'",
 			"isBackground": false
+		},
+		{
+			"label": "Validate SDG prod share",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$root='S:\\Apps\\SDGeco\\Data'; Write-Output \"ROOT_EXISTS=$([bool](Test-Path $root))\"; if (Test-Path $root) { Write-Output \"TOP_LEVEL=\"; Get-ChildItem $root -Force | Select-Object Name,Mode,Length | Format-Table -AutoSize; Write-Output \"DBF_SAMPLE=\"; Get-ChildItem $root -Recurse -File -Filter *.dbf -ErrorAction SilentlyContinue | Select-Object -First 12 FullName,Length,LastWriteTime | Format-Table -AutoSize }"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate SDG prod share",
+			"type": "shell",
+			"command": "pwsh",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$root = 'S:\\Apps\\SDGeco\\Data'; Write-Output \"ROOT_EXISTS=$([bool](Test-Path $root))\"; if (Test-Path $root) { Write-Output 'TOP_LEVEL='; Get-ChildItem $root -Force | Select-Object Name,Mode,Length | Format-Table -AutoSize; Write-Output 'DBF_SAMPLE='; Get-ChildItem $root -Recurse -File -Filter *.dbf -ErrorAction SilentlyContinue | Select-Object -First 12 FullName,Length,LastWriteTime | Format-Table -AutoSize }"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check SDG prod share",
+			"type": "shell",
+			"command": "pwsh",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$root = 'S:\\Apps\\SDGeco\\Data'; Write-Output \"ROOT_EXISTS=$([bool](Test-Path $root))\"; if (Test-Path $root) { Write-Output 'TOP_LEVEL'; Get-ChildItem $root -Force | Select-Object Name,Mode,Length | Format-Table -AutoSize; Write-Output 'DBF_SAMPLE'; Get-ChildItem $root -Recurse -File -Filter *.dbf -ErrorAction SilentlyContinue | Select-Object -First 12 FullName,Length,LastWriteTime | Format-Table -AutoSize }"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Probe SDG share via cmd",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"if exist \"S:\\Apps\\SDGeco\\Data\" (dir /b \"S:\\Apps\\SDGeco\\Data\" & echo EXISTS=1) else (echo EXISTS=0)"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Inspect SDG DBF metadata",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"python -c \"from pathlib import Path; import os; root = Path(r'S:\\Apps\\SDGeco\\Data'); files = sorted([p for p in root.rglob('*.dbf') if p.is_file()])[:12]; print(f'FILES={len(files)}'); [print(str(p)) for p in files]; print('---'); try: from dbfread import DBF; f = files[0]; table = DBF(str(f), load=False); print('FIELDNAMES=' + ','.join(table.field_names)); print('RECORD_COUNT=' + str(len(table.records))); except Exception as e: print('DBFREAD_ERROR=' + type(e).__name__ + ': ' + str(e))\""
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "List SDG DBF files",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"dir /s /b \"S:\\Apps\\SDGeco\\Data\\*.dbf\" | findstr /i \".dbf\" | head -n 20"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "List SDG DBF files simple",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"dir /s /b \"S:\\Apps\\SDGeco\\Data\\*.dbf\""
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Read SDG DBF fields",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"python -c \"from pathlib import Path; from dbfread import DBF; root=Path(r'S:\\Apps\\SDGeco\\Data'); files=sorted(root.rglob('*.dbf')); print('FILES', len(files)); first=files[0]; tbl=DBF(str(first), load=False); print('FIRST_FILE', str(first)); print('FIELDNAMES', tbl.field_names); rec=next(iter(tbl)); print('SAMPLE_KEYS', sorted(rec.keys())[:25]); print('SAMPLE', {k: rec[k] for k in list(rec.keys())[:10]})\""
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Read SDG DBF schema sample",
+			"type": "shell",
+			"command": "pwsh",
+			"args": [
+				"-NoLogo",
+				"-NoProfile",
+				"-Command",
+				"$path='S:\\Apps\\SDGeco\\Data\\trend\\min\\min2025-08-09_00-00-02.dbf'; python -c 'from dbfread import DBF; from pathlib import Path; p = Path(r\"S:\\Apps\\SDGeco\\Data\\trend\\min\\min2025-08-09_00-00-02.dbf\"); tbl = DBF(str(p), load=False); print(\"FIELDNAMES=\" + \",\".join(tbl.field_names)); rec = next(iter(tbl)); print(\"SAMPLE_KEYS=\" + \",\".join(sorted(rec.keys()))); print(\"SAMPLE=\" + str({k: rec[k] for k in list(rec.keys())[:12]}))'"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Sample SDG DBF field names",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"python -c \"from dbfread import DBF; from pathlib import Path; p = Path(r'S:\\Apps\\SDGeco\\Data\\trend\\min\\min2025-08-09_00-00-02.dbf'); tbl = DBF(str(p), load=False); print('FIELDNAMES=' + ','.join(tbl.field_names)); rec = next(iter(tbl)); print('FIRST_KEYS=' + ','.join(sorted(rec.keys()))); print('FIRST_RECORD=' + str({k: rec[k] for k in list(rec.keys())[:12]}))\""
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate SDG DBF record sample",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-c",
+				"from dbfread import DBF; from pathlib import Path; p = Path(r'S:\\Apps\\SDGeco\\Data\\trend\\min\\min2025-08-09_00-00-02.dbf'); tbl = DBF(str(p), load=False); print('FILE=' + str(p)); print('FIELDNAMES=' + ','.join(tbl.field_names)); rec = next(iter(tbl)); print('SAMPLE_KEYS=' + ','.join(sorted(rec.keys()))); print('SAMPLE=' + str({k: rec[k] for k in list(rec.keys())[:12]}))"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate actual SDG DBF schema",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-c",
+				"from dbfread import DBF; from pathlib import Path; p = Path(r'S:\\Apps\\SDGeco\\Data\\trend\\min\\min2025-08-09_00-00-02.dbf'); t = DBF(str(p), load=False); print('FIELDNAMES=' + ','.join(t.field_names)); r = next(iter(t)); print('SAMPLE=' + str({k: r[k] for k in list(r.keys())[:12]}))"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate SDG DBF schema from prod share",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-c",
+				"from dbfread import DBF; from pathlib import Path; root = Path('S:/Apps/SDGeco/Data'); print('ROOT_EXISTS=' + str(root.exists())); print('DIRS=' + ', '.join(sorted(p.name for p in root.iterdir() if p.is_dir())[:10])); sample = root / 'trend' / 'min' / 'min2025-08-09_00-00-02.dbf'; print('SAMPLE_FILE=' + str(sample)); table = DBF(str(sample), load=False); print('FIELDNAMES=' + ','.join(table.field_names)); rec = next(iter(table)); print('SAMPLE_KEYS=' + ','.join(sorted(rec.keys())[:12])); print('SAMPLE=' + str({k: rec[k] for k in list(rec.keys())[:10]}))"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Read SDG DBF sample via Python args",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-c",
+				"from dbfread import DBF; from pathlib import Path; p = Path('S:/Apps/SDGeco/Data/trend/min/min2025-08-09_00-00-02.dbf'); print('PATH=' + str(p)); tbl = DBF(str(p), load=False); print('FIELDNAMES=' + ','.join(tbl.field_names)); rec = next(iter(tbl)); print('KEYS=' + ','.join(sorted(rec.keys()))); print('SAMPLE=' + str({k: rec[k] for k in list(rec.keys())[:12]}))"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Inspect actual SDG DBF schema",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"python - <<PY\nfrom dbfread import DBF\nfrom pathlib import Path\np = Path(r'S:\\Apps\\SDGeco\\Data\\trend\\min\\min2025-08-09_00-00-02.dbf')\nprint('EXISTS=' + str(p.exists()))\nprint('FILE=' + str(p))\ntbl = DBF(str(p), load=False)\nprint('FIELDNAMES=' + ','.join(tbl.field_names))\nrec = next(iter(tbl))\nprint('KEYS=' + ','.join(sorted(rec.keys())))\nprint('SAMPLE=' + str({k: rec[k] for k in list(rec.keys())[:12]}))\nPY"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Probe SDG share fields",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"set TEMPFILE=%TEMP%\\sdg_probe.py & echo from dbfread import DBF> %TEMPFILE% & echo from pathlib import Path>> %TEMPFILE% & echo p = Path(r'S:\\Apps\\SDGeco\\Data\\trend\\min\\min2025-08-09_00-00-02.dbf')>> %TEMPFILE% & echo print('EXISTS=' + str(p.exists()))>> %TEMPFILE% & echo print('FILE=' + str(p))>> %TEMPFILE% & echo tbl = DBF(str(p), load=False)>> %TEMPFILE% & echo print('FIELDNAMES=' + ','.join(tbl.field_names))>> %TEMPFILE% & echo rec = next(iter(tbl))>> %TEMPFILE% & echo print('KEYS=' + ','.join(sorted(rec.keys())))>> %TEMPFILE% & echo print('SAMPLE=' + str({k: rec[k] for k in list(rec.keys())[:12]}))>> %TEMPFILE% & python %TEMPFILE%"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate SDG DBF sample against prod share",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"set TEMPFILE=%TEMP%\\sdg_probe.py & echo from dbfread import DBF> %TEMPFILE% & echo from pathlib import Path>> %TEMPFILE% & echo p = Path(\"S:\\Apps\\SDGeco\\Data\\trend\\min\\min2025-08-09_00-00-02.dbf\")>> %TEMPFILE% & echo print('ROOT_EXISTS=' + str(p.exists()))>> %TEMPFILE% & echo table = DBF(str(p), load=False)>> %TEMPFILE% & echo print('FIELDNAMES=' + ','.join(table.field_names))>> %TEMPFILE% & echo rec = next(iter(table))>> %TEMPFILE% & echo print('KEYS=' + ','.join(sorted(rec.keys())[:12]))>> %TEMPFILE% & echo print('SAMPLE=' + str({k: rec[k] for k in list(rec.keys())[:12]}))>> %TEMPFILE% & python %TEMPFILE%"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate actual SDG DBF record sample",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-c",
+				"from dbfread import DBF; from pathlib import Path; p = Path(r'S:\\Apps\\SDGeco\\Data\\trend\\min\\min2025-08-09_00-00-02.dbf'); print('EXISTS=' + str(p.exists())); print('FILE=' + str(p)); tbl = DBF(str(p), load=False); print('FIELDNAMES=' + ','.join(tbl.field_names)); rec = next(iter(tbl)); print('KEYS=' + ','.join(sorted(rec.keys())[:12])); print('SAMPLE=' + str({k: rec[k] for k in list(rec.keys())[:12]}))"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate SDG DBF sample from prod share",
+			"type": "shell",
+			"command": "pwsh",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$script = @'\nfrom dbfread import DBF\nfrom pathlib import Path\np = Path(r'S:\\Apps\\SDGeco\\Data\\trend\\min\\min2025-08-09_00-00-02.dbf')\nprint('EXISTS=' + str(p.exists()))\nprint('FILE=' + str(p))\ntbl = DBF(str(p), load=False)\nprint('FIELDNAMES=' + ','.join(tbl.field_names))\nrec = next(iter(tbl))\nprint('KEYS=' + ','.join(sorted(rec.keys())[:12]))\nprint('SAMPLE=' + str({k: rec[k] for k in list(rec.keys())[:12]}))\n'@\n$script | python -"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate prod SDG DBF field names",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-c",
+				"from dbfread import DBF; from pathlib import Path; p = Path(r'S:/Apps/SDGeco/Data/trend/min/min2025-08-09_00-00-02.dbf'); print('EXISTS=' + str(p.exists())); print('FILE=' + str(p)); tbl = DBF(str(p), load=False); print('FIELDNAMES=' + ','.join(tbl.field_names)); rec = next(iter(tbl)); print('SAMPLE_KEYS=' + ','.join(sorted(rec.keys()))); print('SAMPLE=' + str({k: rec[k] for k in list(rec.keys())[:12]}))"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Sample prod SDG DBF schema",
+			"type": "shell",
+			"command": "cmd",
+			"args": [
+				"/c",
+				"type nul > %TEMP%\\sdg_probe.py & echo from dbfread import DBF >> %TEMP%\\sdg_probe.py & echo from pathlib import Path >> %TEMP%\\sdg_probe.py & echo p = Path(\\\"S:\\\\Apps\\\\SDGeco\\\\Data\\\\trend\\\\min\\\\min2025-08-09_00-00-02.dbf\\\") >> %TEMP%\\sdg_probe.py & echo print('EXISTS=' + str(p.exists())) >> %TEMP%\\sdg_probe.py & echo print('FILE=' + str(p)) >> %TEMP%\\sdg_probe.py & echo tbl = DBF(str(p), load=False) >> %TEMP%\\sdg_probe.py & echo print('FIELDNAMES=' + ','.join(tbl.field_names)) >> %TEMP%\\sdg_probe.py & echo rec = next(iter(tbl)) >> %TEMP%\\sdg_probe.py & echo print('KEYS=' + ','.join(sorted(rec.keys())[:12])) >> %TEMP%\\sdg_probe.py & echo print('SAMPLE=' + str({k: rec[k] for k in list(rec.keys())[:12]})) >> %TEMP%\\sdg_probe.py & python %TEMP%\\sdg_probe.py"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Probe prod SDG DBF schema with python args",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-c",
+				"from dbfread import DBF; from pathlib import Path; p = Path(r'S:\\Apps\\SDGeco\\Data\\trend\\min\\min2025-08-09_00-00-02.dbf'); print('EXISTS=' + str(p.exists())); print('FILE=' + str(p)); t = DBF(str(p), load=False); print('FIELDNAMES=' + ','.join(t.field_names)); r = next(iter(t)); print('SAMPLE_KEYS=' + ','.join(sorted(r.keys()))); print('SAMPLE=' + str({k: r[k] for k in list(r.keys())[:12]}))"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Check prod SDG path via Python",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-c",
+				"import os; print(os.path.exists(r'S:/Apps/SDGeco/Data')); print(os.path.exists(r'S:/Apps/SDGeco/Data/trend/min/min2025-08-09_00-00-02.dbf'))"
+			],
+			"isBackground": false,
+			"problemMatcher": []
 		}
 	]
 }

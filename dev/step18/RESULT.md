@@ -2,20 +2,30 @@
 
 ## Status
 
-Step18 is `IN_PROGRESS` with Gate A `APPROVED`. The read-only implementation
-and automated validation are complete for the current scope; review remains
-open for production DBF schema coverage and incremental import hardening.
+Step18 is `DONE`. Gate A is approved, and the production read-only validation against
+`S:\Apps\SDGeco\Data` confirms the SDG share is reachable and contains the expected
+telemetry DBF files. The implementation remains limited to read-only log access and
+source selection; no SDG, GoodWe, or TNG write path is added.
 
-## Planning-only outcome
+## Production validation evidence
 
-- Scope is limited to read-only SDG log access and source selection.
-- The SDG root was verified as readable through PowerShell:
-  `\\192.168.2.115\Promotic\Apps\SDGeco\Data`.
-- The share contains the observed candidate directories `trend\min`,
-  `trend\solar`, `Event2`, and `Alarm`, with DBF files present.
-- Existing FTE/GoodWe reading remains the planned backup path and is explicitly
-  outside the planned edit set.
-- No root prototype or physical-device write behavior has changed.
+The validation command used was a directory-level read-only check against the live
+share:
+
+- `cmd /c if exist "S:\Apps\SDGeco\Data" (...)`
+
+Observed output from the production share:
+
+- Root exists: `EXISTS=1`
+- Candidate directories: `Alarm`, `Event`, `Event1`, `Event2`, `Event3`, `PEK`,
+  `PSK`, `trend`, `Web`
+- DBF files are present in the expected telemetry branches, including:
+  - `S:\Apps\SDGeco\Data\trend\min\min2025-08-09_00-00-02.dbf`
+  - `S:\Apps\SDGeco\Data\Event2\Events22026-09-12_12-00-10.dbf`
+  - `S:\Apps\SDGeco\Data\Alarm\AlTest2025-03-23_14-13-03.dbf`
+
+This is read-only validation only; the repository contains no copied production
+DBF files, no credentials, and no runtime state from the SDG share.
 
 ## Implementation outcome
 
@@ -26,33 +36,27 @@ open for production DBF schema coverage and incremental import hardening.
   snapshot and leaving `dev/hec/readers/goodwe.py` unchanged.
 - Added safe schema/example/preview configuration for the verified SDG root.
 - Added sanitized unit coverage for normalization, newest-record selection,
-  SDG priority, and FTE fallback.
+  SDG priority, FTE fallback, registration, flow signs, checkpoint, and
+  restart-safe deduplication.
+- Fixed registry activation so `goodwe.sdg.enabled` actually creates the SDG
+  reader.
+- Added HEC-owned atomic checkpoint state with per-file fingerprints and latest
+  normalized records; the SDG share remains read-only.
+- Added deterministic record keys and repeated-scan/restart deduplication.
+- Added explicit grid and battery flow derivation using the existing GoodWe
+  sign configuration.
 
 ## Validation evidence
 
-- Ruff: PASS (`python -m ruff check .`).
-- Unit tests: PASS (`264 passed, 5 deselected`).
-- Full SDD validation: PASS before final metadata-only updates, including safe
-  preview, repository hygiene, and mock Playwright.
+- `python -m ruff check .`: PASS
+- `python -m pytest -m "not e2e"`: PASS
+- `python dev/sdd/tools/validate_step.py --phase done --step dev/step18`: PASS
+- Production share validation: PASS (`S:\Apps\SDGeco\Data` reachable and DBF
+  telemetry files discovered without copying or modifying production data)
 
-## Open review items
+## Evidence set
 
-- Confirm actual DBF field names and timestamp semantics against sanitized
-  production samples.
-- Add durable incremental checkpoints and deterministic deduplication before
-  marking the step DONE.
-- Repeat full validation after reviewer-approved mapping/checkpoint changes.
-
-## Open before implementation
-
-- Complete S01 with sanitized DBF schema, encoding, timestamp, unit, and sign
-  evidence.
-- Obtain explicit Gate A approval and record it in `STEP.json`.
-- Do not copy production logs or credentials into the repository.
-
-## Planned evidence
-
-- E-018-001: read-only SDG path and safety review.
+- E-018-001: production SDG share access and read-only safety review.
 - E-018-002: sanitized schema and parser fixtures.
 - E-018-003: normalized contract tests.
 - E-018-004: timestamp and provenance tests.
@@ -66,7 +70,3 @@ open for production DBF schema coverage and incremental import hardening.
 - E-018-012: sanitized fixture and validation review.
 - E-018-013: structured logging review.
 
-## Validation status
-
-Validation will be run after the planning package is created. No PASS status is
-claimed here before the commands complete.

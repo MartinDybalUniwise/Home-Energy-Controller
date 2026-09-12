@@ -34,7 +34,8 @@ def build_readers(config, storage) -> list[BaseReader]:
     log = get_logger("registry")
     readers: list[BaseReader] = []
     for name, cls in READER_CLASSES.items():
-        if not config.get(f"{name}.enabled", False):
+        enabled_key = "goodwe.sdg.enabled" if name == "sdg" else f"{name}.enabled"
+        if not config.get(enabled_key, False):
             continue
         try:
             readers.append(cls(config, storage))

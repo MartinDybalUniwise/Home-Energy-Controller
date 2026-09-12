@@ -1,0 +1,9 @@
+from dbfread import DBF 
+from pathlib import Path 
+p = Path(S:\Apps\SDGeco\Data\trend\min\min2025-08-09_00-00-02.dbf) 
+print(" "ROOT_EXISTS= + str(p.exists())) 
+table = DBF(str(p), load=False) 
+print(FIELDNAMES= + ",".join(table.field_names)) 
+rec = next(iter(table)) 
+print(" "KEYS= + ",".join(sorted(rec.keys())[:12])) 
+print(" "SAMPLE= + str({k: rec[k] for k in list(rec.keys())[:12]})) 

@@ -88,7 +88,7 @@ class Application:
         sdg_freshness = int(self.config.get("goodwe.sdg.freshness_seconds", 180))
         if current and current.get("telemetry_source") == "sdg" and current_stamp:
             age = (now_local() - current_stamp).total_seconds()
-            if age <= sdg_freshness and sample.timestamp <= current_stamp:
+            if age <= sdg_freshness:
                 return None
         values = dict(sample.values)
         values["telemetry_source"] = "fte_backup" if self.config.get("goodwe.sdg.enabled", False) else "fte"
