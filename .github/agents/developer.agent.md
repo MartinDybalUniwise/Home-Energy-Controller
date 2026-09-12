@@ -3,7 +3,7 @@ name: HEC Developer
 description: Implement an approved HEC plan with safe validation.
 handoffs:
   - label: Send implementation for review
-    agent: reviewer
+    agent: HEC Reviewer
     prompt: Review the implementation against the approved plan and safety contract.
     send: false
 ---
