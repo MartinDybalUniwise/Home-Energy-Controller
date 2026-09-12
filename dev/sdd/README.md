@@ -22,16 +22,32 @@ The purpose is to make step creation, validation, and evidence generation consis
 
 ## Workflow
 
+## Workflow
+
 1. Choose the next step number.
-2. Analyze the request and classify it as SMALL or LARGE.
-3. For SMALL requests, prepare a short plan and wait for explicit human approval
-   before editing application code.
-4. For LARGE requests, run `python dev/sdd/tools/new_step.py` only after the
-   requirement, plan, and acceptance criteria are prepared and Gate A is
-   approved.
-5. Validate with `python dev/sdd/tools/validate_step.py`.
-6. Run repository hygiene checks and preview validation.
-7. Record execution evidence before marking a step done.
+2. Analyze and classify the request as SMALL or LARGE.
+3. For SMALL requests:
+   - prepare a chat plan,
+   - wait for explicit human approval,
+   - only then implement.
+4. For LARGE requests:
+   - create the step package BEFORE Gate A using:
+     `python dev/sdd/tools/new_step.py`
+   - complete REQUEST, REQUIREMENT, PLAN, ACCEPTANCE_CRITERIA,
+     TRACEABILITY, STEP.json and RESULT,
+   - run structural and ready validation,
+   - leave Gate A as PENDING,
+   - STOP and request human approval.
+5. Gate A is approval of the completed planning package.
+6. Only after explicit human approval:
+   - set gate_a.status = APPROVED,
+   - implementation may begin.
+7. Developer implements only the approved scope.
+8. Developer runs automated validation and stops before Human Gate.
+9. Reviewer verifies implementation against requirements,
+   acceptance criteria, traceability and safety.
+10. Human Gate is required before DONE.
+11. Only after all required gates and evidence pass may the step be marked DONE.
 
 Changed-step CI validation follows the manifest lifecycle: planned or
 in-progress steps must pass the `ready` phase, while steps marked `DONE` must
