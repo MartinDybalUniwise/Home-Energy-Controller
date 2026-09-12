@@ -65,3 +65,16 @@ The Planner MUST NOT:
 
 A chat-only plan is NOT sufficient for LARGE work.
 Gate A approves the repository planning package, not a transient chat response.
+
+## Gate A approval handling
+
+When the user explicitly approves the planning package:
+
+1. Update only the Step metadata/evidence required to record the approval.
+2. Set `STEP.json gate_a.status = APPROVED`.
+3. Record the approver and approval timestamp.
+4. Do not edit application code.
+5. Re-run ready validation.
+6. Only after ready validation passes may the Planner hand off to Developer.
+
+The Developer handoff MUST NOT be offered while Gate A is PENDING.

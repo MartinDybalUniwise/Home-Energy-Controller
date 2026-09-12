@@ -72,3 +72,26 @@ Update:
 Do NOT mark the step DONE.
 Do NOT claim human validation.
 Stop and hand off to Reviewer after automated validation.
+
+### Real Playwright / E2E validation
+
+For UI changes, skipped E2E tests are NOT a pass.
+
+Start preview first:
+
+`python dev/sdd/tools/preview.py start`
+
+On PowerShell set:
+
+`$env:HEC_RUN_E2E="1"`
+`$env:HEC_BASE_URL="http://127.0.0.1:8181"`
+
+Then run:
+
+`python -m pytest dev/hec/tests/e2e -o addopts= -m e2e -x -vv`
+
+Requirements:
+- E2E tests must actually execute.
+- `SKIPPED` because `HEC_RUN_E2E` is missing is a validation failure.
+- Any failing E2E test blocks Full Validation and Reviewer handoff.
+- Never use `force=True` or weaken a test to bypass a real UI defect.

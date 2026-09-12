@@ -22,8 +22,6 @@ The purpose is to make step creation, validation, and evidence generation consis
 
 ## Workflow
 
-## Workflow
-
 1. Choose the next step number.
 2. Analyze and classify the request as SMALL or LARGE.
 3. For SMALL requests:
@@ -66,3 +64,16 @@ must identify substeps, risks, validation, and an explicit approval gate.
 A completed step has passing repository and step validation, evidence for each
 mandatory acceptance criterion, a filled `RESULT.md`, and no unresolved
 blockers. Automated checks never substitute for a human hardware test.
+
+## UI validation rule
+
+For UI steps, automated validation is valid only when real browser E2E tests
+actually execute against the running preview.
+
+A skipped E2E suite is NOT PASS.
+
+A UI step cannot proceed to Reviewer or Human Gate when:
+- the page remains in a loading state,
+- browser console contains application JavaScript errors,
+- required controls are not interactable,
+- Playwright reports failures or the suite is skipped.
