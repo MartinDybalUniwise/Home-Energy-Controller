@@ -152,6 +152,7 @@ body {
   padding: 6px 0 6px 12px;
   pointer-events: auto;
 }
+.utility-nav[hidden] { display: none; }
 .utility-link {
   display: flex;
   align-items: center;
@@ -944,6 +945,10 @@ dialog#login::backdrop { background: rgba(0, 0, 0, 0.75); }
 }
 .flow .node { fill: rgba(226, 242, 250, .92); stroke: rgba(126, 179, 204, .58); }
 .flow text { fill: #18344e; }
+.flow { display: block; width: 100%; height: auto; max-height: 520px; }
+.flow .wire { stroke: rgba(143, 190, 214, .42); stroke-width: 2.5; stroke-linecap: round; }
+.flow .edge { stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor); }
+.flow .appliance-node__icon { color: #547894; }
 .flow-details span, .flow-details p { color: #abcbdc; }
 .flow-details strong { color: #f2fbff; }
 
@@ -970,6 +975,8 @@ dialog button { min-height: 48px; color: #06243b; border-radius: 8px; background
 @media (max-width: 720px) {
   .nav a { min-height: 54px; }
   .more-button { min-height: 44px; }
+  .flow-stage { overflow-x: auto; overscroll-behavior-inline: contain; }
+  .flow-stage #live-flow { min-width: 720px; }
   .controls { gap: 9px; padding: 12px; }
   .controls button, .controls select { min-height: 48px; }
   .field { grid-template-columns: 1fr; gap: 6px; padding-block: 10px; }
@@ -988,7 +995,7 @@ dialog button { min-height: 48px; color: #06243b; border-radius: 8px; background
   .nav { position: relative; z-index: 1; width: 200px; top: auto; bottom: auto; padding: 12px 10px; gap: 4px; }
   .nav a { min-height: 52px; padding: 13px 14px; font-size: .88rem; }
   .utility-nav { position: relative; z-index: 10; bottom: auto; left: 0; width: 180px; }
-  .view { margin-left: 200px; padding: 14px 18px; }
+  .view { margin-left: 0; padding: 14px 18px; }
   .advisor-dashboard { max-width: none; gap: 10px; }
 
   .advisor-brief {

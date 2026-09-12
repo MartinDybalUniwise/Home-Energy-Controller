@@ -31,6 +31,13 @@ def test_shell_dashboard_and_settings_navigation(page: Page, viewport: tuple[int
     expect(page.locator("#view")).to_be_visible()
     expect(page.locator(".notice.error")).to_have_count(0)
 
+    if viewport[0] >= 1100:
+        sidebar_box = page.locator("#sidebar").bounding_box()
+        view_box = page.locator("#view").bounding_box()
+        assert sidebar_box is not None
+        assert view_box is not None
+        assert abs(view_box["x"] - sidebar_box["x"] - sidebar_box["width"]) <= 1
+
     if viewport[0] <= 1023:
         page.locator("#menu-toggle").click()
     page.locator("#more-toggle").click()
@@ -39,6 +46,24 @@ def test_shell_dashboard_and_settings_navigation(page: Page, viewport: tuple[int
     page.locator("details.technical-settings").click()
     expect(page.locator("#settings-form input[data-path='controller.enabled']")).to_be_visible()
     expect(page.locator(".notice.error")).to_have_count(0)
+
+
+def test_sidebar_service_menu_toggle(page: Page):
+    from playwright.sync_api import expect
+
+    page.set_viewport_size({"width": 1920, "height": 1080})
+    page.goto("/")
+    toggle = page.locator("#more-toggle")
+    utility = page.locator("#utility-nav")
+
+    expect(utility).to_be_hidden()
+    expect(toggle).to_have_attribute("aria-expanded", "false")
+    toggle.click()
+    expect(utility).to_be_visible()
+    expect(toggle).to_have_attribute("aria-expanded", "true")
+    toggle.click()
+    expect(utility).to_be_hidden()
+    expect(toggle).to_have_attribute("aria-expanded", "false")
 
 
 def test_czech_navigation_catalog(page: Page):
@@ -89,13 +114,18 @@ def test_why_now_dialog_modal(page: Page):
     expect(page.locator("#why-now-dialog")).not_to_be_visible()
 
 
-def test_energy_flow_screen_rendering(page: Page):
+@pytest.mark.parametrize("viewport", [(1920, 1080), (1024, 768), (390, 844)])
+def test_energy_flow_screen_rendering(page: Page, viewport: tuple[int, int]):
     from playwright.sync_api import expect
 
-    page.set_viewport_size({"width": 1920, "height": 1080})
+    page.set_viewport_size({"width": viewport[0], "height": viewport[1]})
     page.goto("/#/flow")
     expect(page.locator(".flow-hero")).to_be_visible()
     expect(page.locator(".flow-stage")).to_be_visible()
+    expect(page.locator(".flow .main-node")).to_have_count(4)
+    expect(page.locator(".flow .appliance-node")).to_have_count(6)
+    expect(page.locator(".flow .appliance-node__icon")).to_have_count(6)
+    expect(page.locator(".flow .wire")).to_have_count(8)
     expect(page.locator(".flow-details")).to_be_visible()
     expect(page.locator(".notice.error")).to_have_count(0)
 
