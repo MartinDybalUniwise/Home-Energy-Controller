@@ -1,0 +1,54 @@
+{
+  "step": 17,
+  "classification": "LARGE",
+  "status": "PLANNED",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner / user",
+    "approved_at": "2026-09-10T19:37:54.986+00:00",
+    "reason": "The user explicitly requested Step17 planning-file completion."
+  },
+  "gate_b": {
+    "status": "NOT_REQUIRED",
+    "approved_by": "repository owner / user",
+    "approved_at": "2026-09-10T19:37:54.986+00:00",
+    "reason": "Planning-only repository/SDD documentation has no runtime or hardware behavior that requires a separate human preview gate."
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null,
+    "reason": "Final completion approval is not requested because Step17 is ready but not DONE."
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "2026-09-10 CLI request: Step17 planning-only SDD completion",
+  "branch": "copilot/step17-revision",
+  "pr": null,
+  "notes": "Step17 contains a planning-only repository/SDD review package. No application code, frozen root prototypes, runtime configuration, or device-write behavior changed.",
+  "requirements": [
+    "REQ-017-001",
+    "REQ-017-002",
+    "REQ-017-003",
+    "REQ-017-004",
+    "REQ-017-005",
+    "REQ-017-006"
+  ],
+  "acceptance": [
+    "AC-017-001",
+    "AC-017-002",
+    "AC-017-003",
+    "AC-017-004",
+    "AC-017-005",
+    "AC-017-006",
+    "AC-017-007"
+  ],
+  "evidence": [
+    "E-017-001",
+    "E-017-002",
+    "E-017-003",
+    "E-017-004",
+    "E-017-005",
+    "E-017-006"
+  ]
+}

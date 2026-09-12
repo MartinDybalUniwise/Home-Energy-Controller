@@ -36,7 +36,10 @@
     "timeout": 2,
     "retries": 3,
     "grid_positive_is_import": true,
-    "battery_positive_is_charge": true
+    "battery_positive_is_charge": true,
+    "sdg": {
+      "log_root_path": "\\\\192.168.2.115\\Promotic"
+    }
   },
   "tng": {
     "enabled": true,

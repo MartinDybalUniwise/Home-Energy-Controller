@@ -227,6 +227,7 @@
     "personal_intro": "Vzhled a chování panelu",
     "technical_title": "Technické nastavení",
     "technical_intro": "Připojení zařízení, intervaly, ukládání a řízení. Měňte jen při správě systému.",
+    "goodwe_sdg": "Promotic SDG",
     "tng_boiler": "Ohřev teplé vody (TUV)",
     "tng_heating": "Topení",
     "tng_thermostat": "Termostat",
@@ -265,7 +266,10 @@
         "timeout": "Časový limit (s)",
         "retries": "Počet opakování",
         "grid_positive_is_import": "Kladná hodnota = odběr ze sítě",
-        "battery_positive_is_charge": "Kladná hodnota = nabíjení baterie"
+        "battery_positive_is_charge": "Kladná hodnota = nabíjení baterie",
+        "sdg": {
+          "log_root_path": "Cesta k Promotic SDG"
+        }
       },
       "tng": {
         "enabled": "Zapnuto",
@@ -381,7 +385,10 @@
         "timeout": "Jak dlouho se čeká na odpověď měniče, než se pokus považuje za neúspěšný.",
         "retries": "Kolikrát se čtení zopakuje po neúspěchu, než se nahlásí chyba.",
         "grid_positive_is_import": "Znaménko toku ze sítě se liší podle instalace – tady se určí, jak ho číst.",
-        "battery_positive_is_charge": "Znaménko toku baterie se liší podle instalace – tady se určí, jak ho číst."
+        "battery_positive_is_charge": "Znaménko toku baterie se liší podle instalace – tady se určí, jak ho číst.",
+        "sdg": {
+          "log_root_path": "UNC cesta ke složce Promotic SDG používané pro diagnostiku/import."
+        }
       },
       "tng": {
         "enabled": "Čtení stavu tepelného čerpadla TNG.",

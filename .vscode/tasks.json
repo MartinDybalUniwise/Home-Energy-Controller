@@ -1,71 +1,166 @@
 {
-  "version": "2.0.0",
-  "tasks": [
-    {
-      "label": "HEC: Install Dev Dependencies",
-      "type": "shell",
-      "command": "python",
-      "args": ["-m", "pip", "install", "-r", "requirements-dev.txt"],
-      "problemMatcher": []
-    },
-    {
-      "label": "HEC: Lint",
-      "type": "shell",
-      "command": "python",
-      "args": ["-m", "ruff", "check", "."],
-      "problemMatcher": "$msCompile"
-    },
-    {
-      "label": "HEC: Unit Tests",
-      "type": "shell",
-      "command": "python",
-      "args": ["-m", "pytest", "-m", "not e2e"],
-      "problemMatcher": "$pytest"
-    },
-    {
-      "label": "HEC: Full Tests",
-      "type": "shell",
-      "command": "python",
-      "args": ["-m", "pytest"],
-      "problemMatcher": "$pytest"
-    },
-    {
-      "label": "HEC: Start Dev Preview",
-      "type": "shell",
-      "command": "python",
-      "args": ["dev/sdd/tools/preview.py", "start"],
-      "problemMatcher": []
-    },
-    {
-      "label": "HEC: Stop Dev Preview",
-      "type": "shell",
-      "command": "python",
-      "args": ["dev/sdd/tools/preview.py", "stop"],
-      "problemMatcher": []
-    },
-    {
-      "label": "HEC: Playwright",
-      "type": "shell",
-      "command": "python",
-      "args": [
-        "-m", "pytest", "dev/hec/tests/e2e", "-o", "addopts=", "-m", "e2e",
-        "--screenshot", "only-on-failure", "--tracing", "retain-on-failure",
-        "--output", "dev/sdd/.runtime/playwright"
-      ],
-      "options": {
-        "env": {
-          "HEC_RUN_E2E": "1",
-          "HEC_BASE_URL": "http://127.0.0.1:8181"
-        }
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "HEC: Full Validation",
-      "type": "shell",
-      "command": "python",
-      "args": ["dev/sdd/tools/full_validation.py"],
-      "problemMatcher": []
-    }
-  ]
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "HEC: Install Dev Dependencies",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-m",
+				"pip",
+				"install",
+				"-r",
+				"requirements-dev.txt"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Lint",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-m",
+				"ruff",
+				"check",
+				"."
+			],
+			"problemMatcher": "$msCompile"
+		},
+		{
+			"label": "HEC: Unit Tests",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-m",
+				"pytest",
+				"-m",
+				"not e2e"
+			],
+			"problemMatcher": "$pytest"
+		},
+		{
+			"label": "HEC: Full Tests",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-m",
+				"pytest"
+			],
+			"problemMatcher": "$pytest"
+		},
+		{
+			"label": "HEC: Start Dev Preview",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"dev/sdd/tools/preview.py",
+				"start"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Stop Dev Preview",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"dev/sdd/tools/preview.py",
+				"stop"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Playwright",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"-m",
+				"pytest",
+				"dev/hec/tests/e2e",
+				"-o",
+				"addopts=",
+				"-m",
+				"e2e",
+				"--screenshot",
+				"only-on-failure",
+				"--tracing",
+				"retain-on-failure",
+				"--output",
+				"dev/sdd/.runtime/playwright"
+			],
+			"options": {
+				"env": {
+					"HEC_RUN_E2E": "1",
+					"HEC_BASE_URL": "http://127.0.0.1:8181"
+				}
+			},
+			"problemMatcher": []
+		},
+		{
+			"label": "HEC: Full Validation",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"dev/sdd/tools/full_validation.py"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "git status",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short",
+				"--branch"
+			]
+		},
+		{
+			"label": "git branch and diff",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short",
+				"--branch",
+				"&&",
+				"git",
+				"branch",
+				"-vv",
+				"&&",
+				"git",
+				"remote",
+				"-v",
+				"&&",
+				"git",
+				"diff",
+				"--",
+				".vscode/tasks.json"
+			]
+		},
+		{
+			"label": "Check git and gh auth",
+			"type": "shell",
+			"command": "git && gh --version && gh auth status",
+			"args": [],
+			"isBackground": false
+		},
+		{
+			"label": "git status and gh auth",
+			"type": "shell",
+			"command": "git status --short --branch; gh --version; gh auth status",
+			"isBackground": false
+		},
+		{
+			"label": "Commit current change",
+			"type": "shell",
+			"command": "git add .vscode/tasks.json && git commit -m \"Update VS Code task definitions\"",
+			"isBackground": false
+		},
+		{
+			"label": "Commit VS Code tasks update",
+			"type": "shell",
+			"command": "git add .vscode/tasks.json; git commit -m 'Update VS Code task definitions'",
+			"isBackground": false
+		}
+	]
 }

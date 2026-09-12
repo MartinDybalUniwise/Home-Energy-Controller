@@ -122,6 +122,9 @@ SCHEMA: dict[str, Any] = {
         # Znaménko toků se mezi instalacemi liší, proto je směr konfigurovatelný.
         "grid_positive_is_import": F("bool", True),
         "battery_positive_is_charge": F("bool", True),
+        "sdg": {
+            "log_root_path": F("str", "\\\\192.168.2.115\\Promotic", restart=True),
+        },
     },
     "tng": {
         "enabled": F("bool", True),
