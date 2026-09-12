@@ -28,10 +28,12 @@
     "w": "W",
     "kw": "kW",
     "kwh": "kWh",
+    "czk": "Kč",
     "percent": "%",
     "celsius": "°C",
     "czk_kwh": "Kč/kWh",
     "eur_mwh": "EUR/MWh",
+    "wm2": "W/m²",
     "ms": "m/s",
     "mm": "mm",
     "hours": "h"

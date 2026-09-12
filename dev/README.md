@@ -28,7 +28,7 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | [`step14/`](step14/) | SDD operational closure, changed-step DONE enforcement, guarded evidence and merge protection | ✅ hotovo <!-- status: DONE --> |
 | [`step15/`](step15/) | Production deployment readiness for 192.168.2.115, safe host update, validation, and rollback | 🚧 implementováno, produkční ověření otevřeno <!-- status: IN_PROGRESS --> |
 | [`step16/`](step16/) | GoodWe Integration Refactor – nový GoodWeManager, reader/writer bez kolizí, SDG do role logger | 📝 plán schválený, design & příprava <!-- status: PLANNED --> |
-| [`step17/`](step17/) | Repository/SDD review a doplnění povinných standardních souborů Step17, pouze plánování | 📝 plán schválený, pouze dokumentace / ready <!-- status: PLANNED --> |
+| [`step17/`](step17/) | Redesign stránek Dnes, Výhled a Tok energie bez změny API a architektury | 📝 plánováno <!-- status: PLANNED --> |
 
 Další kroky se doplňují sem, jakmile vzniknou.
 

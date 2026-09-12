@@ -1,10 +1,27 @@
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 
 import { renderChart, renderTable } from './chart.js';
-import { renderForecastStory, renderToday } from './advisor.js?v=11';
+import { renderForecastStory, renderToday } from './advisor.js?v=13';
 import { renderFlow } from './flow.js';
 import { availableLanguages, currentLanguage, dateTime, duration, num, power, t, time, weekday } from './i18n.js';
 import { weatherIcon } from './icons.js';
+
+const HTML_ESCAPES = {
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+};
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (char) => HTML_ESCAPES[char]);
+}
+
+function escapeParams(params) {
+  if (!params || typeof params !== 'object') return params;
+  return Object.fromEntries(Object.entries(params).map(([key, value]) => [key, escapeHtml(value)]));
+}
 
 const SERIES_COLORS = {
   pv_w: 'var(--series-pv)',
@@ -135,7 +152,7 @@ function renderForecastBlocks(container, weather) {
               <button type="button" class="daypart-toggle" aria-expanded="false" aria-controls="${blockId}">
                 <span class="col-label">${t(`weather.part_${entry.key}`)}</span>
                 ${weatherIcon(middle.condition, isDaytime(middle.stamp, weather))}
-                <span class="value">${range}<span class="unit">°C</span></span>
+                <span class="value">${range}<span class="unit">${t('unit.celsius')}</span></span>
                 <span class="daypart-chevron" aria-hidden="true"></span>
               </button>
               <div class="daypart-hours" id="${blockId}" hidden>
@@ -143,7 +160,7 @@ function renderForecastBlocks(container, weather) {
                   <div class="daypart-hour">
                     <span class="col-label">${time(row.stamp)}</span>
                     ${weatherIcon(row.condition, isDaytime(row.stamp, weather))}
-                    <span class="value">${num(row.temp_c, 0)}<span class="unit">°C</span></span>
+                    <span class="value">${num(row.temp_c, 0)}<span class="unit">${t('unit.celsius')}</span></span>
                   </div>`).join('')}
               </div>
             </div>`;
@@ -230,7 +247,7 @@ export async function history(view, { api, state }) {
       <section class="panel">
         <div class="controls">
           <select id="source">${sources.map((name) =>
-            `<option value="${name}"${name === state.historySource ? ' selected' : ''}>${name}</option>`).join('')}</select>
+            `<option value="${escapeHtml(name)}"${name === state.historySource ? ' selected' : ''}>${escapeHtml(name)}</option>`).join('')}</select>
           ${RANGES.map((range) => `<button data-range="${range.from}" aria-pressed="${state.historyRange === range.from}">${t(range.key)}</button>`).join('')}
           <button id="toggle-view" aria-pressed="${state.historyView === 'table'}">${t('history.table')}</button>
         </div>
@@ -315,8 +332,8 @@ async function renderAnalysis(container, api) {
     ? ['l1_w', 'l2_w', 'l3_w'].map((phase, index) =>
         `<div class="meta">L${index + 1}: ⌀ ${num(phases.phases[phase].mean_w, 0)} W · p95 ${num(phases.phases[phase].p95_w, 0)} W</div>`).join('')
       + (phases.recommendations || []).map((item) =>
-        `<p class="meta">${t(item.reason_key, item.reason_params)}</p>`).join('')
-    : `<p class="meta">${t(phases.reason_key || 'app.no_data')}</p>`));
+        `<p class="meta">${translatedText(item.reason_key, item.reason_params, item.reason_key || '')}</p>`).join('')
+    : `<p class="meta">${phases.reason_key ? translatedText(phases.reason_key, undefined, phases.reason_key) : t('app.no_data')}</p>`));
 
   parts.push(card('analysis.heatpump_energy', heatpump.measured
     ? `<span class="value">${num(heatpump.energy_kwh, 1)}<span class="unit">${t('unit.kwh')}</span></span>`
@@ -327,7 +344,7 @@ async function renderAnalysis(container, api) {
 
   const recent = (cycles.cycles || []).slice(-6).reverse();
   parts.push(card('history.appliance_cycles', recent.length
-    ? recent.map((cycle) => `<p class="meta"><strong>${cycle.name}</strong> ${dateTime(cycle.started)}<br>`
+    ? recent.map((cycle) => `<p class="meta"><strong>${escapeHtml(cycle.name)}</strong> ${dateTime(cycle.started)}<br>`
         + `${t('history.duration')}: ${duration(cycle.duration_min)} · ${t('history.energy')}: ${num(cycle.energy_kwh, 2)} ${t('unit.kwh')}`
         + ` · ${t('history.peak')}: ${num(cycle.peak_w, 0)} W</p>`).join('')
     : `<p class="meta">${t('app.no_data')}</p>`));
@@ -352,7 +369,7 @@ async function renderSummaries(container, api) {
   if (!days.length) { container.innerHTML = `<p class="notice">${t('app.no_data')}</p>`; return; }
   container.innerHTML = days.slice(-7).reverse().map((day) => `
     <div class="card">
-      <div class="card-header">${day.date}</div>
+      <div class="card-header">${escapeHtml(day.date)}</div>
       <p class="meta">
         ${t('entity.pv')}: ${num(day.pv_kwh, 1)} ${t('unit.kwh')}<br>
         ${t('entity.house')}: ${num(day.house_kwh, 1)} ${t('unit.kwh')}<br>
@@ -371,9 +388,37 @@ export async function prediction(view, { api }) {
     api.prediction(), api.weather().catch(() => ({})), api.prices().catch(() => ({})),
   ]);
   renderForecastStory(view, { prediction: payload, weather, prices });
+  const details = view.querySelector('#forecast-details');
+  if (details) renderForecastBlocks(details, weather);
 }
 
 // --- Tok energie -------------------------------------------------------------
+
+function translatedText(key, params, fallback = '') {
+  const safeFallback = escapeHtml(fallback);
+  if (!key) return safeFallback;
+  const text = t(key, escapeParams(params));
+  return text === key ? safeFallback : text;
+}
+
+function batteryStateText(goodwe) {
+  return Number(goodwe?.battery_charge_w) > 20 ? t('flow.charging')
+    : Number(goodwe?.battery_discharge_w) > 20 ? t('flow.discharging')
+      : t('flow.idle');
+}
+
+function controllerStateText(controller) {
+  if (controller?.safe_mode) {
+    return translatedText(controller.safe_mode_reason?.reason_key, controller.safe_mode_reason?.reason_params, t('status.safe_mode_active'));
+  }
+  return controller?.enabled ? t('status.controller_running') : t('status.controller_disabled');
+}
+
+function lastDecisionText(controller) {
+  const decision = controller?.last_decision;
+  if (!decision) return t('overview.no_decision');
+  return translatedText(decision.reason_key, decision.reason_params, `${decision.rule} → ${decision.action}`);
+}
 
 export async function flow(view, { api, motion }) {
   const current = await api.current();
@@ -381,18 +426,80 @@ export async function flow(view, { api, motion }) {
   const goodwe = sources.goodwe || {};
   const shelly = sources.shelly || {};
   const tng = sources.tng || {};
+  const controller = current?.status?.controller || {};
+  const staleSources = current?.status?.stale_sources || [];
   const grid = Number(goodwe.grid_import_w) > 20 ? 'import' : Number(goodwe.grid_export_w) > 20 ? 'export' : 'balanced';
+  const gridPower = Number(goodwe.grid_import_w) || Number(goodwe.grid_export_w);
+  const batteryPower = Number(goodwe.battery_charge_w) || Number(goodwe.battery_discharge_w);
+  const lastMeasurement = current?.last_measurement_at ? dateTime(current.last_measurement_at) : '–';
+  const controllerBadges = [
+    controller.enabled
+      ? `<span class="pill" data-level="ok">${t('status.controller_running')}</span>`
+      : `<span class="pill" data-level="neutral">${t('status.controller_disabled')}</span>`,
+    controller.safe_mode ? `<span class="pill" data-level="warning">${t('status.safe_mode')}</span>` : '',
+    controller.write_enabled === false ? `<span class="pill" data-level="neutral">${t('status.write_disabled')}</span>` : '',
+    staleSources.length ? `<span class="pill" data-level="critical">${t('status.stale')}: ${staleSources.map(escapeHtml).join(', ')}</span>` : '',
+  ].filter(Boolean).join('');
 
-  view.innerHTML = `<section class="flow-hero">
-      <div><p>${t('flow.eyebrow')}</p><h2>${t('flow.title')}</h2><span>${t(`flow.grid_${grid}`)}</span></div>
-      <div class="flow-hero__numbers"><div><span>${t('entity.pv')}</span><strong>${bigValue(goodwe.pv_w)}</strong></div><div><span>${t('entity.house')}</span><strong>${bigValue(goodwe.house_w)}</strong></div><div><span>${t('entity.battery_soc')}</span><strong class="flow-soc">${num(goodwe.battery_soc, 0)}<small>%</small></strong></div></div>
-    </section>
-    <section class="flow-stage"><div id="live-flow"></div></section>
-    <section class="flow-details">
-      <article><span>${t('entity.grid')}</span><strong>${bigValue(Number(goodwe.grid_import_w) || Number(goodwe.grid_export_w))}</strong><p>${t(`flow.grid_${grid}`)}</p></article>
-      <article><span>${t('entity.battery')}</span><strong>${bigValue(Number(goodwe.battery_charge_w) || Number(goodwe.battery_discharge_w))}</strong><p>${Number(goodwe.battery_charge_w) > 20 ? t('flow.charging') : Number(goodwe.battery_discharge_w) > 20 ? t('flow.discharging') : t('flow.idle')}</p></article>
-      <article><span>${t('entity.heatpump')}</span><strong>${bigValue(shelly.heatpump_power_w)}</strong><p>${tng.heating_on === true ? t('flow.heating_active') : t('flow.heating_idle')}</p></article>
-    </section>`;
+  view.innerHTML = `<div class="story-page story-page--flow">
+      <section class="story-hero story-hero--flow">
+        <div class="story-hero__main">
+          <p class="story-hero__eyebrow">${t('flow.eyebrow')}</p>
+          <h2>${t('flow.title')}</h2>
+          <p class="story-hero__summary">${t(`flow.grid_${grid}`)}</p>
+        </div>
+        <div class="story-hero__aside">
+          <dl class="story-hero__stats">
+            <div><dt>${t('entity.pv')}</dt><dd>${power(goodwe.pv_w).value}<small>${power(goodwe.pv_w).unit}</small></dd></div>
+            <div><dt>${t('entity.house')}</dt><dd>${power(goodwe.house_w).value}<small>${power(goodwe.house_w).unit}</small></dd></div>
+            <div><dt>${t('entity.grid')}</dt><dd>${power(gridPower).value}<small>${power(gridPower).unit}</small></dd></div>
+            <div><dt>${t('entity.battery_soc')}</dt><dd>${num(goodwe.battery_soc, 0)}<small>${t('unit.percent')}</small></dd></div>
+          </dl>
+        </div>
+      </section>
+      <section class="story-surface story-surface--flow">
+        <header class="story-surface__header">
+          <div>
+            <p>${t('overview.flow')}</p>
+            <h3>${t(`flow.grid_${grid}`)}</h3>
+          </div>
+          <span class="story-surface__meta">${lastMeasurement}</span>
+        </header>
+        <div class="story-flow-stage">
+          <div id="live-flow"></div>
+          <div class="story-flow-summary">
+            <p>${batteryStateText(goodwe)}</p>
+            <p>${tng.heating_on === true ? t('flow.heating_active') : t('flow.heating_idle')}</p>
+            <p>${controllerStateText(controller)}</p>
+          </div>
+        </div>
+      </section>
+      <section class="story-card-grid story-card-grid--flow-support">
+        <article class="story-card story-card--soft">
+          <p class="story-card__eyebrow">${t('entity.grid')}</p>
+          <strong class="story-card__value">${bigValue(gridPower)}</strong>
+          <p class="story-card__meta">${t(`flow.grid_${grid}`)}</p>
+        </article>
+        <article class="story-card story-card--soft">
+          <p class="story-card__eyebrow">${t('entity.battery')}</p>
+          <strong class="story-card__value">${bigValue(batteryPower)}</strong>
+          <p class="story-card__meta">${batteryStateText(goodwe)}</p>
+        </article>
+        <article class="story-card story-card--soft">
+          <p class="story-card__eyebrow">${t('entity.heatpump')}</p>
+          <strong class="story-card__value">${bigValue(shelly.heatpump_power_w)}</strong>
+          <p class="story-card__meta">${tng.heating_on === true ? t('flow.heating_active') : t('flow.heating_idle')}</p>
+        </article>
+        <article class="story-card story-card--soft">
+          <div class="story-card__header-row">
+            <p class="story-card__eyebrow">${t('settings.controller')}</p>
+          </div>
+          <div class="story-card__status">${controllerBadges}</div>
+          <strong class="story-card__value story-card__value--copy">${lastDecisionText(controller)}</strong>
+          <p class="story-card__meta">${controller?.last_decision?.timestamp ? dateTime(controller.last_decision.timestamp) : lastMeasurement}</p>
+        </article>
+      </section>
+    </div>`;
   renderFlow(view.querySelector('#live-flow'), { ...goodwe, heatpump_power_w: shelly.heatpump_power_w, devices: shelly.devices }, t, motion);
 }
 
@@ -481,34 +588,35 @@ export async function settings(view, { api, onUiChange }) {
         + (result.restart_required?.length ? ` · ${t('settings.restart_required')}` : '');
       await onUiChange?.(payload.ui || {});
     } catch (error) {
-      message.innerHTML = `<span class="error">${(error.payload?.errors || [t('error.save_failed')]).join('<br>')}</span>`;
+      message.innerHTML = `<span class="error">${(error.payload?.errors || [t('error.save_failed')]).map(escapeHtml).join('<br>')}</span>`;
     }
   });
 }
 
 function fieldRow(field, value) {
-  const id = `f_${field.path.replace(/\./g, '_')}`;
+  const id = escapeHtml(`f_${field.path.replace(/\./g, '_')}`);
+  const fieldPath = escapeHtml(field.path);
   const labelKey = `settings.field.${field.path}`;
   const helpKey = `settings.help.${field.path}`;
   // t() echoes back an unknown key verbatim – fall back to the raw config
   // path rather than show a translation key like "settings.field.x.y" in
   // the UI if a field is ever added to the schema without a translation.
   const translatedLabel = t(labelKey);
-  const label = translatedLabel === labelKey ? field.path.split('.').slice(1).join('.') : translatedLabel;
+  const label = escapeHtml(translatedLabel === labelKey ? field.path.split('.').slice(1).join('.') : translatedLabel);
   const translatedHelp = t(helpKey);
-  const help = translatedHelp === helpKey ? '' : `<p class="field-help">${translatedHelp}</p>`;
+  const help = translatedHelp === helpKey ? '' : `<p class="field-help">${escapeHtml(translatedHelp)}</p>`;
   let input;
   if (field.kind === 'bool') {
-    input = `<input id="${id}" data-path="${field.path}" type="checkbox"${value ? ' checked' : ''}>`;
+    input = `<input id="${id}" data-path="${fieldPath}" type="checkbox"${value ? ' checked' : ''}>`;
   } else if (field.kind === 'enum') {
-    input = `<select id="${id}" data-path="${field.path}">${field.choices.map((choice) =>
-      `<option value="${choice}"${String(choice) === String(value) ? ' selected' : ''}>${choice}</option>`).join('')}</select>`;
+    input = `<select id="${id}" data-path="${fieldPath}">${field.choices.map((choice) =>
+      `<option value="${escapeHtml(choice)}"${String(choice) === String(value) ? ' selected' : ''}>${escapeHtml(choice)}</option>`).join('')}</select>`;
   } else if (field.kind === 'int' || field.kind === 'float') {
     const step = field.kind === 'int' ? '1' : 'any';
-    input = `<input id="${id}" data-path="${field.path}" type="number" step="${step}"`
-      + `${field.min !== null ? ` min="${field.min}"` : ''}${field.max !== null ? ` max="${field.max}"` : ''} value="${value ?? ''}">`;
+    input = `<input id="${id}" data-path="${fieldPath}" type="number" step="${step}"`
+      + `${field.min !== null ? ` min="${field.min}"` : ''}${field.max !== null ? ` max="${field.max}"` : ''} value="${escapeHtml(value ?? '')}">`;
   } else {
-    input = `<input id="${id}" data-path="${field.path}" type="${field.secret ? 'password' : 'text'}" value="${value ?? ''}">`;
+    input = `<input id="${id}" data-path="${fieldPath}" type="${field.secret ? 'password' : 'text'}" value="${escapeHtml(value ?? '')}">`;
   }
   const hint = field.restart ? `<span class="hint">${t('settings.restart_required')}</span>` : '';
   return `<div class="field"><label for="${id}">${label}</label>${input}${hint}${help}</div>`;
@@ -553,13 +661,13 @@ function renderReaderRow(reader) {
     : statusPill(!reader.stale, 'status.ok', 'status.stale');
   const age = reader.age_seconds === null ? '–' : `${Math.round(reader.age_seconds)} s`;
   return `<tr>
-      <td>${reader.name}</td>
+      <td>${escapeHtml(reader.name)}</td>
       <td>${state}</td>
       <td>${reader.last_success ? dateTime(reader.last_success) : '–'}</td>
       <td>${age}</td>
       <td>${reader.success_count}</td>
       <td>${reader.error_count}</td>
-      <td>${reader.last_error || '–'}</td>
+      <td>${reader.last_error ? escapeHtml(reader.last_error) : '–'}</td>
     </tr>`;
 }
 
@@ -589,17 +697,17 @@ function renderStatusReport(payload) {
     </p>
     <p class="meta">
       ${t('overview.last_decision')}:<br>
-      ${decision ? `<strong>${decision.rule} → ${decision.action}</strong> (${dateTime(decision.timestamp)})<br>${t(decision.reason_key, decision.reason_params) || ''}`
+      ${decision ? `<strong>${escapeHtml(decision.rule)} → ${escapeHtml(decision.action)}</strong> (${dateTime(decision.timestamp)})<br>${translatedText(decision.reason_key, decision.reason_params)}`
                  : t('overview.no_decision')}
     </p>`);
 
   const stale = payload.stale_sources || [];
   const infoCard = card('status.title', `
     <p class="meta">
-      ${t('app.name')} v${payload.version || '–'}<br>
+      ${t('app.name')} v${payload.version ? escapeHtml(payload.version) : '–'}<br>
       ${t('status.started')}: ${payload.started_at ? dateTime(payload.started_at) : '–'}<br>
       ${stale.length
-        ? `<span class="pill" data-level="critical">${t('status.stale')}: ${stale.join(', ')}</span>`
+        ? `<span class="pill" data-level="critical">${t('status.stale')}: ${stale.map(escapeHtml).join(', ')}</span>`
         : `<span class="pill" data-level="ok">${t('status.ok')}</span>`}
     </p>`);
 
@@ -667,7 +775,7 @@ export async function logsPage(view, { api }) {
       <section class="panel">
         <div class="controls">
           <select id="log-source" aria-label="${t('logs.source')}">
-            ${sources.map((source) => `<option value="${source}">${source}</option>`).join('')}
+            ${sources.map((source) => `<option value="${escapeHtml(source)}">${escapeHtml(source)}</option>`).join('')}
           </select>
           <select id="log-day" aria-label="${t('logs.day')}">
             <option value="">${t('logs.tail', { count: 300 })}</option>
@@ -689,7 +797,7 @@ export async function logsPage(view, { api }) {
     const { days } = await api.logDays(sourceSelect.value).catch(() => ({ days: [] }));
     const current = daySelect.value;
     daySelect.innerHTML = `<option value="">${t('logs.tail', { count: 300 })}</option>`
-      + days.slice().reverse().map((day) => `<option value="${day}">${day}</option>`).join('');
+      + days.slice().reverse().map((day) => `<option value="${escapeHtml(day)}">${escapeHtml(day)}</option>`).join('');
     if (days.includes(current)) daySelect.value = current;
   }
 
