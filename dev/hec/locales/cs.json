@@ -6,7 +6,8 @@
     "updated": "Aktualizováno {time}",
     "no_data": "Zatím žádná data",
     "refresh": "Obnovit",
-    "auto_refresh": "Automaticky"
+    "auto_refresh": "Automaticky",
+    "close": "Rozumím"
   },
   "nav": {
     "overview": "Přehled",
@@ -113,19 +114,79 @@
     "grid_export": "Dodávka do sítě",
     "grid_import": "Odběr ze sítě",
     "grid_balanced": "Vyrovnaný tok",
-    "open_flow": "Otevřít tok energie"
-    ,"open_forecast": "Otevřít výhled"
-    ,"now": "Právě teď"
-    ,"now_state_reason": "Podle živého toku energie"
-    ,"avoid_window_short": "Nejvyšší dostupná cena"
-    ,"solar_peak": "Maximum záření {value} W/m²"
-    ,"next_window": "Nejbližší vhodné okno"
-    ,"window_reason_short": "Cena a sluneční potenciál"
-    ,"window_value": "Odhad výroby: {value}"
-    ,"outlook_title": "Vývoj v dalších hodinách"
-    ,"outlook_subtitle": "Slunce a cena"
-    ,"solar_curve": "Sluneční potenciál"
-    ,"price_curve": "Cena elektřiny"
+    "open_flow": "Otevřít tok energie",
+    "open_forecast": "Otevřít výhled",
+    "now": "Právě teď",
+    "now_state_reason": "Podle živého toku energie",
+    "avoid_window_short": "Nejvyšší dostupná cena",
+    "solar_peak": "Maximum záření {value} W/m²",
+    "next_window": "Nejbližší vhodné okno",
+    "window_reason_short": "Cena a sluneční potenciál",
+    "window_value": "Odhad výroby: {value}",
+    "outlook_title": "Vývoj v dalších hodinách",
+    "outlook_subtitle": "Slunce a cena",
+    "solar_curve": "FVE výroba (kW)",
+    "load_curve": "Spotřeba (kW)",
+    "price_curve": "Cena (Kč/kWh)",
+    "greeting_morning": "Dobré ráno",
+    "greeting_day": "Dobrý den",
+    "greeting_evening": "Dobrý večer",
+    "weather_summary_today": "Dnes bude slunečno a skvělý den pro výrobu energie.",
+    "solar_badge_great": "Skvělý den pro FVE",
+    "rain_prob": "Srážky",
+    "wind_speed": "Vítr",
+    "best_time_consumption": "Nejlepší čas pro větší spotřebu",
+    "best_window_summary": "Vysoká výroba FVE a nízká cena",
+    "why_now_btn": "Proč právě teď?",
+    "why_now_title": "Proč právě teď?",
+    "why_now_content": "Doporučení je vypočteno kombinací predikce vysokého slunečního svitu z FVE a nejnižší spotové ceny elektřiny na OTE trhu pro dnešní den. Zapnutím energeticky náročných spotřebičů v tomto okně maximalizujete přímou vlastní spotřebu a minimalizujete náklady.",
+    "now_is": "TEĎ JE",
+    "good_time": "Dobrá doba",
+    "can_turn_on_appliances": "Můžeš zapnout běžné spotřebiče.",
+    "avoid_label": "VYHNĚTE SE",
+    "high_price_low_pv": "Vysoká cena elektřiny a nízká výroba.",
+    "expected_label": "OČEKÁVÁ SE",
+    "high_production": "Vysoká výroba",
+    "max_production_window": "Od 11:00 do 15:00 max výroba FVE.",
+    "pv_trend_growing": "roste",
+    "pv_trend_falling": "klesá",
+    "pv_trend_stable": "stabilní",
+    "load_medium": "střední",
+    "load_low": "nízká",
+    "load_high": "vysoká",
+    "battery_charging_state": "nabíjení ({power})",
+    "battery_discharging_state": "vybíjení ({power})",
+    "battery_idle_state": "v klidu",
+    "price_low": "nízká",
+    "price_avg": "průměrná",
+    "price_high": "vysoká",
+    "daily_pv_estimate_title": "Dnešní výroba (odhad)",
+    "daily_pv_max_time": "Max kolem {time}",
+    "remind_at": "Připomenout ve {time}",
+    "plan_all_btn": "Naplánovat vše",
+    "estimated_savings_today": "Odhad úspory dnes: {value}",
+    "starts_in": "začíná za {duration}",
+    "low_price": "Nízká cena",
+    "high_production_short": "Vysoká výroba",
+    "window_duration": "Délka okna: {duration}",
+    "expected_benefit": "Očekávaný přínos: {benefit}",
+    "next_windows": "Další okna",
+    "horizon_day": "Den",
+    "horizon_2days": "2 dny",
+    "horizon_7days": "7 dní",
+    "tip_of_day": "Dobrý den pro solární energii! Očekává se nadprůměrná výroba. Využijte denní světlo a naplánujte větší spotřebu na poledne.",
+    "savings_simulation_btn": "Simulace úspor",
+    "view_detailed_forecast": "Zobrazit detailní výhled",
+    "status_system_ok": "Systém v pořádku",
+    "status_all_online": "Všechny komponenty jsou online",
+    "rating_unsuitable": "Nevhodné",
+    "rating_possible": "Možné",
+    "rating_good": "Dobré",
+    "rating_ideal": "Ideální",
+    "badge_great": "Skvělé",
+    "badge_ideal": "Ideální",
+    "badge_auto": "Auto",
+    "badge_optimum": "Optimum"
   },
   "forecast": {
     "eyebrow": "Předpověď a rozhodnutí",
@@ -471,6 +532,8 @@
   "status": {
     "title": "Stav systému",
     "ok": "V pořádku",
+    "system_ok": "Systém v pořádku",
+    "all_online": "Všechny komponenty jsou online",
     "stale": "Zastaralá data",
     "stale_source": "Zdroj {source} neodpovídá {age}",
     "safe_mode": "Bezpečný režim",

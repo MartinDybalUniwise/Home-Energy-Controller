@@ -6,7 +6,8 @@
     "updated": "Updated {time}",
     "no_data": "No data yet",
     "refresh": "Refresh",
-    "auto_refresh": "Auto-refresh"
+    "auto_refresh": "Auto-refresh",
+    "close": "Understood"
   },
   "nav": {
     "overview": "Overview",
@@ -113,19 +114,79 @@
     "grid_export": "Exporting to grid",
     "grid_import": "Importing from grid",
     "grid_balanced": "Balanced flow",
-    "open_flow": "Open energy flow"
-    ,"open_forecast": "Open forecast"
-    ,"now": "Right now"
-    ,"now_state_reason": "Based on the live energy flow"
-    ,"avoid_window_short": "Highest available price"
-    ,"solar_peak": "Peak irradiation {value} W/m²"
-    ,"next_window": "Nearest suitable window"
-    ,"window_reason_short": "Price and solar potential"
-    ,"window_value": "Generation estimate: {value}"
-    ,"outlook_title": "The next hours"
-    ,"outlook_subtitle": "Sun and price"
-    ,"solar_curve": "Solar potential"
-    ,"price_curve": "Electricity price"
+    "open_flow": "Open energy flow",
+    "open_forecast": "Open forecast",
+    "now": "Right now",
+    "now_state_reason": "Based on the live energy flow",
+    "avoid_window_short": "Highest available price",
+    "solar_peak": "Maximum radiation {value} W/m²",
+    "next_window": "Next suitable window",
+    "window_reason_short": "Price and solar potential",
+    "window_value": "Generation estimate: {value}",
+    "outlook_title": "Development in the next hours",
+    "outlook_subtitle": "Solar and price",
+    "solar_curve": "PV generation (kW)",
+    "load_curve": "Consumption (kW)",
+    "price_curve": "Price (CZK/kWh)",
+    "greeting_morning": "Good morning",
+    "greeting_day": "Good day",
+    "greeting_evening": "Good evening",
+    "weather_summary_today": "Today will be sunny and a great day for energy production.",
+    "solar_badge_great": "Great day for solar",
+    "rain_prob": "Precipitation",
+    "wind_speed": "Wind",
+    "best_time_consumption": "Best time for larger consumption",
+    "best_window_summary": "High solar production & low price",
+    "why_now_btn": "Why right now?",
+    "why_now_title": "Why right now?",
+    "why_now_content": "The recommendation combines high PV solar generation forecast with the lowest spot electricity prices on the OTE market today. Running heavy appliances during this window maximizes self-consumption and minimizes costs.",
+    "now_is": "RIGHT NOW",
+    "good_time": "Good time",
+    "can_turn_on_appliances": "You can run standard appliances.",
+    "avoid_label": "AVOID",
+    "high_price_low_pv": "High electricity price and low solar production.",
+    "expected_label": "EXPECTED",
+    "high_production": "High production",
+    "max_production_window": "Peak solar production from 11:00 to 15:00.",
+    "pv_trend_growing": "increasing",
+    "pv_trend_falling": "decreasing",
+    "pv_trend_stable": "stable",
+    "load_medium": "medium",
+    "load_low": "low",
+    "load_high": "high",
+    "battery_charging_state": "charging ({power})",
+    "battery_discharging_state": "discharging ({power})",
+    "battery_idle_state": "idle",
+    "price_low": "low",
+    "price_avg": "average",
+    "price_high": "high",
+    "daily_pv_estimate_title": "Today's generation (est.)",
+    "daily_pv_max_time": "Peak around {time}",
+    "remind_at": "Remind at {time}",
+    "plan_all_btn": "Schedule all",
+    "estimated_savings_today": "Est. savings today: {value}",
+    "starts_in": "starts in {duration}",
+    "low_price": "Low price",
+    "high_production_short": "High solar",
+    "window_duration": "Window length: {duration}",
+    "expected_benefit": "Expected benefit: {benefit}",
+    "next_windows": "Next windows",
+    "horizon_day": "Day",
+    "horizon_2days": "2 days",
+    "horizon_7days": "7 days",
+    "tip_of_day": "Great day for solar energy! Above-average production is expected. Take advantage of daylight and schedule larger consumption around noon.",
+    "savings_simulation_btn": "Savings simulation",
+    "view_detailed_forecast": "View detailed forecast",
+    "status_system_ok": "System healthy",
+    "status_all_online": "All components are online",
+    "rating_unsuitable": "Unsuitable",
+    "rating_possible": "Possible",
+    "rating_good": "Good",
+    "rating_ideal": "Ideal",
+    "badge_great": "Great",
+    "badge_ideal": "Ideal",
+    "badge_auto": "Auto",
+    "badge_optimum": "Optimum"
   },
   "forecast": {
     "eyebrow": "Forecast and decisions",
@@ -471,6 +532,8 @@
   "status": {
     "title": "System status",
     "ok": "Healthy",
+    "system_ok": "System healthy",
+    "all_online": "All components are online",
     "stale": "Stale data",
     "stale_source": "Source {source} has not responded for {age}",
     "safe_mode": "Safe mode",

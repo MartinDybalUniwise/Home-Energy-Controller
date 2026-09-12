@@ -2,45 +2,57 @@
 
 ## Status
 
-Step 18 is currently `PLANNED` with `readiness=YES` and Gate A `PENDING`.
-This package represents the complete SDD planning phase for the Touchscreen
-UI/UX redesign. No application code, frontend assets, or hardware configurations
-have been altered.
+Step 18 implementation is `IN_PROGRESS` (all technical work packages S01–S08
+completed and fully validated; ready for human review and final verification).
+Gate A was `APPROVED` by the repository maintainer.
 
-## Planning-only outcome
+## Implementation outcome
 
-- The complete canonical Step 18 standard documentation package has been
-  created under `dev/step18/`.
-- Authoritative visual references and touchscreen ergonomics (11" 1920x1080
-  Full HD, zero-waste space, touch-first min 64px, readability from 1–2m)
-  have been structured into requirements, acceptance criteria, and work packages.
-- `dev/README.md` was updated to index Step 18.
-- Gate A approval is pending explicit human authorization before any
-  implementation may proceed.
+- **S01 (Design Tokens & Touchscreen CSS)**: Created touchscreen tokens in
+  `dev/hec/web/frontend/css/tokens.css` with 11" 1080p display scale, high-contrast
+  colors (WCAG AA >= 4.5:1), touch targets min 64px, zero-waste spacing.
+- **S02 (Global Shell & Left Sidebar)**: Implemented ergonomic left sidebar
+  navigation with collapsible Service Menu (`#utility-nav`), system health pill,
+  theme switcher, and responsive drawer on mobile.
+- **S03 (Topbar Weather & Hero Recommendation)**: Built comprehensive weather
+  station banner (temp, min/max, solar badge, sunrise/sunset, rain, wind) and
+  dominant hero recommendation window with interactive "Proč právě teď?" modal dialog.
+- **S04 (KPI Live Telemetry Strip)**: Implemented 6-card live status ribbon
+  (PV kW, House W, Battery SoC% & W, Grid W, Spot Price CZK, Heat Pump status).
+- **S05 (24h Daily Energy Rhythm)**: Implemented 24-hour hourly timeline with
+  visual status classification (Ideální / Možné / Nevhodné), current time marker,
+  spot prices, weather icons, and daily solar estimation box.
+- **S06 (Appliances List & Donut Gauge)**: Added intelligent appliance recommendations
+  with savings calculation, "Naplánovat vše" action, and animated donut gauge countdown.
+- **S07 (Multi-curve Chart & Bottom Action Bar)**: Implemented 24h/2-day/7-day horizon
+  graph (PV, Load, Price) with SVG render, plus bottom action bar with tip of the day
+  and quick simulation CTA buttons.
+- **S08 (i18n & E2E Validation)**: Added all Czech and English translation keys in
+  `dev/hec/locales/cs.json` and `en.json`. Verified with pytest, ruff, and Playwright.
 
-## Files created / changed in planning phase
+## Evidence record
 
-- `dev/README.md`
-- `dev/step18/REQUEST.md`
-- `dev/step18/REQUIREMENT.md`
-- `dev/step18/PLAN.md`
-- `dev/step18/ACCEPTANCE_CRITERIA.md`
-- `dev/step18/TRACEABILITY.md`
-- `dev/step18/STEP.json`
-- `dev/step18/RESULT.md`
+- E-018-001: 1080p zero-waste touchscreen layout verification (Playwright across viewports).
+- E-018-002: Header weather bar and sidebar navigation rendering check.
+- E-018-003: Hero recommendation and `#why-now-dialog` modal interactive verification.
+- E-018-004: KPI telemetry strip (6 cards) rendering with live and fallback values.
+- E-018-005: 24h daily energy rhythm timeline and solar estimation card check.
+- E-018-006: Appliance recommendations, donut gauge, and multi-curve chart check.
+- E-018-007: Backend preservation, zero physical writes, `controller.enabled=false`, safe mode.
+- E-018-008: Playwright E2E test suite and i18n completeness across CS and EN.
+- E-018-009: Full repository validation (`dev/sdd/tools/full_validation.py`) passed.
 
-## Planned work packages
+## Validation report
 
-- S01: Design Tokeny & CSS základy pro Touchscreen
-- S02: Globální Layout Shellu & Sidebar navigace
-- S03: Topbar meteo widget & Hero Doporučení
-- S04: KPI lišta živé telemetrie (6 karet)
-- S05: Energetický rytmus dne (24h timeline)
-- S06: Doporučení spotřebičů & Donut Gauge odpočet
-- S07: Multi-křivkový graf, Tok energie & Spodní lišta
-- S08: i18n lokalizace (CZ/EN), Playwright testy a validace
+- **Ruff Lint**: PASS (`All checks passed!`)
+- **Pytest Suite**: PASS (260 passed, 0 failed, 12 deselected)
+- **Playwright E2E**: PASS across desktop (1920x1080, 1440x900, 1280x800, 1024x768) and mobile (390x844).
+- **Step Validation**: PASS (`dev/sdd/tools/validate_step.py --step dev/step18`).
+- **Full Validation**: PASS (`dev/sdd/tools/full_validation.py`).
 
-## Next step
+## Safety status
 
-Await explicit human authorization (`APPROVED`, `SCHVALUJI`, `IMPLEMENT`, `POKRAČUJ`)
-for Gate A before executing work package S01.
+- Controller enabled: false
+- TNG writes enabled: false
+- Physical-device writes: blocked
+- Safe mode invariants: preserved
