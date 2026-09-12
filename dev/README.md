@@ -30,6 +30,7 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | [`step16/`](step16/) | GoodWe Integration Refactor – nový GoodWeManager, reader/writer bez kolizí, SDG do role logger | 📝 plán schválený, design & příprava <!-- status: PLANNED --> |
 | [`step17/`](step17/) | Repository/SDD review a doplnění povinných standardních souborů Step17, pouze plánování | 📝 plán schválený, pouze dokumentace / ready <!-- status: PLANNED --> |
 | [`step18/`](step18/) | UI/UX Redesign: optimalizace pro 11" dotykový wall displej (1080p), zero-waste prostor, vysoký kontrast | � rozpracováno <!-- status: IN_PROGRESS --> |
+| [`step19/`](step19/) | Home/Dnes cockpit: kompaktní no-scroll rozvržení 1920x1080, odstranění duplicit a dvoupanelová spodní část | 📝 plánováno, čeká Gate A <!-- status: PLANNED --> |
 
 Další kroky se doplňují sem, jakmile vzniknou.
 

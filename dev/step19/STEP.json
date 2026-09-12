@@ -1,0 +1,43 @@
+{
+  "step": 19,
+  "classification": "LARGE",
+  "status": "PLANNED",
+  "gate_a": {
+    "status": "PENDING",
+    "approved_by": null,
+    "approved_at": null,
+    "reason": "Awaiting explicit approval of the Step 19 no-scroll Today cockpit planning package."
+  },
+  "gate_b": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "NO",
+  "requested_by": "repository owner / maintainer",
+  "source": "No-scroll Home / Today cockpit redesign request dated 2026-09-12",
+  "branch": null,
+  "pr": null,
+  "notes": "Planning only. Frontend implementation is blocked until Gate A approval.",
+  "requirements": [
+    "REQ-019-001", "REQ-019-002", "REQ-019-003", "REQ-019-004",
+    "REQ-019-005", "REQ-019-006", "REQ-019-007", "REQ-019-008",
+    "REQ-019-009", "REQ-019-010", "REQ-019-011", "REQ-019-012",
+    "REQ-019-013"
+  ],
+  "acceptance": [
+    "AC-019-001", "AC-019-002", "AC-019-003", "AC-019-004",
+    "AC-019-005", "AC-019-006", "AC-019-007", "AC-019-008",
+    "AC-019-009", "AC-019-010", "AC-019-011", "AC-019-012",
+    "AC-019-013", "AC-019-014"
+  ],
+  "evidence": [
+    "E-019-001", "E-019-002", "E-019-003", "E-019-004", "E-019-005",
+    "E-019-006", "E-019-007", "E-019-008", "E-019-009", "E-019-010"
+  ]
+}
