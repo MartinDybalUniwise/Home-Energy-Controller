@@ -29,6 +29,7 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | [`step15/`](step15/) | Production deployment readiness for 192.168.2.115, safe host update, validation, and rollback | 🚧 implementováno, produkční ověření otevřeno <!-- status: IN_PROGRESS --> |
 | [`step16/`](step16/) | GoodWe Integration Refactor – nový GoodWeManager, reader/writer bez kolizí, SDG do role logger | 📝 plán schválený, design & příprava <!-- status: PLANNED --> |
 | [`step17/`](step17/) | Repository/SDD review a doplnění povinných standardních souborů Step17, pouze plánování | 📝 plán schválený, pouze dokumentace / ready <!-- status: PLANNED --> |
+| [`step18/`](step18/) | UI/UX Redesign: optimalizace pro 11" dotykový wall displej (1080p), zero-waste prostor, vysoký kontrast | 📝 plánováno, pouze plánování <!-- status: PLANNED --> |
 
 Další kroky se doplňují sem, jakmile vzniknou.
 

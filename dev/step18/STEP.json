@@ -1,0 +1,61 @@
+{
+  "step": 18,
+  "classification": "LARGE",
+  "status": "PLANNED",
+  "gate_a": {
+    "status": "PENDING",
+    "approved_by": null,
+    "approved_at": null,
+    "reason": "Plánovací balíček je připraven; čeká se na explicitní schválení Gate A uživatelem pro zahájení implementace."
+  },
+  "gate_b": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "UI/UX Redesign request based on authoritative visual references",
+  "branch": null,
+  "pr": null,
+  "notes": "Planning-only SDD package for Step18. Zero application code or hardware writes.",
+  "requirements": [
+    "REQ-018-001",
+    "REQ-018-002",
+    "REQ-018-003",
+    "REQ-018-004",
+    "REQ-018-005",
+    "REQ-018-006",
+    "REQ-018-007",
+    "REQ-018-008",
+    "REQ-018-009",
+    "REQ-018-010"
+  ],
+  "acceptance": [
+    "AC-018-001",
+    "AC-018-002",
+    "AC-018-003",
+    "AC-018-004",
+    "AC-018-005",
+    "AC-018-006",
+    "AC-018-007",
+    "AC-018-008",
+    "AC-018-009"
+  ],
+  "evidence": [
+    "E-018-001",
+    "E-018-002",
+    "E-018-003",
+    "E-018-004",
+    "E-018-005",
+    "E-018-006",
+    "E-018-007",
+    "E-018-008",
+    "E-018-009"
+  ]
+}
