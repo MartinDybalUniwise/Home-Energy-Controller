@@ -1,0 +1,72 @@
+{
+  "step": 18,
+  "classification": "LARGE",
+  "status": "PLANNED",
+  "gate_a": {
+    "status": "PENDING",
+    "approved_by": null,
+    "approved_at": null,
+    "reason": "Planning package prepared; explicit human approval is required before application code changes."
+  },
+  "gate_b": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null,
+    "reason": "No implementation or runtime preview is authorized before Gate A."
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null,
+    "reason": "Step is planning-only and not ready for completion review."
+  },
+  "readiness": "NO",
+  "requested_by": "repository owner / maintainer",
+  "source": "2026-09-12 request: prepare first step for read-only SDG Log Reader",
+  "branch": "SDG-log-reader",
+  "pr": null,
+  "notes": "Read-only SDG log reader with unchanged FTE/GoodWe fallback. UNC root is readable; DBF schema still requires sanitized discovery before implementation.",
+  "requirements": [
+    "REQ-018-001",
+    "REQ-018-002",
+    "REQ-018-003",
+    "REQ-018-004",
+    "REQ-018-005",
+    "REQ-018-006",
+    "REQ-018-007",
+    "REQ-018-008"
+  ],
+  "acceptance": [
+    "AC-018-001",
+    "AC-018-002",
+    "AC-018-003",
+    "AC-018-004",
+    "AC-018-005",
+    "AC-018-006",
+    "AC-018-007",
+    "AC-018-008",
+    "AC-018-009",
+    "AC-018-010",
+    "AC-018-011",
+    "AC-018-012",
+    "AC-018-013",
+    "AC-018-014",
+    "AC-018-015",
+    "AC-018-016"
+  ],
+  "evidence": [
+    "E-018-001",
+    "E-018-002",
+    "E-018-003",
+    "E-018-004",
+    "E-018-005",
+    "E-018-006",
+    "E-018-007",
+    "E-018-008",
+    "E-018-009",
+    "E-018-010",
+    "E-018-011",
+    "E-018-012",
+    "E-018-013"
+  ]
+}

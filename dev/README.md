@@ -29,6 +29,7 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | [`step15/`](step15/) | Production deployment readiness for 192.168.2.115, safe host update, validation, and rollback | 🚧 implementováno, produkční ověření otevřeno <!-- status: IN_PROGRESS --> |
 | [`step16/`](step16/) | GoodWe Integration Refactor – nový GoodWeManager, reader/writer bez kolizí, SDG do role logger | 📝 plán schválený, design & příprava <!-- status: PLANNED --> |
 | [`step17/`](step17/) | Redesign stránek Dnes, Výhled a Tok energie bez změny API a architektury | 📝 plánováno <!-- status: PLANNED --> |
+| [`step18/`](step18/) | SDG Log Reader – read-only logy a fallback na stávající FTE reader | 📝 plánováno, Gate A čeká na schválení <!-- status: PLANNED --> |
 
 Další kroky se doplňují sem, jakmile vzniknou.
 
