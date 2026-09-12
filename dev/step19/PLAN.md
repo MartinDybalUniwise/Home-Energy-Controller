@@ -12,10 +12,10 @@ behavior, remove repetition, and keep Daily Energy Rhythm dominant.
 |---|---|---|
 | S01 | Establish browser geometry baseline and regression assertions | DONE |
 | S02 | Compact the shared desktop sidebar without breaking navigation | DONE |
-| S03 | Consolidate the header and recommendation hierarchy | DONE |
+| S03 | Consolidate the recommendation hierarchy into one horizontal band | DONE |
 | S04 | Compact the KPI strip and expand Daily Energy Rhythm | DONE |
 | S05 | Replace the three-panel workspace with appliances plus chart | DONE |
-| S06 | Complete responsive, i18n, fallback, and accessibility checks | DONE |
+| S06 | Complete responsive, i18n, fallback, accessibility, and empty-track checks | PLANNED |
 | S07 | Run validation and prepare human 1920x1080 acceptance preview | BLOCKED |
 
 ## Detailed strategy
@@ -34,10 +34,10 @@ behavior, remove repetition, and keep Daily Energy Rhythm dominant.
 
 ### S03 - Header and recommendation consolidation
 
-- Refactor Today markup in `advisor.js` to one concise 100-120 px header and one
-  90-110 px horizontal decision panel.
-- Remove repeated PV/recommendation text while reusing current calculations.
-- Keep Why-now only if it fits the approved hierarchy.
+- Preserve one compact horizontal recommendation band with the dominant best
+  window and concise Now, Avoid, and PV-peak statuses.
+- Keep Why-now as an accessible action in this band.
+- Do not restore the former three separate supporting cards.
 
 ### S04 - KPI and rhythm density
 
@@ -57,6 +57,8 @@ behavior, remove repetition, and keep Daily Energy Rhythm dominant.
 - Test 1920x1080, 1440x900, 1280x800, 1024x768, and 390x844.
 - Exercise Czech/English catalogs and missing weather/price/prediction states.
 - Preserve focus visibility, keyboard navigation, and touch operation.
+- Ensure removed panels leave no empty CSS grid tracks at 1920, 1440, 1280, or
+  1024 px widths.
 
 ### S07 - Validation and acceptance preview
 

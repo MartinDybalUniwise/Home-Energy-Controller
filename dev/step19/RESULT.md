@@ -40,7 +40,12 @@ two-panel appliances/chart workspace.
 ## Open gates and limitations
 
 - AC-019-012 remains open until Full Validation can run past repository hygiene.
-- AC-019-014 and Gate B remain open pending human 1920x1080 visual/touch review.
+- Human review FAILED: the rendered page still scrolls and removed cards leave
+	unused right-side grid columns at the tested browser width.
+- The later instruction to remove the recommendation band was revoked; the
+	implemented compact horizontal band remains part of the approved design.
+- AC-019-014, AC-019-015, and Gate B remain open pending responsive grid fixes
+	and another human visual/touch review.
 
 ## Deviations
 

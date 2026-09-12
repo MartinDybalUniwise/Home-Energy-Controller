@@ -23,18 +23,18 @@
   "source": "No-scroll Home / Today cockpit redesign request dated 2026-09-12",
   "branch": null,
   "pr": null,
-  "notes": "Gate A approved. Frontend implementation is in progress; Gate B remains pending.",
+  "notes": "Recommendation band remains in scope. Human review found responsive scroll and empty reserved columns that still require correction.",
   "requirements": [
     "REQ-019-001", "REQ-019-002", "REQ-019-003", "REQ-019-004",
     "REQ-019-005", "REQ-019-006", "REQ-019-007", "REQ-019-008",
     "REQ-019-009", "REQ-019-010", "REQ-019-011", "REQ-019-012",
-    "REQ-019-013"
+    "REQ-019-013", "REQ-019-014"
   ],
   "acceptance": [
     "AC-019-001", "AC-019-002", "AC-019-003", "AC-019-004",
     "AC-019-005", "AC-019-006", "AC-019-007", "AC-019-008",
     "AC-019-009", "AC-019-010", "AC-019-011", "AC-019-012",
-    "AC-019-013", "AC-019-014"
+    "AC-019-013", "AC-019-014", "AC-019-015"
   ],
   "evidence": [
     "E-019-001", "E-019-002", "E-019-003", "E-019-004", "E-019-005",

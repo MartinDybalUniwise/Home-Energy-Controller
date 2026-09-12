@@ -12,7 +12,8 @@ checks do not replace the human 1920x1080 review.
 - [x] AC-019-003: The header is 100-120 px and includes required concise
   greeting/weather information without duplicate PV messaging.
 - [x] AC-019-004: One 90-110 px recommendation panel shows the best window plus
-  concise Now, Avoid, and PV-peak statuses; separate status cards do not render.
+  concise Now, Avoid, and PV-peak statuses; separate supporting cards do not
+  render and Why-now remains accessible.
 - [x] AC-019-005: All six telemetry items remain visible, data-bound,
   semantically colored, and readable in a 90-105 px strip.
 - [x] AC-019-006: Daily Energy Rhythm is 260-290 px, uses expanded width, retains
@@ -36,6 +37,9 @@ checks do not replace the human 1920x1080 review.
 - [ ] AC-019-014: A human confirms at 1920x1080 that there is no scroll,
   clipping, overlap, repetition, unreadable text, undersized touch control, or
   loss of Daily Energy Rhythm hierarchy.
+- [ ] AC-019-015: At 1920, 1440, 1280, and 1024 px widths, removed panels leave
+  no empty grid column; rhythm and the two-panel lower workspace consume the
+  available content width.
 
 ## Definition of ready
 

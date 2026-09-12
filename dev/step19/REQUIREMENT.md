@@ -40,7 +40,7 @@ safety behavior.
   precipitation, wind, and sunrise/sunset without duplicate PV suitability.
 - REQ-019-004: One approximately 90-110 px horizontal recommendation panel shall
   contain the dominant best window and concise Now, Avoid, and PV-peak statuses;
-  separate supporting cards shall be removed.
+  separate supporting cards shall not render.
 - REQ-019-005: The six live telemetry values shall remain data-bound and
   readable in one approximately 90-105 px strip with semantic status colors.
 - REQ-019-006: Daily Energy Rhythm shall remain dominant, retain the 00:00-24:00
@@ -58,6 +58,9 @@ safety behavior.
   Day / 2 days / 7 days controls without loss of legibility.
 - REQ-019-011: The next-window donut and repeated copies of the same daily
   recommendation, PV outlook, or suitability message shall be removed.
+- REQ-019-014: Removing panels shall also collapse their grid tracks at every
+  desktop width. Daily Energy Rhythm and the lower appliances/chart workspace
+  shall use the full available width without empty reserved columns.
 - REQ-019-012: Existing API bindings and missing-data fallbacks shall be reused;
   the frontend shall not invent values or new scheduling behavior.
 - REQ-019-013: Changed user-facing text shall use the existing Czech/English
