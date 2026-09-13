@@ -88,12 +88,12 @@ def test_config_put_validates_and_saves(tmp_path):
     app = FakeApp(tmp_path)
     app.config.path.write_text(json.dumps(app.config.data), encoding="utf-8")
 
-    status, payload = api.config_put(app, {"config": {"polling": {"goodwe_seconds": 1}}})
+    status, payload = api.config_put(app, {"config": {"goodwe": {"timeout_seconds": 0}}})
     assert status == 400 and payload["errors"]
 
-    status, payload = api.config_put(app, {"config": {"polling": {"goodwe_seconds": 30}}})
+    status, payload = api.config_put(app, {"config": {"goodwe": {"read_interval_seconds": 30}}})
     assert status == 200
-    assert json.loads(app.config.path.read_text(encoding="utf-8"))["polling"]["goodwe_seconds"] == 30
+    assert json.loads(app.config.path.read_text(encoding="utf-8"))["goodwe"]["read_interval_seconds"] == 30
 
 
 def test_config_put_never_writes_back_masked_secret(tmp_path):

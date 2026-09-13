@@ -19,6 +19,7 @@ from ..controller.predictor import Predictor
 from ..finance.service import FinanceService
 from ..readers.registry import build_readers
 from ..storage.jsonl import JsonlStorage
+from ..writers.fte_writer import FTEWriter
 from . import config as config_mod
 from .logging_setup import configure, event, get_logger, register_secrets
 from .maintenance import Maintenance
@@ -43,6 +44,9 @@ class Application:
         self._lock = threading.Lock()
         self.snapshot: dict[str, dict] = {}
         self.readers = build_readers(self.config, self.storage)
+        goodwe_reader = next((reader for reader in self.readers if reader.name == "goodwe"), None)
+        goodwe_manager = getattr(goodwe_reader, "manager", None)
+        self.goodwe_writer = FTEWriter(self.config, manager=goodwe_manager) if goodwe_manager else None
         self.scheduler = Scheduler(self.readers, on_sample=self.accept)
         self.maintenance = Maintenance(self.config, self.storage)
         self.summaries = self.maintenance.summaries
@@ -66,6 +70,9 @@ class Application:
     # --- data ---------------------------------------------------------------
     def accept(self, sample: Sample, reader=None) -> None:
         if not sample.ok:
+            if sample.values:
+                with self._lock:
+                    self.snapshot[sample.source] = sample.to_dict()
             return
         with self._lock:
             self.snapshot[sample.source] = sample.to_dict()
@@ -89,6 +96,13 @@ class Application:
 
     def status(self) -> dict[str, Any]:
         statuses = {reader.name: reader.status.to_dict() for reader in self.readers}
+        diagnostics = {
+            reader.name: reader.status_snapshot()
+            for reader in self.readers
+            if hasattr(reader, "status_snapshot")
+        }
+        if self.goodwe_writer is not None:
+            diagnostics["goodwe_writer"] = self.goodwe_writer.status_snapshot()
         stale = [name for name, value in statuses.items() if value["stale"]]
         controller_state = self.controller.state() if self.controller is not None else {
             "enabled": False, "safe_mode": True, "reason_key": "status.controller_disabled",
@@ -96,6 +110,9 @@ class Application:
         return {
             "started_at": to_iso(self.started_at),
             "readers": statuses,
+            "goodwe_diagnostics": diagnostics.get("goodwe", {}),
+            "goodwe_writer_diagnostics": diagnostics.get("goodwe_writer", {}),
+            "sdg_diagnostics": diagnostics.get("sdg_history", {}),
             "stale_sources": stale,
             "controller": controller_state,
             "site_name": self.config.get("system.site_name"),

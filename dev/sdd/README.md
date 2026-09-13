@@ -12,6 +12,40 @@ The purpose is to make step creation, validation, and evidence generation consis
 - no physical write path is enabled by default
 - CI validation must be deterministic and fail-closed
 
+## Threat model
+
+HEC is a private, single-owner home system operated by one trusted
+administrator. Trusted actors are: the local HEC administrator, anyone with
+filesystem/repo access, anyone able to run Python/PowerShell on the HEC host,
+and the owner deliberately editing config or running a service command.
+Deliberate bypass of application-level protection by a trusted administrator
+is out of scope and must not be treated as a defect.
+
+Typical failure impact is a suboptimal electricity purchase/sale (low
+thousands of CZK at most), a poorly heated hot-water tank, a temporarily too
+warm/cold house, or the need for a manual fix. These impacts alone are never
+grounds for an enterprise/security BLOCKER.
+
+## Severity model
+
+- **BLOCKER** - realistic risk of device damage, uncontrolled/repeated
+  physical writes, a write to the wrong device, major loss/corruption of
+  production data or config, secret leakage, inability to start the
+  application, a major regression of a core function, or an irreversible
+  operation without a conscious human step. Every BLOCKER must state a
+  concrete, realistic failure scenario and its impact.
+- **IMPORTANT** - a real functional defect that meaningfully degrades normal
+  operation but can be safely fixed manually or by disabling the feature.
+- **MINOR** - robustness, edge cases, UX, observability, docs, traceability,
+  naming, extra tests.
+- **FUTURE HARDENING** - defense-in-depth or security hardening against a
+  trusted administrator, cryptographic signing, immutable evidence, extreme
+  edge cases. Requires full local admin/code-execution access to exploit.
+
+MINOR and FUTURE HARDENING findings must never block S06/S07/Human Gate/DONE.
+A finding that only matters if a trusted local admin deliberately bypasses the
+system must be classified as FUTURE HARDENING at most.
+
 ## Included tooling
 
 - `new_step.py` creates the next numbered step from templates
@@ -64,6 +98,10 @@ must identify substeps, risks, validation, and an explicit approval gate.
 A completed step has passing repository and step validation, evidence for each
 mandatory acceptance criterion, a filled `RESULT.md`, and no unresolved
 blockers. Automated checks never substitute for a human hardware test.
+
+A BLOCKER raised during review must name a concrete realistic failure
+scenario within the defined threat model; findings outside that model do not
+block DONE.
 
 ## UI validation rule
 

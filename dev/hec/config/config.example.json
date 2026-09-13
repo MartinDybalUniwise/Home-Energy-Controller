@@ -21,7 +21,6 @@
     "backups": 5
   },
   "polling": {
-    "goodwe_seconds": 10,
     "tng_seconds": 300,
     "shelly_seconds": 10,
     "weather_minutes": 15,
@@ -31,13 +30,17 @@
   },
   "goodwe": {
     "enabled": false,
+    "writer_enabled": false,
+    "verify_after_write": true,
+    "read_interval_seconds": 10,
     "host": "${HEC_GOODWE_HOST}",
     "family": "ET",
-    "timeout": 2,
-    "retries": 3,
+    "timeout_seconds": 3,
+    "retry_count": 3,
     "grid_positive_is_import": true,
     "battery_positive_is_charge": true,
     "sdg": {
+      "enabled": false,
       "log_root_path": "\\\\192.168.2.115\\Promotic"
     }
   },

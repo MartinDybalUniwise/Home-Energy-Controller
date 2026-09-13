@@ -56,6 +56,19 @@ Preserve:
 - GoodWe write protection,
 - existing API and data contracts unless the approved Step explicitly changes them.
 
+Physical write safety baseline (sufficient, do not add more without approval):
+
+1. physical writes default OFF,
+2. an explicit operational enable/write switch exists,
+3. writes go through a single central writer boundary,
+4. values are validated against reasonable limits,
+5. a read-back follows the write where technically available,
+6. a communication error must not cause infinite/repeated uncontrolled writes,
+7. the system can safely stop automatic control and fall back to manual/default.
+
+MINOR and FUTURE HARDENING findings (see `dev/sdd/README.md` severity model)
+do not block Developer completion.
+
 Never:
 
 - enable physical-device writes,

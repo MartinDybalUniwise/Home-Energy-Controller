@@ -74,6 +74,14 @@ class BaseReader:
                         backoff_s=int(self.backoff_seconds()), error=type(exc).__name__)
             return Sample(source=self.name, ok=False, error=self.status.last_error)
 
+        if values.get("online") is False:
+            self._failures += 1
+            self.status.error_count += 1
+            self.status.last_error = str(values.get("error") or "source_offline")
+            error_event(self.log, "poll_offline", attempt=self._failures,
+                        backoff_s=int(self.backoff_seconds()), source=self.name)
+            return Sample(source=self.name, values=values, ok=False, error=self.status.last_error)
+
         self._failures = 0
         self.status.last_success = now_local()
         self.status.success_count += 1

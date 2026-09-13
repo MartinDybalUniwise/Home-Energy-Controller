@@ -701,6 +701,22 @@ function renderStatusReport(payload) {
                  : t('overview.no_decision')}
     </p>`);
 
+  const goodwe = payload.goodwe_diagnostics || {};
+  const writer = payload.goodwe_writer_diagnostics || {};
+  const sdg = payload.sdg_diagnostics || {};
+  const diagnosticsCard = card('status.goodwe_diagnostics', `
+    <dl class="status-details">
+      <dt>${t('status.connection')}</dt><dd>${goodwe.connected ? t('status.connected') : t('status.disconnected')}</dd>
+      <dt>${t('status.model_firmware')}</dt><dd>${escapeHtml(goodwe.model || '–')} / ${escapeHtml(goodwe.firmware || '–')}</dd>
+      <dt>${t('status.last_read')}</dt><dd>${goodwe.last_read ? dateTime(goodwe.last_read) : '–'}</dd>
+      <dt>${t('status.last_write')}</dt><dd>${goodwe.last_write?.command || '–'}</dd>
+      <dt>${t('status.retries')}</dt><dd>${num(goodwe.retry_count, 0)}</dd>
+      <dt>${t('status.writer')}</dt><dd>${writer.enabled ? t('status.enabled') : t('status.disabled')}</dd>
+      <dt>${t('status.authorization')}</dt><dd>${escapeHtml(writer.hardware_authorization?.status || goodwe.hardware_authorization?.status || 'NOT_AUTHORIZED')}</dd>
+      <dt>${t('status.sdg')}</dt><dd>${sdg.enabled ? t('status.enabled') : t('status.disabled')} / ${sdg.available ? t('status.available') : t('status.unavailable')}</dd>
+      <dt>${t('status.sdg_checkpoint')}</dt><dd>${escapeHtml(sdg.checkpoint || '–')}</dd>
+    </dl>`);
+
   const stale = payload.stale_sources || [];
   const infoCard = card('status.title', `
     <p class="meta">
@@ -711,7 +727,7 @@ function renderStatusReport(payload) {
         : `<span class="pill" data-level="ok">${t('status.ok')}</span>`}
     </p>`);
 
-  return `<div class="cards">${infoCard}${controllerCard}</div>${readerTable}`;
+  return `<div class="cards">${infoCard}${controllerCard}${diagnosticsCard}</div>${readerTable}`;
 }
 
 export async function status(view, { api }) {

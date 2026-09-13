@@ -314,7 +314,6 @@
         "backups": "Log backups to keep"
       },
       "polling": {
-        "goodwe_seconds": "Poll interval: solar/battery (s)",
         "tng_seconds": "Poll interval: heat pump (s)",
         "shelly_seconds": "Poll interval: Shelly (s)",
         "weather_minutes": "Poll interval: weather (min)",
@@ -324,8 +323,11 @@
         "enabled": "Enabled",
         "host": "Inverter address",
         "family": "Inverter family",
-        "timeout": "Timeout (s)",
-        "retries": "Retries",
+        "writer_enabled": "Enable GoodWe writes",
+        "verify_after_write": "Verify after write",
+        "read_interval_seconds": "GoodWe read interval (s)",
+        "timeout_seconds": "GoodWe timeout (s)",
+        "retry_count": "GoodWe retry count",
         "grid_positive_is_import": "Positive value = grid import",
         "battery_positive_is_charge": "Positive value = battery charging",
         "sdg": {
@@ -433,7 +435,7 @@
         "backups": "How many rotated log files to keep."
       },
       "polling": {
-        "goodwe_seconds": "How often current power and battery status are read from the GoodWe inverter.",
+        "read_interval_seconds": "How often current power and battery status are read from the GoodWe inverter.",
         "tng_seconds": "How often the heat pump's status is checked. Unrelated to the minimum gap between writes - see the Heat pump section.",
         "shelly_seconds": "How often readings are pulled from Shelly devices.",
         "weather_minutes": "How often the weather forecast is refreshed.",
@@ -443,8 +445,8 @@
         "enabled": "Read data from the GoodWe inverter.",
         "host": "IP address or hostname of the GoodWe inverter on the local network.",
         "family": "GoodWe inverter model family - affects how data is read.",
-        "timeout": "How long to wait for the inverter to respond before giving up.",
-        "retries": "How many times to retry a failed read before reporting an error.",
+        "timeout_seconds": "How long to wait for the inverter to respond before giving up.",
+        "retry_count": "How many times to retry a failed read before reporting an error.",
         "grid_positive_is_import": "The sign convention for grid flow differs by installation - this sets how it's interpreted.",
         "battery_positive_is_charge": "The sign convention for battery flow differs by installation - this sets how it's interpreted.",
         "sdg": {
@@ -558,7 +560,21 @@
     "successes": "Successes",
     "errors": "Errors",
     "last_error": "Last error",
-    "age": "Age"
+    "age": "Age",
+    "goodwe_diagnostics": "GoodWe diagnostics",
+    "connection": "Connection",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "model_firmware": "Model / firmware",
+    "last_read": "Last read",
+    "last_write": "Last write",
+    "retries": "Retries",
+    "writer": "GoodWe writes",
+    "authorization": "Service authorization",
+    "sdg": "SDG",
+    "sdg_checkpoint": "SDG checkpoint",
+    "available": "Available",
+    "unavailable": "Unavailable"
   },
   "reason": {
     "pv_surplus_high_soc": "PV surplus {pv_kw} kW, battery {soc} %, low price {price} CZK/kWh",

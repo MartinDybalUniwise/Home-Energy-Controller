@@ -102,7 +102,6 @@ SCHEMA: dict[str, Any] = {
         "backups": F("int", 5, minimum=1, maximum=50, restart=True),
     },
     "polling": {
-        "goodwe_seconds": F("int", 10, minimum=2, maximum=3600),
         "tng_seconds": F("int", 300, minimum=30, maximum=3600),
         "shelly_seconds": F("int", 10, minimum=2, maximum=3600),
         "weather_minutes": F("int", 15, minimum=5, maximum=180),
@@ -115,14 +114,18 @@ SCHEMA: dict[str, Any] = {
     },
     "goodwe": {
         "enabled": F("bool", False),
+        "writer_enabled": F("bool", False),
+        "verify_after_write": F("bool", True),
+        "read_interval_seconds": F("int", 10, minimum=2, maximum=3600),
         "host": F("str", "${HEC_GOODWE_HOST}"),
         "family": F("enum", "ET", choices=("ET", "EH", "ES", "DT", "")),
-        "timeout": F("int", 2, minimum=1, maximum=30),
-        "retries": F("int", 3, minimum=0, maximum=10),
+        "timeout_seconds": F("int", 3, minimum=1, maximum=30),
+        "retry_count": F("int", 3, minimum=0, maximum=10),
         # Znaménko toků se mezi instalacemi liší, proto je směr konfigurovatelný.
         "grid_positive_is_import": F("bool", True),
         "battery_positive_is_charge": F("bool", True),
         "sdg": {
+            "enabled": F("bool", False),
             "log_root_path": F("str", "\\\\192.168.2.115\\Promotic", restart=True),
         },
     },

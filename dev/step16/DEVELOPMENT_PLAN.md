@@ -10,12 +10,13 @@ Vychází z dokumentu `HEC_FTE_READER_WRITER_UPRAVA.md`.
 
 ## Cíl
 
-- Nový centrální `GoodWeManager` (lock, retry, read-back, fallback Modbus)
+- Následující implementační fáze zavádí centrální `GoodWeManager` (lock, retry, read-back, fallback Modbus)
 - Reader čte primárně přes knihovnu GoodWe, fallback na raw Modbus jen pro nepodporované funkce
-- Writer idempotentní, všechny příkazy přes knihovnu, fallback jen jako poslední zrada
-- SDG zůstane pouze čtení + logging, bez aktivního řízení FVE
+- Writer je idempotentní, všechny příkazy přes knihovnu, fallback jen jako poslední možnost
+- SDG zůstane pouze čtení + logging a historický import, bez aktivního řízení FVE
 - Plně konfigurovatelná cesta k SDG logům (nový parametr `goodwe.sdg.log_root_path`)
-- Testy a audit pro všechny operace
+- Testy a audit pro všechny operace v rámci implementace S06
+- S07 zůstává složka pro explicitní human/hardware verification před jakýmkoli live write
 
 ## Architektura
 
@@ -190,43 +191,19 @@ Samostatný importér pro historická a diagnostická data z SDG:
 
 ### 5. Konfigurační rozšíření
 
-**YAML:**
-```yaml
-goodwe:
-  enabled: true
-  host: "192.168.2.116"
-  read_interval_sec: 5
-  timeout_sec: 3
-  retry_count: 3
-  retry_delay_sec: 2
-
-  control:
-    enabled: true
-    verify_after_write: true
-    write_retry_count: 3
-
-  sdg:
-    enabled: true
-    log_root_path: "C:/PROMOTIC/Apps/SDG"
-```
-
-**JSON (alternativa):**
+**Canonical JSON (validated by the Python declarative schema):**
 ```json
 {
   "goodwe": {
-    "enabled": true,
+    "enabled": false,
+    "writer_enabled": false,
+    "verify_after_write": true,
     "host": "192.168.2.116",
-    "read_interval_sec": 5,
-    "timeout_sec": 3,
+    "read_interval_seconds": 10,
+    "timeout_seconds": 3,
     "retry_count": 3,
-    "retry_delay_sec": 2,
-    "control": {
-      "enabled": true,
-      "verify_after_write": true,
-      "write_retry_count": 3
-    },
     "sdg": {
-      "enabled": true,
+      "enabled": false,
       "log_root_path": "C:/PROMOTIC/Apps/SDG"
     }
   }

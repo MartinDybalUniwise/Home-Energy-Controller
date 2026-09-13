@@ -10,7 +10,9 @@ from hec.core import schema
 
 def test_defaults_cover_every_section():
     data = schema.defaults()
-    assert data["polling"]["goodwe_seconds"] == 10
+    assert data["goodwe"]["read_interval_seconds"] == 10
+    assert data["goodwe"]["timeout_seconds"] == 3
+    assert data["goodwe"]["retry_count"] == 3
     assert data["tng"]["minimum_change_interval_seconds"] == 900
     assert data["ui"]["languages"] == ["cs", "en"]
     assert data["goodwe"]["sdg"]["log_root_path"] == "\\\\192.168.2.115\\Promotic"
