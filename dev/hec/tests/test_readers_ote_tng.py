@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import json
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from unittest.mock import patch
 
 from conftest import FakeResponse, FakeSession
 from hec.core import config as config_mod
 from hec.core import schema
+from hec.core.timeutil import now_local, to_iso
 from hec.readers.ote import OteReader, extract_periods
 from hec.readers.tng import TngReader, scheduled_value
 
@@ -300,3 +301,66 @@ def test_scheduled_value_helper_matches_prototype():
         {"from": "22:00", "to": "06:00", "temperature": 51}]}
     assert scheduled_value(section, datetime(2026, 8, 19, 23, 0)) == 51
     assert scheduled_value(section, datetime(2026, 8, 19, 12, 0)) == 45
+
+
+def test_tng_invalid_last_post_at_is_failsafe(tmp_path, tng_connect):
+    reader, config, _ = build_tng(tmp_path, tng_connect)
+    reader.change_gate["basic"]["last_post_at"] = "invalid-timestamp"
+
+    assert reader._seconds_since_last_post("basic") == 0.0
+    allowed, reason = reader.can_post("basic", False)
+    assert allowed is False
+    assert "minimum change interval not reached" in reason
+
+
+def test_tng_missing_last_post_at_returns_none(tmp_path, tng_connect):
+    reader, config, _ = build_tng(tmp_path, tng_connect)
+    reader.change_gate["basic"]["last_post_at"] = None
+
+    assert reader._seconds_since_last_post("basic") is None
+
+
+def test_tng_full_confirmation_cycle(tmp_path, tng_connect):
+    reader, config, _ = build_tng(tmp_path, tng_connect, write_enabled=True)
+    reader._mark_posted("basic", {"boiler_temperature": 55})
+
+    # awaiting_confirmation=true
+    assert reader.change_gate["basic"]["awaiting_confirmation"] is True
+    # pending=false => still blocked
+    assert reader.can_post("basic", False)[0] is False
+
+    # pending=true => seen_pending=true
+    assert reader.can_post("basic", True)[0] is False
+    assert reader.change_gate["basic"]["seen_pending"] is True
+
+    # pending=false => awaiting_confirmation becomes false
+    assert reader.can_post("basic", False)[0] is False  # still blocked by 900s interval
+    assert reader.change_gate["basic"]["awaiting_confirmation"] is False
+
+
+def test_tng_recovery_after_restart(tmp_path, tng_connect):
+    reader, config, _ = build_tng(tmp_path, tng_connect, write_enabled=True)
+    # Simulate: awaiting_confirmation=true, seen_pending=false, last_post_at 1000s ago
+    past_iso = to_iso(now_local() - timedelta(seconds=1000))
+    reader.change_gate["basic"]["last_post_at"] = past_iso
+    reader.change_gate["basic"]["awaiting_confirmation"] = True
+    reader.change_gate["basic"]["seen_pending"] = False
+
+    # pending=false and >900s => triggers recovery
+    reader._gate_update("basic", False)
+    assert reader.change_gate["basic"]["awaiting_confirmation"] is False
+
+
+def test_tng_status_log_format(tmp_path, tng_connect):
+    reader, config, _ = build_tng(tmp_path, tng_connect,
+                                   boiler={"enabled": True, "default_temperature": 35,
+                                           "schedule": [{"from": "11:00", "to": "13:00", "temperature": 55}]})
+    state = reader.read_state()
+    moment = datetime(2026, 8, 19, 12, 0)
+
+    with patch.object(reader.log, "info") as mock_info:
+        reader.log_status(state, moment=moment)
+        mock_info.assert_called_once()
+        log_line = mock_info.call_args[0][0]
+        for expected in ("boiler=", "set=", "target=", "pending=", "gate="):
+            assert expected in log_line
