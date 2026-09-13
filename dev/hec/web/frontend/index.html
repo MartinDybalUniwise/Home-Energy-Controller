@@ -1,50 +1,119 @@
 <!DOCTYPE html>
-<html lang="cs" data-theme="auto">
+<html lang="cs" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0b2545">
+<meta name="theme-color" content="#08121e">
 <title>Home Energy Controller</title>
 <link rel="icon" type="image/svg+xml" href="/icon.svg">
 <link rel="manifest" href="/manifest.json">
 <link rel="stylesheet" href="/css/tokens.css">
-<link rel="stylesheet" href="/css/app.css?v=13">
+<link rel="stylesheet" href="/css/app.css?v=18">
 </head>
 <body>
 <div id="scene" class="scene" aria-hidden="true"></div>
 
-<header class="topbar">
-  <button id="menu-toggle" class="icon-button" aria-expanded="false" aria-controls="nav">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
-    <span class="sr-only" data-i18n="nav.menu">Menu</span>
-  </button>
-  <h1 id="site-name" class="site-name">Home Energy Controller</h1>
-  <div class="topbar-status">
-    <span id="status-pill" class="pill" hidden></span>
-    <span id="clock" class="clock"></span>
-    <button id="more-toggle" class="more-button" type="button" aria-expanded="false" aria-controls="utility-nav" data-i18n="nav.more">Více</button>
+<div class="app-container">
+  <!-- Levý navigační panel (Sidebar) pro 11" wall panel a desktop -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-sub">HOME</span>
+        <h1 id="site-name" class="site-name">Home Energy Controller</h1>
+      </div>
+    </div>
+
+    <nav id="nav" class="nav sidebar-nav" aria-label="Hlavní navigace">
+      <a href="#/overview" data-page="overview" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span data-i18n="nav.today">Dnes</span>
+      </a>
+      <a href="#/prediction" data-page="prediction" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+        <span data-i18n="nav.forecast">Výhled</span>
+      </a>
+      <a href="#/flow" data-page="flow" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        <span data-i18n="nav.flow">Tok energie</span>
+      </a>
+      <a href="#/history" data-page="history" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span data-i18n="nav.history">Historie</span>
+      </a>
+      <a href="#/finance" data-page="finance" class="nav-item">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        <span data-i18n="nav.finance">Finance</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <button id="more-toggle" class="more-button service-menu-toggle" type="button" aria-expanded="false" aria-controls="utility-nav">
+        <div class="service-menu-label">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span data-i18n="nav.advanced">Servisní menu</span>
+        </div>
+        <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+
+      <nav id="utility-nav" class="utility-nav" hidden aria-label="Servisní navigace">
+        <a href="#/settings" data-page="settings" class="utility-link" data-i18n="nav.settings">Nastavení</a>
+        <a href="#/status" data-page="status" class="utility-link" data-i18n="nav.status">Stav</a>
+        <a href="#/logs" data-page="logs" class="utility-link" data-i18n="nav.logs">Data</a>
+        <a href="#/finance/manual" data-page="finance/manual" class="utility-link" data-i18n="nav.finance_manual">Finance ručně</a>
+      </nav>
+
+      <div class="system-status-box">
+        <div class="status-header">
+          <span id="status-pill" class="pill pill--ok" data-i18n="status.system_ok">Systém v pořádku</span>
+        </div>
+        <div class="status-detail" data-i18n="status.all_online">Všechny komponenty jsou online <span class="online-indicator"></span></div>
+      </div>
+
+      <div class="sidebar-actions">
+        <button id="theme-toggle" class="icon-action-btn" type="button" aria-label="Přepnout motiv" title="Přepnout motiv">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+        <span id="clock" class="clock"></span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobilní horní lišta s přepínačem menu pro menší obrazovky -->
+  <header class="topbar mobile-only">
+    <button id="menu-toggle" class="icon-button" aria-expanded="false" aria-controls="sidebar">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      <span class="sr-only" data-i18n="nav.menu">Menu</span>
+    </button>
+    <div class="mobile-title">Home Energy Controller</div>
+    <span class="mobile-clock" id="mobile-clock"></span>
+  </header>
+
+  <!-- Hlavní pracovní plocha -->
+  <main id="view" class="view" tabindex="-1">
+    <p class="loading" data-i18n="app.loading">Načítám…</p>
+  </main>
+</div>
+
+<!-- Dialog Proč právě teď -->
+<dialog id="why-now-dialog" class="hec-dialog">
+  <div class="dialog-content">
+    <header class="dialog-header">
+      <h2 data-i18n="advisor.why_now_title">Proč právě teď?</h2>
+      <button type="button" class="dialog-close" id="why-now-close" aria-label="Zavřít">×</button>
+    </header>
+    <div class="dialog-body" id="why-now-body">
+      <p data-i18n="advisor.why_now_content">Doporučení je vypočteno kombinací predikce vysokého slunečního svitu z FVE a nejnižší spotové ceny elektřiny na OTE trhu pro dnešní den. Zapnutím energeticky náročných spotřebičů v tomto okně maximalizujete přímou vlastní spotřebu a minimalizujete náklady.</p>
+    </div>
+    <footer class="dialog-footer">
+      <button type="button" class="btn btn--primary" id="why-now-ok" data-i18n="app.close">Rozumím</button>
+    </footer>
   </div>
-</header>
+</dialog>
 
-<nav id="nav" class="nav">
-  <a href="#/overview"   data-page="overview"   data-i18n="nav.today">Dnes</a>
-  <a href="#/prediction" data-page="prediction" data-i18n="nav.forecast">Výhled</a>
-  <a href="#/flow"       data-page="flow"       data-i18n="nav.flow">Tok energie</a>
-  <a href="#/history"    data-page="history"    data-i18n="nav.history">Historie</a>
-  <a href="#/finance"    data-page="finance"    data-i18n="nav.finance">Finance</a>
-</nav>
-<nav id="utility-nav" class="utility-nav" hidden aria-label="Advanced navigation">
-  <p data-i18n="nav.advanced">Servis a diagnostika</p>
-  <a href="#/finance/manual" data-page="finance/manual" data-i18n="nav.finance_manual">Finance ručně</a>
-  <a href="#/settings" data-page="settings" data-i18n="nav.settings">Nastavení</a>
-  <a href="#/status" data-page="status" data-i18n="nav.status">Stav</a>
-  <a href="#/logs" data-page="logs" data-i18n="nav.logs">Data</a>
-</nav>
-
-<main id="view" class="view" tabindex="-1">
-  <p class="loading" data-i18n="app.loading">Načítám…</p>
-</main>
-
+<!-- Dialog přihlášení -->
 <dialog id="login">
   <form method="dialog" id="login-form">
     <h2 data-i18n="login.title">Přihlášení</h2>
@@ -55,6 +124,6 @@
   </form>
 </dialog>
 
-<script type="module" src="/js/app.js?v=11"></script>
+<script type="module" src="/js/app.js?v=18"></script>
 </body>
 </html>

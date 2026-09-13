@@ -78,23 +78,30 @@ async function refreshStatus() {
   try {
     const [status, weather] = await Promise.all([api.status(), api.weather().catch(() => ({}))]);
     applyScene(weather, state.motion);
-    document.getElementById('site-name').textContent = status.site_name || t('app.name');
+    const siteNameEl = document.getElementById('site-name');
+    if (siteNameEl) siteNameEl.textContent = status.site_name || t('app.name');
     if (status.ui?.brand_accent) {
       document.documentElement.style.setProperty('--brand-accent', status.ui.brand_accent);
     }
-    document.getElementById('clock').textContent = time(new Date());
+    const currentTime = time(new Date());
+    const clockEl = document.getElementById('clock');
+    if (clockEl) clockEl.textContent = currentTime;
+    const mobileClockEl = document.getElementById('mobile-clock');
+    if (mobileClockEl) mobileClockEl.textContent = currentTime;
 
     const pill = document.getElementById('status-pill');
-    const stale = status.stale_sources || [];
-    const safeMode = status.controller?.safe_mode && status.controller?.enabled;
-    if (stale.length || safeMode) {
-      pill.hidden = false;
-      pill.dataset.level = stale.length ? 'critical' : 'warning';
-      pill.textContent = stale.length ? `${t('status.stale')}: ${stale.join(', ')}` : t('status.safe_mode');
-    } else {
-      pill.hidden = false;
-      pill.dataset.level = 'ok';
-      pill.textContent = t('status.ok');
+    if (pill) {
+      const stale = status.stale_sources || [];
+      const safeMode = status.controller?.safe_mode && status.controller?.enabled;
+      if (stale.length || safeMode) {
+        pill.hidden = false;
+        pill.className = 'pill pill--warning';
+        pill.textContent = stale.length ? `${t('status.stale')}: ${stale.join(', ')}` : t('status.safe_mode');
+      } else {
+        pill.hidden = false;
+        pill.className = 'pill pill--ok';
+        pill.textContent = t('status.ok');
+      }
     }
   } catch (error) {
     if (error.unauthorised) askForPassword();
@@ -174,22 +181,57 @@ async function init() {
   applyPreferences();
   enableSwipe();
   window.addEventListener('hashchange', render);
-  document.getElementById('menu-toggle').addEventListener('click', (event) => {
-    const nav = document.getElementById('nav');
-    const expanded = nav.hasAttribute('hidden');
-    nav.toggleAttribute('hidden', !expanded);
-    event.currentTarget.setAttribute('aria-expanded', String(expanded));
-  });
-  document.getElementById('more-toggle').addEventListener('click', (event) => {
+
+  const menuToggle = document.getElementById('menu-toggle');
+  if (menuToggle) {
+    menuToggle.addEventListener('click', (event) => {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) {
+        const isOpen = sidebar.classList.toggle('sidebar--open');
+        event.currentTarget.setAttribute('aria-expanded', String(isOpen));
+      }
+    });
+  }
+
+  const moreToggle = document.getElementById('more-toggle');
+  if (moreToggle) {
+    moreToggle.addEventListener('click', (event) => {
+      const utility = document.getElementById('utility-nav');
+      if (utility) {
+        const expanded = utility.hasAttribute('hidden');
+        utility.toggleAttribute('hidden', !expanded);
+        event.currentTarget.setAttribute('aria-expanded', String(expanded));
+      }
+    });
+  }
+
+  document.querySelectorAll('#utility-nav a, #nav a').forEach((link) => link.addEventListener('click', () => {
     const utility = document.getElementById('utility-nav');
-    const expanded = utility.hasAttribute('hidden');
-    utility.toggleAttribute('hidden', !expanded);
-    event.currentTarget.setAttribute('aria-expanded', String(expanded));
-  });
-  document.querySelectorAll('#utility-nav a').forEach((link) => link.addEventListener('click', () => {
-    document.getElementById('utility-nav').hidden = true;
-    document.getElementById('more-toggle').setAttribute('aria-expanded', 'false');
+    if (utility && !utility.hasAttribute('hidden')) {
+      utility.hidden = true;
+      if (moreToggle) moreToggle.setAttribute('aria-expanded', 'false');
+    }
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && sidebar.classList.contains('sidebar--open')) {
+      sidebar.classList.remove('sidebar--open');
+      if (menuToggle) menuToggle.setAttribute('aria-expanded', 'false');
+    }
   }));
+
+  const themeToggle = document.getElementById('theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = document.documentElement.dataset.theme || 'dark';
+      const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      applyPreferences({ theme: nextTheme });
+    });
+  }
+
+  const whyNowClose = document.getElementById('why-now-close');
+  const whyNowOk = document.getElementById('why-now-ok');
+  const whyNowDialog = document.getElementById('why-now-dialog');
+  if (whyNowClose && whyNowDialog) whyNowClose.addEventListener('click', () => whyNowDialog.close());
+  if (whyNowOk && whyNowDialog) whyNowOk.addEventListener('click', () => whyNowDialog.close());
 
   const session = await api.session().catch(() => ({ required: false, authorised: true }));
   if (session.required && !session.authorised) return askForPassword();

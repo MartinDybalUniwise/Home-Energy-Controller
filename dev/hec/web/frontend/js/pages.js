@@ -442,7 +442,7 @@ export async function flow(view, { api, motion }) {
   ].filter(Boolean).join('');
 
   view.innerHTML = `<div class="story-page story-page--flow">
-      <section class="story-hero story-hero--flow">
+      <section class="story-hero story-hero--flow flow-hero">
         <div class="story-hero__main">
           <p class="story-hero__eyebrow">${t('flow.eyebrow')}</p>
           <h2>${t('flow.title')}</h2>
@@ -457,7 +457,7 @@ export async function flow(view, { api, motion }) {
           </dl>
         </div>
       </section>
-      <section class="story-surface story-surface--flow">
+      <section class="story-surface story-surface--flow flow-stage">
         <header class="story-surface__header">
           <div>
             <p>${t('overview.flow')}</p>
@@ -474,7 +474,7 @@ export async function flow(view, { api, motion }) {
           </div>
         </div>
       </section>
-      <section class="story-card-grid story-card-grid--flow-support">
+      <section class="story-card-grid story-card-grid--flow-support flow-details">
         <article class="story-card story-card--soft">
           <p class="story-card__eyebrow">${t('entity.grid')}</p>
           <strong class="story-card__value">${bigValue(gridPower)}</strong>

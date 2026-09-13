@@ -1,100 +1,147 @@
-/* Design tokeny podle dev/step01/UI_DESIGN.md.
-   Světlá sada je základ na holém :root, tmavá ji přepisuje ve dvou blocích:
-   podle systému a podle výslovné volby uživatele. */
+/* Design tokeny pro Home Energy Controller (Step 18 Touchscreen Redesign).
+   Optimalizováno pro 11" Full HD (1920x1080) wall touchscreen a zero-waste layout. */
 
 :root {
-  color-scheme: light;
-
-  --scrim: rgba(255, 255, 255, 0.35);
-  --panel: linear-gradient(180deg, rgba(255,255,255,.88), rgba(238,244,251,.94));
-  --panel-solid: #f4f7fb;
-  --panel-border: rgba(13, 27, 42, .12);
-  --divider: rgba(13, 27, 42, .10);
-  --tab-bg: #0b2545;
-  --tab-ink: #ffffff;
-
-  --ink-primary: #0d1b2a;
-  --ink-secondary: #40566e;
-  --ink-muted: #6b7f95;
-  --ink-value: #0d1b2a;
-  --ink-value-alt: #1f6fb2;
-
-  --state-good: #1b7f4b;
-  --state-warning: #a86b00;
-  --state-serious: #b4531a;
-  --state-critical: #b3261e;
-
-  /* Série grafů – barva se váže na entitu, ne na pořadí. Ověřeno validátorem. */
-  --series-pv: #eda100;
-  --series-battery: #1baf7a;
-  --series-house: #2a78d6;
-  --series-grid-import: #eb6834;
-  --series-heatpump: #e87ba4;
-  --series-grid-export: #008300;
-  --series-appliances: #4a3aa7;
-
-  --brand-accent: #1f6fb2;
-
-  --radius-panel: 6px;
-  --radius-card: 4px;
-  --gap-col: 2px;
-  --pad-panel: 20px;
-  --shadow-panel: 0 8px 32px rgba(4, 16, 32, .18);
-
-  --font-ui: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-  --font-value: "Barlow Semi Condensed", "Inter", system-ui, sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:where(:not([data-theme="light"])) {
-    color-scheme: dark;
-    --scrim: rgba(4, 16, 32, .45);
-    --panel: linear-gradient(180deg, rgba(19,72,134,.86), rgba(10,42,82,.93));
-    --panel-solid: #0d1b2a;
-    --panel-border: rgba(255, 255, 255, .10);
-    --divider: rgba(255, 255, 255, .14);
-    --ink-primary: #ffffff;
-    --ink-secondary: #bcd6f2;
-    --ink-muted: #8fb0d4;
-    --ink-value: #ffffff;
-    --ink-value-alt: #4fb3ff;
-    --state-good: #3ecf8e;
-    --state-warning: #e8b13a;
-    --state-serious: #ef8a4a;
-    --state-critical: #ff6b64;
-    --series-pv: #c98500;
-    --series-battery: #199e70;
-    --series-house: #3987e5;
-    --series-grid-import: #d95926;
-    --series-heatpump: #d55181;
-    --series-grid-export: #008300;
-    --series-appliances: #9085e9;
-    --brand-accent: #4fb3ff;
-  }
-}
-
-:root[data-theme="dark"] {
   color-scheme: dark;
-  --scrim: rgba(4, 16, 32, .45);
-  --panel: linear-gradient(180deg, rgba(19,72,134,.86), rgba(10,42,82,.93));
+
+  /* Pozadí a panely - tmavý elegantní motiv */
+  --bg-app: #08121e;
+  --bg-sidebar: #070e17;
+  --bg-card: #0d1b2a;
+  --bg-card-subtle: #112236;
+  --bg-card-hover: #162b45;
+  --bg-card-highlight: #132f4c;
+  --scrim: rgba(0, 0, 0, 0.65);
+  --panel: #0d1b2a;
   --panel-solid: #0d1b2a;
-  --panel-border: rgba(255, 255, 255, .10);
-  --divider: rgba(255, 255, 255, .14);
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --panel-border-hover: rgba(255, 255, 255, 0.18);
+  --panel-border-accent: rgba(59, 130, 246, 0.4);
+  --divider: rgba(255, 255, 255, 0.08);
+
+  /* Písmo a barvy textu - vysoký kontrast pro čitelnost z 1-2m */
   --ink-primary: #ffffff;
-  --ink-secondary: #bcd6f2;
-  --ink-muted: #8fb0d4;
+  --ink-secondary: #94a3b8;
+  --ink-muted: #64748b;
+  --ink-accent: #38bdf8;
   --ink-value: #ffffff;
-  --ink-value-alt: #4fb3ff;
-  --state-good: #3ecf8e;
-  --state-warning: #e8b13a;
-  --state-serious: #ef8a4a;
-  --state-critical: #ff6b64;
-  --series-pv: #c98500;
-  --series-battery: #199e70;
-  --series-house: #3987e5;
-  --series-grid-import: #d95926;
-  --series-heatpump: #d55181;
-  --series-grid-export: #008300;
-  --series-appliances: #9085e9;
-  --brand-accent: #4fb3ff;
+  --ink-value-alt: #38bdf8;
+
+  /* Stavové barvy - jasné a nezaměnitelné */
+  --state-good: #10b981;
+  --state-good-bg: rgba(16, 185, 129, 0.15);
+  --state-good-border: rgba(16, 185, 129, 0.35);
+  --state-ok: #3b82f6;
+  --state-ok-bg: rgba(59, 130, 246, 0.15);
+  --state-ok-border: rgba(59, 130, 246, 0.35);
+  --state-warning: #f59e0b;
+  --state-warning-bg: rgba(245, 158, 11, 0.15);
+  --state-warning-border: rgba(245, 158, 11, 0.35);
+  --state-avoid: #ef4444;
+  --state-avoid-bg: rgba(239, 68, 68, 0.15);
+  --state-avoid-border: rgba(239, 68, 68, 0.35);
+  --state-critical: #ef4444;
+
+  /* Série grafů podle entity */
+  --series-pv: #eab308;
+  --series-battery: #10b981;
+  --series-house: #38bdf8;
+  --series-grid-import: #f97316;
+  --series-grid-export: #10b981;
+  --series-price: #a855f7;
+  --series-heatpump: #ec4899;
+  --series-appliances: #818cf8;
+
+  --brand-accent: #38bdf8;
+  --brand-yellow: #facc15;
+
+  /* Rádiusy a rozestupy (kompaktní pro zero-waste) */
+  --radius-xl: 14px;
+  --radius-lg: 10px;
+  --radius-panel: 10px;
+  --radius-card: 8px;
+  --radius-sm: 6px;
+  --radius-full: 9999px;
+
+  --gap-xs: 4px;
+  --gap-sm: 8px;
+  --gap-md: 12px;
+  --gap-lg: 16px;
+  --gap-xl: 20px;
+  --pad-panel: 14px;
+
+  /* Dotyková ergonomie (Touch-first) */
+  --touch-target-min: 48px;
+  --touch-target-button: 56px;
+  --touch-target-large: 64px;
+
+  /* Typografická stupnice pro 11" Full HD */
+  --font-ui: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-value: "Inter", "Barlow Semi Condensed", system-ui, sans-serif;
+
+  --text-2xs: 11px;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 15px;
+  --text-lg: 17px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+  --text-4xl: 38px;
+  --text-5xl: 48px;
+  --text-hero: 56px;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.45);
+}
+
+/* Zachování podpory světlého režimu */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg-app: #f1f5f9;
+  --bg-sidebar: #e2e8f0;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #f8fafc;
+  --bg-card-hover: #f1f5f9;
+  --bg-card-highlight: #e0f2fe;
+  --scrim: rgba(255, 255, 255, 0.7);
+  --panel: #ffffff;
+  --panel-solid: #ffffff;
+  --panel-border: rgba(15, 23, 42, 0.1);
+  --panel-border-hover: rgba(15, 23, 42, 0.2);
+  --panel-border-accent: rgba(2, 132, 199, 0.4);
+  --divider: rgba(15, 23, 42, 0.08);
+
+  --ink-primary: #0f172a;
+  --ink-secondary: #475569;
+  --ink-muted: #64748b;
+  --ink-accent: #0284c7;
+  --ink-value: #0f172a;
+  --ink-value-alt: #0284c7;
+
+  --state-good: #059669;
+  --state-good-bg: rgba(5, 150, 105, 0.1);
+  --state-good-border: rgba(5, 150, 105, 0.3);
+  --state-ok: #2563eb;
+  --state-ok-bg: rgba(37, 99, 235, 0.1);
+  --state-ok-border: rgba(37, 99, 235, 0.3);
+  --state-warning: #d97706;
+  --state-warning-bg: rgba(217, 119, 6, 0.1);
+  --state-warning-border: rgba(217, 119, 6, 0.3);
+  --state-avoid: #dc2626;
+  --state-avoid-bg: rgba(220, 38, 38, 0.1);
+  --state-avoid-border: rgba(220, 38, 38, 0.3);
+  --state-critical: #dc2626;
+
+  --series-pv: #ca8a04;
+  --series-battery: #059669;
+  --series-house: #0284c7;
+  --series-grid-import: #ea580c;
+  --series-grid-export: #059669;
+  --series-price: #9333ea;
+  --series-heatpump: #db2777;
+  --series-appliances: #6366f1;
+
+  --brand-accent: #0284c7;
 }
