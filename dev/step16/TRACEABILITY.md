@@ -4,25 +4,25 @@
 
 | Requirement | Acceptance Criterion | Substeps | Evidence | Status |
 |---|---|---|---|---|
-| REQ-016-001 | AC-016-001 | S01, S02, S03 | focused GoodWe tests; E-016-VALIDATION | IN_REVIEW |
-| REQ-016-002 | AC-016-002 | S02, S06 | focused FTEReader test | IN_REVIEW |
-| REQ-016-003 | AC-016-003 | S03, S06 | focused FTEWriter test | IN_REVIEW |
-| REQ-016-004 | AC-016-004 | S04, S06 | focused SDG test | IN_REVIEW |
-| REQ-016-005 | AC-016-005, AC-016-006, AC-016-007, AC-016-008, AC-016-009 | S05, S06, S07 | validation E-016-VALIDATION; safety E-016-SAFETY; no write E-016-NO-HARDWARE-WRITE; pre-S07 remediation | IN_REVIEW |
+| REQ-016-001 | AC-016-001 | S01, S02, S03 | focused GoodWe tests; E-016-VALIDATION | PASS |
+| REQ-016-002 | AC-016-002 | S02, S06 | focused FTEReader test | PASS |
+| REQ-016-003 | AC-016-003 | S03, S06 | focused FTEWriter test; E-016-S07-WRITE-AUDIT | PASS |
+| REQ-016-004 | AC-016-004 | S04, S06 | focused SDG test | PASS |
+| REQ-016-005 | AC-016-005, AC-016-006, AC-016-007, AC-016-008, AC-016-009 | S05, S06, S07 | E-016-VALIDATION; E-016-SAFETY; E-016-S07-WRITE-AUDIT; completion evidence | PASS |
 
 ## Acceptance criteria → substeps
 
 | Acceptance criterion | Requirement | Substeps | Status |
 |---|---|---|---|
-| AC-016-001 | REQ-016-001 | S01, S02, S03 | IN_REVIEW (focused test) |
-| AC-016-002 | REQ-016-002 | S02, S06 | IN_REVIEW (focused test) |
-| AC-016-003 | REQ-016-003 | S03, S06 | IN_REVIEW (focused test) |
-| AC-016-004 | REQ-016-004 | S04, S06 | IN_REVIEW (focused test) |
-| AC-016-005 | REQ-016-005 | S05, S06 | IN_REVIEW (canonical schema/UI; evidence in `test_core_config.py`, `test_web_api.py`, `pages.js`; pre-S07 runtime verification remains) |
-| AC-016-006 | REQ-016-005 | S06 | IN_REVIEW (full validation, 286 non-E2E tests; fake-client physical-I/O lockout covered; jitter distribution is minor/non-blocking) |
-| AC-016-007 | REQ-016-005 | S07 | PENDING HUMAN/HARDWARE |
-| AC-016-008 | REQ-016-005 | S05, S07 | IN_PROGRESS |
-| AC-016-009 | REQ-016-005 | S06 | IN_REVIEW (terminal status implementation) |
+| AC-016-001 | REQ-016-001 | S01, S02, S03 | Focused test; E-016-VALIDATION | PASS |
+| AC-016-002 | REQ-016-002 | S02, S06 | Focused test; E-016-VALIDATION | PASS |
+| AC-016-003 | REQ-016-003 | S03, S06 | Audit/read-back tests; E-016-S07-WRITE-AUDIT | PASS |
+| AC-016-004 | REQ-016-004 | S04, S06 | DBF/incremental tests; E-016-VALIDATION | PASS |
+| AC-016-005 | REQ-016-005 | S05, S06 | Schema/API/UI/locale evidence | PASS |
+| AC-016-006 | REQ-016-005 | S06 | Full validation: 287 passed, 23 deselected; safety lockout tests | PASS |
+| AC-016-007 | REQ-016-005 | S07 | E-016-S07-WRITE-AUDIT; human-confirmed write/read-back/gates-off | PASS |
+| AC-016-008 | REQ-016-005 | S05, S07 | RESULT.md, TRACEABILITY.md, STEP.json completion evidence | PASS |
+| AC-016-009 | REQ-016-005 | S06 | Terminal status implementation and validation | PASS |
 
 ## Scope decisions
 

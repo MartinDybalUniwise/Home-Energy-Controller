@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 import struct
 import threading
+from datetime import UTC, date, datetime
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -208,6 +210,34 @@ def test_writer_diagnostics_reads_authorization_artifact_not_config(tmp_path):
     diagnostics = writer.status_snapshot()
     assert diagnostics["hardware_authorization"]["status"] == "APPROVED"
     assert "hardware_verified" not in diagnostics
+
+
+def test_audit_serializes_nested_datetime_payload_as_valid_json(tmp_path):
+    config = enabled_config(tmp_path)
+    storage = JsonlStorage(config.data_dir, config.history_dir)
+    manager = GoodWeManager(config, storage=storage, client=FakeClient(FakeInverter()), test_fake=True)
+    before = {"timestamp": datetime(2026, 9, 13, 23, 30, tzinfo=UTC), "value": 10000}
+    write_result = {"completed": date(2026, 9, 13), "values": (10000,)}
+    readback = {"observed_at": datetime(2026, 9, 13, 23, 30, 1, tzinfo=UTC), "value": 10000}
+    manager._record_attempt(
+        command_id="s07-audit-regression",
+        command="set_export_limit_w",
+        requested={"value": 10000},
+        gates={"writer_enabled": True},
+        before=before,
+        attempt=1,
+        write_result=write_result,
+        readback=readback,
+        final_status="success",
+    )
+    audit_path = storage.history_dir / "goodwe_audit" / "2026-09-13.jsonl"
+    raw = audit_path.read_text(encoding="utf-8").strip()
+    parsed = json.loads(raw)
+    assert parsed["command_id"] == "s07-audit-regression"
+    assert parsed["before"]["timestamp"] == "2026-09-13T23:30:00+00:00"
+    assert parsed["write_result"]["completed"] == "2026-09-13"
+    assert parsed["readback"]["observed_at"] == "2026-09-13T23:30:01+00:00"
+    assert parsed["final_status"] == "success"
 
 
 def test_manager_serializes_writes_and_retries(tmp_path):

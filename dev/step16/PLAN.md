@@ -17,8 +17,8 @@ activity is approved.
 | S03 | Specify writer commands, confirmation gates, and audit records | COMPLETED / SPECIFIED |
 | S04 | Specify SDG history import and path configuration | COMPLETED / SPECIFIED |
 | S05 | Define configuration, diagnostics, i18n, and test contracts | COMPLETED / SPECIFIED |
-| S06 | Implement the approved GoodWeManager, reader, writer, SDG import, diagnostics, and validation coverage | IN_PROGRESS / REVIEW |
-| S07 | Perform guarded human and hardware verification before enabling live writes | PENDING |
+| S06 | Implement the approved GoodWeManager, reader, writer, SDG import, diagnostics, and validation coverage | COMPLETED |
+| S07 | Perform guarded human and hardware verification before enabling live writes | COMPLETED / VERIFIED |
 
 ## Implementation scope
 

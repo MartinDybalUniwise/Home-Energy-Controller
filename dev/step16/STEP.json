@@ -1,7 +1,7 @@
 {
   "step": 16,
   "classification": "LARGE",
-  "status": "IN_PROGRESS",
+  "status": "DONE",
   "gate_a": {
     "status": "APPROVED",
     "approved_by": "human",
@@ -9,23 +9,23 @@
     "reason": "Explicit human approval received for the Step16 implementation scope, including the terminal status-output requirement for all reader and writer controllers."
   },
   "gate_b": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null,
-    "reason": "Human preview is not applicable before implementation."
+    "status": "APPROVED",
+    "approved_by": "human",
+    "approved_at": "2026-09-13T23:32:19+02:00",
+    "reason": "Human-confirmed S07 hardware verification completed one supervised idempotent write with successful transaction read-back and gates-off close-down."
   },
   "gate_c": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null,
-    "reason": "Completion review is not applicable before implementation."
+    "status": "APPROVED",
+    "approved_by": "human",
+    "approved_at": "2026-09-13T23:32:19+02:00",
+    "reason": "Explicit completion request accepted the recorded S06/S07 evidence and current HEC threat model; no blocking findings remain."
   },
   "readiness": "YES",
   "requested_by": "repository owner / maintainer",
   "source": "APPROVED_STEP16_GOODWE_DESIGN",
   "branch": "sdd/step16-goodwe-implementation",
   "pr": null,
-  "notes": "Gate A is explicitly approved. S01-S05 remain the frozen approved design, S06 is IN_PROGRESS / REVIEW under the practical household HEC safety model, and S07 remains a separate human/hardware verification gate before any live write or controller activation. Cryptographic authorization evidence, production GoodWe optimization rules, and detailed DBF header hardening are outside Step16.",
+  "notes": "Gate A is approved. S01-S05 remain the frozen approved design; S06 implementation and S07 human/hardware verification are complete under the practical household HEC safety model. Cryptographic authorization evidence, production GoodWe optimization rules, and detailed DBF header hardening remain outside Step16.",
   "requirements": [
     "REQ-016-001",
     "REQ-016-002",
@@ -47,6 +47,6 @@
   "evidence": [
     "E-016-VALIDATION",
     "E-016-SAFETY",
-    "E-016-NO-HARDWARE-WRITE"
+    "E-016-S07-WRITE-AUDIT"
   ]
 }

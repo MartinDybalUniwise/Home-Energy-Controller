@@ -8,6 +8,8 @@ import os
 import random
 import threading
 import time
+from datetime import date, datetime
+from enum import Enum
 from typing import Any
 from uuid import uuid4
 
@@ -23,6 +25,19 @@ COMMANDS = {
     "start_battery_discharge",
     "stop_battery_control",
 }
+
+
+def _json_safe(value: Any) -> Any:
+    """Convert audit payloads to JSON-safe values without hiding type errors."""
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    if isinstance(value, Enum):
+        return _json_safe(value.value)
+    if isinstance(value, dict):
+        return {str(key): _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_safe(item) for item in value]
+    return value
 
 
 class GoodWeManager:
@@ -207,7 +222,7 @@ class GoodWeManager:
 
     def _audit(self, record: dict[str, Any]) -> None:
         if self.storage is not None:
-            self.storage.append("goodwe_audit", record)
+            self.storage.append("goodwe_audit", _json_safe(record))
 
     def _record_attempt(self, *, command_id: str, command: str, requested: dict[str, Any],
                         gates: dict[str, bool], before: Any, attempt: int,

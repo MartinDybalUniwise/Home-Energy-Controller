@@ -7,25 +7,25 @@ the S06 review is accepted and the separate S07 hardware gate is completed.
 
 ## Canonical criteria
 
-- [ ] AC-016-001: GoodWeManager communication is serialized, timeout-bounded,
+- [x] AC-016-001: GoodWeManager communication is serialized, timeout-bounded,
   retried with backoff, read-back verified, fail-closed, and covered by tests.
-- [ ] AC-016-002: FTEReader uses the GoodWe library, emits a stable normalized
+- [x] AC-016-002: FTEReader uses the GoodWe library, emits a stable normalized
   model/source, preserves offline semantics, and fails closed on malformed data.
-- [ ] AC-016-003: FTEWriter commands are idempotent, persistently audited,
+- [x] AC-016-003: FTEWriter commands are idempotent, persistently audited,
   read-back verified, and cannot bypass `writer_enabled`, central-manager, or
   S07 local human authorization gates.
-- [ ] AC-016-004: Optional SDG history import is incremental, deduplicated,
+- [x] AC-016-004: Optional SDG history import is incremental, deduplicated,
 	normalized, and tolerant of corrupt input.
-- [ ] AC-016-005: Canonical Python/JSON configuration, diagnostics, i18n, paths,
+- [x] AC-016-005: Canonical Python/JSON configuration, diagnostics, i18n, paths,
   and GoodWe/SDG Settings UI are schema-validated and covered by focused tests;
   timeout/read-interval naming and defaults are consistent before S07.
-- [ ] AC-016-006: Unit and mock-preview tests cover failure, retry, offline
+- [x] AC-016-006: Unit and mock-preview tests cover failure, retry, offline
   safe mode, physical-I/O lockout, central write boundary, and safety behavior.
-- [ ] AC-016-007: Human hardware verification is recorded before any DONE
+- [x] AC-016-007: Human hardware verification is recorded before any DONE
 	status.
-- [ ] AC-016-008: Documentation and release metadata are updated with
+- [x] AC-016-008: Documentation and release metadata are updated with
 	implementation evidence.
-- [ ] AC-016-009: All GoodWe/SDG reader, writer, and manager paths print clear
+- [x] AC-016-009: All GoodWe/SDG reader, writer, and manager paths print clear
   status to the terminal during operation and on failure.
 
 ## 1. GoodWeManager
