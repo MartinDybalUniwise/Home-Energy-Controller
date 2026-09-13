@@ -217,6 +217,10 @@ def config_put(app, body: dict) -> tuple[int, dict]:
     if not isinstance(body, dict):
         return 400, {"error": "invalid_body"}
     incoming = body.get("config", body)
+    goodwe_incoming = incoming.get("goodwe", {}) if isinstance(incoming, dict) else {}
+    if isinstance(goodwe_incoming, dict) and any(
+            key in goodwe_incoming for key in ("hardware_verified", "hardware_authorization")):
+        return 400, {"error": "hardware_authorization_read_only"}
     # Zamaskované hodnoty z UI se nikdy nezapisují zpět – tajemství se mění jen v .env.
     before = deepcopy(app.config.data)
     merged = _merge_preserving_secrets(app.config.data, incoming)

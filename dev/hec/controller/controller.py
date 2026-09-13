@@ -17,6 +17,10 @@ from ..storage.base import read_json
 from .rules import Context, clamp, default_rules
 
 CRITICAL_SOURCES = ("goodwe", "tng")
+GOODWE_ACTIONS = {
+    "set_export_limit_enabled", "set_export_limit_w", "set_on_grid_soc_limit_pct",
+    "start_battery_charge", "start_battery_discharge", "stop_battery_control",
+}
 
 
 class Controller:
@@ -47,7 +51,8 @@ class Controller:
             if reader.name not in CRITICAL_SOURCES or not reader.status.enabled:
                 continue
             age = reader.status.age
-            if age is None or age > limit:
+            snapshot = self.app.snapshot.get(reader.name, {})
+            if age is None or age > limit or snapshot.get("online") is False:
                 stale.append(reader.name)
         return stale
 
@@ -113,6 +118,24 @@ class Controller:
     # --- provedení -------------------------------------------------------------
     def apply(self, decision: Decision) -> Decision:
         """Zápis jde vždy přes change-gate readeru TNG – ten chrání čerpadlo."""
+        if decision.action in GOODWE_ACTIONS:
+            writer = getattr(self.app, "goodwe_writer", None)
+            if writer is None:
+                decision.applied = False
+                decision.reason_key = "reason.write_blocked_gate"
+                return decision
+            try:
+                method = getattr(writer, decision.action)
+                params = dict(decision.reason_params)
+                if decision.action in {"set_export_limit_enabled", "set_export_limit_w", "set_on_grid_soc_limit_pct"}:
+                    params.setdefault("value", decision.value)
+                method(**params)
+                decision.applied = True
+            except Exception:
+                decision.applied = False
+                decision.reason_key = "reason.write_blocked_gate"
+            return decision
+
         reader = self.app.reader("tng")
         if reader is None or not self.config.get("tng.write_enabled", False):
             decision.applied = False

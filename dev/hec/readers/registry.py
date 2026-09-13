@@ -6,18 +6,21 @@ v konfiguračním schématu. Do controlleru se přitom nesahá.
 
 from __future__ import annotations
 
+import os
+
 from ..core.logging_setup import get_logger
 from .base import BaseReader
 from .finance_document_reader import FinanceDocumentReader
-from .goodwe import GoodWeReader
+from .fte_reader import FTEReader
 from .ote import OteReader
+from .sdg_history_reader import SDGHistoryReader
 from .sharing_reader import SharingReader
 from .shelly import ShellyReader
 from .tng import TngReader
 from .weather import WeatherReader
 
 READER_CLASSES: dict[str, type[BaseReader]] = {
-    "goodwe": GoodWeReader,
+    "goodwe": FTEReader,
     "tng": TngReader,
     "ote": OteReader,
     "weather": WeatherReader,
@@ -27,15 +30,24 @@ READER_CLASSES: dict[str, type[BaseReader]] = {
 }
 
 
-def build_readers(config, storage) -> list[BaseReader]:
+def build_readers(config, storage, *, physical_io: bool = False) -> list[BaseReader]:
     """Vytvoří povolené readery. Selhání konstruktoru jeden zdroj vypne, ostatní běží."""
     log = get_logger("registry")
+    physical_io = physical_io or os.environ.get("HEC_GOODWE_PHYSICAL_IO") == "1"
     readers: list[BaseReader] = []
     for name, cls in READER_CLASSES.items():
         if not config.get(f"{name}.enabled", False):
             continue
         try:
-            readers.append(cls(config, storage))
+            if name == "goodwe":
+                readers.append(cls(config, storage, physical_io=physical_io))
+            else:
+                readers.append(cls(config, storage))
         except Exception as exc:                              # noqa: BLE001
             log.error("reader_init_failed | reader=%s error=%s: %s", name, type(exc).__name__, exc)
+    if config.get("goodwe.sdg.enabled", False):
+        try:
+            readers.append(SDGHistoryReader(config, storage))
+        except Exception as exc:                              # noqa: BLE001
+            log.error("reader_init_failed | reader=sdg_history error=%s: %s", type(exc).__name__, exc)
     return readers

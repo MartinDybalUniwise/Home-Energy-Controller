@@ -1,6 +1,9 @@
 # GoodWe Integration Refactor – Result
 
-> Status: PLANNED. No implementation or completion evidence exists.
+> Status: IN_PROGRESS / REVIEW REQUESTED. The design and specification for
+> S01–S05 are frozen; S06 implementation evidence is recorded below, while
+> pre-S07 remediation and acceptance review remain open.
+> S07 remains the separate human/hardware verification gate.
 
 ## Definice DONE
 
@@ -13,45 +16,66 @@ Krok je DONE když:
 5. ✅ Kód projde code review
 6. ✅ Testy jsou zelené (100% AC coverage)
 
+## Implementation evidence
+
+- S01–S05: design and specification complete and approved for implementation
+- S06: GoodWeManager, FTEReader, FTEWriter, SDGHistoryReader, terminal status
+  output, canonical config, diagnostics UI, focused tests, safe preview, and
+  validation evidence are available for review
+- S07: separate human/hardware verification gate before any live write or
+  controller enablement is approved
+
+### Automated validation
+
+- `python -m ruff check .`: PASS
+- `python -m pytest -m "not e2e"`: PASS, 286 passed, 23 deselected after S06 fixes
+- `python dev/sdd/tools/validate_step.py --phase ready --step dev/step16`: PASS
+- Safe preview at `http://127.0.0.1:8181`: PASS, runtime smoke passed
+- Real E2E: PASS, 23 passed with `HEC_RUN_E2E=1`
+- `python dev/sdd/tools/full_validation.py`: PASS, SDD VALIDATION PASSED
+- Physical GoodWe writes: NOT RUN
+- Controller activation: NOT RUN
+- S07 human/hardware verification: NOT STARTED
+
 ## Completed Acceptance Criteria
 
 (Vyplní se během Fáze B–G)
 
 ### AC 1: GoodWeManager
-- [ ] Fáze: B (core)
-- [ ] Test: `test_readers_goodwe_manager.py`
-- [ ] Hotovo: (datum se vyplní)
-- [ ] Evidence: (link na commit/PR)
+- [x] Fáze: B (core)
+- [x] Test: `test_step16_goodwe_implementation.py`
+- [x] Hotovo: automated S06 validation
+- [x] Evidence: `dev/hec/tests/test_step16_goodwe_implementation.py`, focused test PASS
 
 ### AC 2: FTEReader
-- [ ] Fáze: B (core)
-- [ ] Test: `test_readers_fte.py`
-- [ ] Hotovo: (datum se vyplní)
-- [ ] Evidence: (link na commit/PR)
+- [x] Fáze: B (core)
+- [x] Test: `test_step16_goodwe_implementation.py`
+- [x] Hotovo: automated S06 validation
+- [x] Evidence: focused implementation test and full suite PASS
 
 ### AC 3: FTEWriter
-- [ ] Fáze: C (writer)
-- [ ] Test: `test_writers_fte.py`
-- [ ] Hotovo: (datum se vyplní)
-- [ ] Evidence: (link na commit/PR)
+- [x] Fáze: C (writer)
+- [x] Test: `test_step16_goodwe_implementation.py`
+- [x] Hotovo: automated S06 validation
+- [x] Evidence: focused implementation test and audit/readback assertions PASS
 
 ### AC 4: SDGHistoryReader
-- [ ] Fáze: D (SDG)
-- [ ] Test: `test_readers_sdg_history.py`
-- [ ] Hotovo: (datum se vyplní)
-- [ ] Evidence: (link na commit/PR)
+- [x] Fáze: D (SDG)
+- [x] Test: `test_step16_goodwe_implementation.py`
+- [x] Hotovo: automated S06 validation
+- [x] Evidence: focused implementation test PASS
 
 ### AC 5: Konfigurace
 - [ ] Fáze: E (web)
-- [ ] Test: `test_config.py` (update)
+- [x] Test: `test_core_config.py`, `test_web_api.py`, `pages.js`
 - [ ] Hotovo: (datum se vyplní)
-- [ ] Evidence: (link na commit/PR)
+- [ ] Evidence: `dev/hec/core/schema.py`, `dev/hec/tests/test_core_config.py`, `dev/hec/tests/test_web_api.py`; final review pending
 
 ### AC 6: Web Diagnostika
 - [ ] Fáze: E (web)
-- [ ] Test: `test_web_api.py` (update)
+- [x] Test: `test_web_api.py`, `pages.js`, `cs.json`, `en.json`
 - [ ] Hotovo: (datum se vyplní)
-- [ ] Evidence: (link na commit/PR)
+- [ ] Evidence: `dev/hec/web/frontend/js/pages.js`, `dev/hec/locales/cs.json`, `dev/hec/locales/en.json`; final review pending
 
 ### AC 7: Testy
 - [ ] Fáze: B–G (průběžně)
@@ -94,9 +118,11 @@ Krok je DONE když:
 
 ## Notes
 
-- Implementace ještě nespuštěna (plánování 2026-09-07)
+- S06 application and documentation evidence is returned for review; the step
+  remains IN_PROGRESS and must not advance to S07 until the reviewer accepts
+  the pre-S07 remediation items.
 - Hardware test je **povinný** – bez něj se step nemůže označit DONE
-- Všechny daty budou vyplněny během implementace
+- No physical GoodWe write operation or controller activation was performed.
 
 ## Sign-Off
 

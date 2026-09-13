@@ -314,7 +314,6 @@
         "backups": "Počet záloh logu"
       },
       "polling": {
-        "goodwe_seconds": "Interval čtení: FVE/baterie (s)",
         "tng_seconds": "Interval čtení: tepelné čerpadlo (s)",
         "shelly_seconds": "Interval čtení: Shelly (s)",
         "weather_minutes": "Interval čtení: počasí (min)",
@@ -324,8 +323,11 @@
         "enabled": "Zapnuto",
         "host": "Adresa měniče",
         "family": "Řada měniče",
-        "timeout": "Časový limit (s)",
-        "retries": "Počet opakování",
+        "writer_enabled": "Povolit GoodWe zápisy",
+        "verify_after_write": "Ověřit stav po zápisu",
+        "read_interval_seconds": "Interval čtení GoodWe (s)",
+        "timeout_seconds": "Časový limit GoodWe (s)",
+        "retry_count": "Počet opakování GoodWe",
         "grid_positive_is_import": "Kladná hodnota = odběr ze sítě",
         "battery_positive_is_charge": "Kladná hodnota = nabíjení baterie",
         "sdg": {
@@ -433,7 +435,7 @@
         "backups": "Kolik starších log souborů se ponechá při rotaci."
       },
       "polling": {
-        "goodwe_seconds": "Jak často se čte aktuální výkon a stav baterie z měniče GoodWe.",
+        "read_interval_seconds": "Jak často se čte aktuální výkon a stav baterie z měniče GoodWe.",
         "tng_seconds": "Jak často se kontroluje stav tepelného čerpadla. Nesouvisí s minimálním odstupem mezi zápisy – ten je v sekci Tepelné čerpadlo.",
         "shelly_seconds": "Jak často se čtou hodnoty ze zařízení Shelly.",
         "weather_minutes": "Jak často se stahuje předpověď počasí.",
@@ -443,8 +445,8 @@
         "enabled": "Čtení dat z měniče GoodWe.",
         "host": "IP adresa nebo hostname měniče GoodWe na lokální síti.",
         "family": "Model/řada měniče GoodWe – ovlivňuje, jak se čtou data.",
-        "timeout": "Jak dlouho se čeká na odpověď měniče, než se pokus považuje za neúspěšný.",
-        "retries": "Kolikrát se čtení zopakuje po neúspěchu, než se nahlásí chyba.",
+        "timeout_seconds": "Jak dlouho se čeká na odpověď měniče, než se pokus považuje za neúspěšný.",
+        "retry_count": "Kolikrát se čtení zopakuje po neúspěchu, než se nahlásí chyba.",
         "grid_positive_is_import": "Znaménko toku ze sítě se liší podle instalace – tady se určí, jak ho číst.",
         "battery_positive_is_charge": "Znaménko toku baterie se liší podle instalace – tady se určí, jak ho číst.",
         "sdg": {
@@ -558,7 +560,21 @@
     "successes": "Úspěchy",
     "errors": "Chyby",
     "last_error": "Poslední chyba",
-    "age": "Stáří"
+    "age": "Stáří",
+    "goodwe_diagnostics": "Diagnostika GoodWe",
+    "connection": "Připojení",
+    "connected": "Připojeno",
+    "disconnected": "Odpojeno",
+    "model_firmware": "Model / firmware",
+    "last_read": "Poslední čtení",
+    "last_write": "Poslední zápis",
+    "retries": "Opakování",
+    "writer": "GoodWe zápisy",
+    "authorization": "Servisní autorizace",
+    "sdg": "SDG",
+    "sdg_checkpoint": "SDG checkpoint",
+    "available": "Dostupné",
+    "unavailable": "Nedostupné"
   },
   "reason": {
     "pv_surplus_high_soc": "Přebytek FVE {pv_kw} kW, baterie {soc} %, nízká cena {price} Kč/kWh",
