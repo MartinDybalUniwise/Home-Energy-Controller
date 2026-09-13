@@ -364,3 +364,48 @@ def test_tng_status_log_format(tmp_path, tng_connect):
         log_line = mock_info.call_args[0][0]
         for expected in ("boiler=", "set=", "target=", "pending=", "gate="):
             assert expected in log_line
+        assert "+--------+" in log_line or "+---" in log_line
+        assert "| Boiler" in log_line
+        assert "TNG_HEATING_STATUS" in log_line
+        assert "| Water" in log_line
+
+
+def test_tng_request_heating_temperature_success(tmp_path, tng_connect):
+    reader, config, session = build_tng(tmp_path, tng_connect, write_enabled=True)
+    state = reader.read_state()
+
+    with patch.object(reader.log, "info") as mock_info:
+        ok, reason = reader.request_heating_temperature(45.0, state)
+        assert ok is True
+        assert reason == "ok"
+        assert reader.change_gate["basic"]["awaiting_confirmation"] is True
+        posts = [call for call in session.calls if call[0] == "POST"]
+        assert len(posts) == 1
+
+        logged_events = [call_args[0][0] for call_args in mock_info.call_args_list]
+        assert any("TNG_SET_HEATING " in event for event in logged_events)
+        assert any("TNG_SET_HEATING_OK " in event for event in logged_events)
+
+
+def test_tng_request_heating_temperature_already_set(tmp_path, tng_connect):
+    reader, config, session = build_tng(tmp_path, tng_connect, write_enabled=True)
+    state = reader.read_state()
+    state["settings"]["heating_set_temperature"] = 42.0
+
+    ok, reason = reader.request_heating_temperature(42.0, state)
+    assert ok is False
+    assert reason == "already_set"
+
+
+def test_tng_request_heating_temperature_gate_blocked(tmp_path, tng_connect):
+    reader, config, session = build_tng(tmp_path, tng_connect, write_enabled=True)
+    reader._mark_posted("basic", {"heating_temperature": 45.0})
+    state = reader.read_state()
+
+    with patch.object(reader.log, "info") as mock_info:
+        ok, reason = reader.request_heating_temperature(48.0, state)
+        assert ok is False
+        assert "waiting for TNG confirmation" in reason
+
+        logged_events = [call_args[0][0] for call_args in mock_info.call_args_list]
+        assert any("TNG_SET_HEATING_SKIP " in event for event in logged_events)

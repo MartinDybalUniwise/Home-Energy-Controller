@@ -64,6 +64,14 @@ def _fmt_bool(val: bool | None) -> str:
     return "true" if val else "false"
 
 
+def _format_txt_table(headers: list[str], row: list[str]) -> str:
+    widths = [max(len(h), len(r)) for h, r in zip(headers, row, strict=False)]
+    sep = "+" + "+".join("-" * (w + 2) for w in widths) + "+"
+    header_line = "| " + " | ".join(f"{h:<{w}}" for h, w in zip(headers, widths, strict=False)) + " |"
+    row_line = "| " + " | ".join(f"{r:<{w}}" for r, w in zip(row, widths, strict=False)) + " |"
+    return f"{sep}\n{header_line}\n{sep}\n{row_line}\n{sep}"
+
+
 class TngReader(BaseReader):
     name = "tng"
 
@@ -445,10 +453,10 @@ class TngReader(BaseReader):
 
         return "READY"
 
-    def _next_schedule_target(self, boiler_section: dict, moment: datetime) -> str | None:
-        if not boiler_section or not boiler_section.get("enabled"):
+    def _next_schedule_target(self, section: dict, moment: datetime) -> str | None:
+        if not section or not section.get("enabled"):
             return None
-        schedule = boiler_section.get("schedule") or []
+        schedule = section.get("schedule") or []
         if not schedule:
             return None
 
@@ -480,7 +488,7 @@ class TngReader(BaseReader):
             return None
 
         time_str = nearest_dt.strftime("%H:%M")
-        temp_after = scheduled_value(boiler_section, nearest_dt + timedelta(seconds=1))
+        temp_after = scheduled_value(section, nearest_dt + timedelta(seconds=1))
         if temp_after is None:
             return None
         return f"{time_str}->{_fmt_temp(temp_after)}"
@@ -491,30 +499,79 @@ class TngReader(BaseReader):
             heatpump = state.get("heatpump") or {}
             settings = state.get("settings") or {}
             boiler_section = self.config.section("tng.boiler") or self.config.get("tng.boiler", {})
+            heating_section = self.config.section("tng.heating") or self.config.get("tng.heating", {})
 
             boiler = heatpump.get("boiler_temperature")
             boiler_set = settings.get("boiler_set_temperature")
-            target = scheduled_value(boiler_section, moment) if boiler_section.get("enabled") else None
+            boiler_target = scheduled_value(boiler_section, moment) if boiler_section.get("enabled") else None
             outside = heatpump.get("outside_temperature")
             water = heatpump.get("water_output_temperature")
+            room = heatpump.get("room_temperature")
             pending = settings.get("last_settings_not_confirmed")
             gate = self._gate_status("basic", pending)
-            next_sched = self._next_schedule_target(boiler_section, moment)
+            next_boiler = self._next_schedule_target(boiler_section, moment)
 
-            parts = [
+            parts_boiler = [
                 "TNG_STATUS",
                 f"boiler={_fmt_temp(boiler)}",
                 f"set={_fmt_temp(boiler_set)}",
-                f"target={_fmt_temp(target)}",
+                f"target={_fmt_temp(boiler_target)}",
                 f"outside={_fmt_temp(outside)}",
                 f"water={_fmt_temp(water)}",
                 f"pending={_fmt_bool(pending)}",
                 f"gate={gate}",
             ]
-            if next_sched:
-                parts.append(f"next={next_sched}")
+            if next_boiler:
+                parts_boiler.append(f"next={next_boiler}")
 
-            self.log.info(" | ".join(parts))
+            headers_boiler = ["Boiler", "Set", "Target", "Outside", "Water", "Pending", "Gate", "Next"]
+            row_boiler = [
+                _fmt_temp(boiler),
+                _fmt_temp(boiler_set),
+                _fmt_temp(boiler_target),
+                _fmt_temp(outside),
+                _fmt_temp(water),
+                _fmt_bool(pending),
+                gate,
+                next_boiler or "-",
+            ]
+            table_boiler = _format_txt_table(headers_boiler, row_boiler)
+
+            heating_set = settings.get("heating_set_temperature")
+            heating_target = scheduled_value(heating_section, moment) if heating_section.get("enabled") else None
+            next_heating = self._next_schedule_target(heating_section, moment)
+
+            parts_heating = [
+                "TNG_HEATING_STATUS",
+                f"water={_fmt_temp(water)}",
+                f"room={_fmt_temp(room)}",
+                f"set={_fmt_temp(heating_set)}",
+                f"target={_fmt_temp(heating_target)}",
+                f"outside={_fmt_temp(outside)}",
+                f"pending={_fmt_bool(pending)}",
+                f"gate={gate}",
+            ]
+            if next_heating:
+                parts_heating.append(f"next={next_heating}")
+
+            headers_heating = ["Water", "Room", "Set", "Target", "Outside", "Pending", "Gate", "Next"]
+            row_heating = [
+                _fmt_temp(water),
+                _fmt_temp(room),
+                _fmt_temp(heating_set),
+                _fmt_temp(heating_target),
+                _fmt_temp(outside),
+                _fmt_bool(pending),
+                gate,
+                next_heating or "-",
+            ]
+            table_heating = _format_txt_table(headers_heating, row_heating)
+
+            self.log.info(
+                "\n" +
+                " | ".join(parts_boiler) + "\n" + table_boiler + "\n" +
+                " | ".join(parts_heating) + "\n" + table_heating
+            )
         except Exception as exc:  # noqa: BLE001
             self.log.warning("status_log_failed | error=%s", exc)
 
@@ -600,6 +657,11 @@ class TngReader(BaseReader):
                     target_str = _fmt_temp(payload.get("BoilerTemp"))
                     self.log.info("TNG_SET_BOILER_SKIP | current_set=%s | target=%s | reason=waiting_for_confirmation",
                                   current_str, target_str)
+                if heating.get("enabled") and settings.get("heating_set_temperature") != payload.get("HeatTemp_Const"):
+                    current_str = _fmt_temp(settings.get("heating_set_temperature"))
+                    target_str = _fmt_temp(payload.get("HeatTemp_Const"))
+                    self.log.info("TNG_SET_HEATING_SKIP | current_set=%s | target=%s | reason=waiting_for_confirmation",
+                                  current_str, target_str)
             else:
                 allowed, reason = self.can_post("basic", pending)
                 if allowed:
@@ -608,6 +670,13 @@ class TngReader(BaseReader):
                         target_str = _fmt_temp(payload.get("BoilerTemp"))
                         actual_str = _fmt_temp(heatpump.get("boiler_temperature"))
                         self.log.info("TNG_SET_BOILER | current_set=%s | target=%s | actual=%s",
+                                      current_str, target_str, actual_str)
+
+                    if heating.get("enabled") and settings.get("heating_set_temperature") != payload.get("HeatTemp_Const"):
+                        current_str = _fmt_temp(settings.get("heating_set_temperature"))
+                        target_str = _fmt_temp(payload.get("HeatTemp_Const"))
+                        actual_str = _fmt_temp(heatpump.get("water_output_temperature"))
+                        self.log.info("TNG_SET_HEATING | current_set=%s | target=%s | actual=%s",
                                       current_str, target_str, actual_str)
 
                     self.post_json("basic_settings", payload, "BASIC_SETTINGS")
@@ -619,6 +688,12 @@ class TngReader(BaseReader):
                         target_str = _fmt_temp(payload.get("BoilerTemp"))
                         gate_str = self._gate_status("basic", pending)
                         self.log.info("TNG_SET_BOILER_OK | target=%s | http=204 | gate=%s",
+                                      target_str, gate_str)
+
+                    if heating.get("enabled") and settings.get("heating_set_temperature") != payload.get("HeatTemp_Const"):
+                        target_str = _fmt_temp(payload.get("HeatTemp_Const"))
+                        gate_str = self._gate_status("basic", pending)
+                        self.log.info("TNG_SET_HEATING_OK | target=%s | http=204 | gate=%s",
                                       target_str, gate_str)
                     actions.append("post:basic")
                 else:
@@ -634,6 +709,19 @@ class TngReader(BaseReader):
                                           current_str, target_str, elapsed_str, minimum)
                         else:
                             self.log.info("TNG_SET_BOILER_SKIP | current_set=%s | target=%s | reason=waiting_for_confirmation",
+                                          current_str, target_str)
+
+                    if heating.get("enabled") and settings.get("heating_set_temperature") != payload.get("HeatTemp_Const"):
+                        current_str = _fmt_temp(settings.get("heating_set_temperature"))
+                        target_str = _fmt_temp(payload.get("HeatTemp_Const"))
+                        minimum = int(self.config.get("tng.minimum_change_interval_seconds", 900))
+                        elapsed = self._seconds_since_last_post("basic")
+                        if "minimum change interval" in reason or (elapsed is not None and elapsed < minimum and not self.change_gate["basic"]["awaiting_confirmation"]):
+                            elapsed_str = f"{int(elapsed)}s" if elapsed is not None else "0s"
+                            self.log.info("TNG_SET_HEATING_SKIP | current_set=%s | target=%s | reason=minimum_interval | elapsed=%s | minimum=%ds",
+                                          current_str, target_str, elapsed_str, minimum)
+                        else:
+                            self.log.info("TNG_SET_HEATING_SKIP | current_set=%s | target=%s | reason=waiting_for_confirmation",
                                           current_str, target_str)
 
         if thermostat.get("enabled"):
@@ -659,13 +747,73 @@ class TngReader(BaseReader):
     def request_boiler_temperature(self, temperature: float, state: dict) -> tuple[bool, str]:
         """Jednorázový požadavek controlleru na teplotu TUV – prochází stejným gate."""
         settings = (state or {}).get("settings") or {}
+        heatpump = (state or {}).get("heatpump") or {}
         if settings.get("boiler_set_temperature") == temperature:
             return False, "already_set"
         allowed, reason = self.can_post("basic", settings.get("last_settings_not_confirmed"))
         if not allowed:
+            current_str = _fmt_temp(settings.get("boiler_set_temperature"))
+            target_str = _fmt_temp(temperature)
+            minimum = int(self.config.get("tng.minimum_change_interval_seconds", 900))
+            elapsed = self._seconds_since_last_post("basic")
+            if "minimum change interval" in reason or (elapsed is not None and elapsed < minimum and not self.change_gate["basic"]["awaiting_confirmation"]):
+                elapsed_str = f"{int(elapsed)}s" if elapsed is not None else "0s"
+                self.log.info("TNG_SET_BOILER_SKIP | current_set=%s | target=%s | reason=minimum_interval | elapsed=%s | minimum=%ds",
+                              current_str, target_str, elapsed_str, minimum)
+            else:
+                self.log.info("TNG_SET_BOILER_SKIP | current_set=%s | target=%s | reason=waiting_for_confirmation",
+                              current_str, target_str)
             return False, reason
+
+        current_str = _fmt_temp(settings.get("boiler_set_temperature"))
+        target_str = _fmt_temp(temperature)
+        actual_str = _fmt_temp(heatpump.get("boiler_temperature"))
+        self.log.info("TNG_SET_BOILER | current_set=%s | target=%s | actual=%s",
+                      current_str, target_str, actual_str)
+
         payload = copy.deepcopy(self.config.get("tng.basic_settings_template", {}))
         payload["BoilerTemp"] = temperature
         self.post_json("basic_settings", payload, "BASIC_SETTINGS")
         self._mark_posted("basic", {"boiler_temperature": temperature})
+
+        gate_str = self._gate_status("basic", settings.get("last_settings_not_confirmed"))
+        self.log.info("TNG_SET_BOILER_OK | target=%s | http=204 | gate=%s",
+                      target_str, gate_str)
+        return True, "ok"
+
+    def request_heating_temperature(self, temperature: float, state: dict) -> tuple[bool, str]:
+        """Jednorázový požadavek controlleru na konstantní teplotu topení – prochází stejným gate."""
+        settings = (state or {}).get("settings") or {}
+        heatpump = (state or {}).get("heatpump") or {}
+        if settings.get("heating_set_temperature") == temperature:
+            return False, "already_set"
+        allowed, reason = self.can_post("basic", settings.get("last_settings_not_confirmed"))
+        if not allowed:
+            current_str = _fmt_temp(settings.get("heating_set_temperature"))
+            target_str = _fmt_temp(temperature)
+            minimum = int(self.config.get("tng.minimum_change_interval_seconds", 900))
+            elapsed = self._seconds_since_last_post("basic")
+            if "minimum change interval" in reason or (elapsed is not None and elapsed < minimum and not self.change_gate["basic"]["awaiting_confirmation"]):
+                elapsed_str = f"{int(elapsed)}s" if elapsed is not None else "0s"
+                self.log.info("TNG_SET_HEATING_SKIP | current_set=%s | target=%s | reason=minimum_interval | elapsed=%s | minimum=%ds",
+                              current_str, target_str, elapsed_str, minimum)
+            else:
+                self.log.info("TNG_SET_HEATING_SKIP | current_set=%s | target=%s | reason=waiting_for_confirmation",
+                              current_str, target_str)
+            return False, reason
+
+        current_str = _fmt_temp(settings.get("heating_set_temperature"))
+        target_str = _fmt_temp(temperature)
+        actual_str = _fmt_temp(heatpump.get("water_output_temperature"))
+        self.log.info("TNG_SET_HEATING | current_set=%s | target=%s | actual=%s",
+                      current_str, target_str, actual_str)
+
+        payload = copy.deepcopy(self.config.get("tng.basic_settings_template", {}))
+        payload["HeatTemp_Const"] = temperature
+        self.post_json("basic_settings", payload, "BASIC_SETTINGS")
+        self._mark_posted("basic", {"heating_temperature": temperature})
+
+        gate_str = self._gate_status("basic", settings.get("last_settings_not_confirmed"))
+        self.log.info("TNG_SET_HEATING_OK | target=%s | http=204 | gate=%s",
+                      target_str, gate_str)
         return True, "ok"
