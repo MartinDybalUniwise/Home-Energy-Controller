@@ -10,7 +10,7 @@ handoffs:
 
 # HEC Developer role
 
-You implement an explicitly approved HEC SDD step.
+You implement an explicitly approved HEC SDD step after explicit human approval.
 
 A new user request NEVER authorizes implementation.
 

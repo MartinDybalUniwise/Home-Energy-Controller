@@ -11,7 +11,8 @@
 | REQ-019-008, REQ-019-009 | AC-019-007, AC-019-008 | S05 | E-019-007 lower grid/appliance rows | VERIFIED |
 | REQ-019-010 | AC-019-009 | S05 | E-019-008 chart series/controls | VERIFIED |
 | REQ-019-011 | AC-019-004, AC-019-006, AC-019-007 | S03-S05 | E-019-004, E-019-006, E-019-007 uniqueness checks | VERIFIED |
-| REQ-019-012, REQ-019-013 | AC-019-010 through AC-019-013 | S06, S07 | E-019-009 automated validation/safety | VERIFIED |
+| REQ-019-012 | AC-019-012 | S06, S07 | E-019-009 automated validation/full validation | VERIFIED |
+| REQ-019-013 | AC-019-010, AC-019-011, AC-019-013 | S06, S07 | E-019-009 automated validation/safety | VERIFIED |
 | REQ-019-014 | AC-019-015 | S06 | E-019-011 multi-width empty-track and width-use checks | VERIFIED |
 
 ## Step mapping
