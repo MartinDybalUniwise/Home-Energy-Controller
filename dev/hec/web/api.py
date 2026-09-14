@@ -74,7 +74,7 @@ def history(app, params: dict) -> tuple[int, dict]:
 
     bucket = params.get("bucket")
     bucket = int(bucket) if bucket and bucket.isdigit() else auto_bucket((to - frm).total_seconds())
-    rows = downsample(records, fields, bucket) if bucket else records
+    rows = downsample(records, fields, bucket)
 
     return 200, {
         "source": source,

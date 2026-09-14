@@ -87,6 +87,25 @@ def test_downsample_buckets_and_aggregates():
     assert result[1]["pv_w"] == 930.0
 
 
+def test_series_supports_nested_values_records():
+    records = [{"timestamp": "x", "source": "sdg_history",
+                "values": {"ppvcelkem": 1200, "mode": "eco", "enabled": True}}]
+
+    assert series_fields(records) == ["ppvcelkem"]
+
+
+def test_downsample_supports_nested_values_records():
+    base = floor_to(now_local().replace(second=0, microsecond=0), 900)
+    records = [
+        {"timestamp": to_iso(base), "values": {"total__w": 600}},
+        {"timestamp": to_iso(base + timedelta(seconds=60)), "values": {"total__w": 800}},
+    ]
+
+    result = downsample(records, ["total__w"], 900)
+
+    assert result == [{"timestamp": to_iso(base), "total__w": 700.0}]
+
+
 def test_series_fields_ignores_text_and_booleans():
     records = [{"timestamp": "x", "source": "goodwe", "pv_w": 10, "mode": "eco", "on": True}]
     assert series_fields(records) == ["pv_w"]

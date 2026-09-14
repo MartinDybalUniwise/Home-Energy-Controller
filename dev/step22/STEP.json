@@ -1,7 +1,7 @@
 {
   "step": 22,
   "classification": "LARGE",
-  "status": "PLANNED",
+  "status": "IN_PROGRESS",
   "gate_a": {
     "status": "APPROVED",
     "approved_by": "repository owner / maintainer (explicit user approval)",
@@ -20,9 +20,9 @@
   "readiness": "YES",
   "requested_by": "repository owner / maintainer",
   "source": "User request to check the SDG runtime issue and prepare a repair plan dated 2026-09-14",
-  "branch": null,
+  "branch": "sdd/step22-sdg-runtime",
   "pr": null,
-  "notes": "Planning only. Runtime evidence indicates successful historical SDG imports but no currently running HEC Python process; slow polls take approximately 90-98 seconds while the configured interval is 10 seconds.",
+  "notes": "Implementation started. Runtime evidence indicates successful historical SDG imports but no currently running HEC Python process; slow polls take approximately 90-98 seconds while the configured interval is 10 seconds.",
   "requirements": [
     "REQ-022-001", "REQ-022-002", "REQ-022-003", "REQ-022-004",
     "REQ-022-005"

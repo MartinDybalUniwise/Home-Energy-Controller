@@ -92,6 +92,8 @@ def test_history_exposes_sdg_history_records(tmp_path):
     assert payload["source"] == "sdg_history"
     assert payload["count"] == 1
     assert payload["rows"][0]["timestamp"] == timestamp
+    assert payload["fields"] == ["power"]
+    assert payload["rows"][0]["power"] == 123.0
     assert app.storage.last("sdg_history", 1)[0]["values"]["power"] == 123
     assert "sdg_history" in app.storage.sources()
 

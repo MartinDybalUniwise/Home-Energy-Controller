@@ -39,6 +39,10 @@ Server podvzorkuje sám podle délky rozsahu (do 6 h minutové koše, do 48 h
 pětiminutové, do 8 dní čtvrthodinové, dál hodinové). Vlastní hodnotu lze
 vynutit parametrem `bucket` v sekundách.
 
+Historické záznamy s vnořeným objektem `values` (například `sdg_history`) se
+pro `/api/history` vracejí ve stejném plochém tvaru jako ostatní zdroje.
+Numerická pole jsou uvedena v `fields` a v každém řádku pod svým názvem.
+
 ## Příklady
 
 ```bash

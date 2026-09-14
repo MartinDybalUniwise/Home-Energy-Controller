@@ -14,12 +14,12 @@ runtime is stopped, misconfigured, or actively importing SDG history.
 
 | Step | Purpose | Status |
 |---|---|---|
-| S01 | Reproduce and classify the slow-poll/runtime lifecycle behavior | PLANNED |
-| S02 | Define scheduler timing and lifecycle diagnostics contract | PLANNED |
-| S03 | Implement the smallest scheduler/diagnostic correction | PLANNED |
-| S04 | Add focused regression and safety tests | PLANNED |
+| S01 | Reproduce and classify the slow-poll/runtime lifecycle behavior | DONE |
+| S02 | Define scheduler timing and lifecycle diagnostics contract | DONE |
+| S03 | Implement the smallest scheduler/diagnostic correction | DONE |
+| S04 | Add focused regression and safety tests | DONE |
 | S05 | Perform read-only external/runtime validation | PLANNED |
-| S06 | Run repository validation and prepare Reviewer handoff | PLANNED |
+| S06 | Run repository validation and prepare Reviewer handoff | IN_PROGRESS |
 
 ## Detailed implementation strategy
 

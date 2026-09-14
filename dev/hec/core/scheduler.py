@@ -34,9 +34,8 @@ class Scheduler:
 
     def _run_reader(self, reader) -> None:
         while not self._stop.is_set():
-            started = time.monotonic()
             self.poll_once(reader)
-            reader.schedule_next(started)
+            reader.schedule_next(time.monotonic())
             wait = max(1.0, reader._next_at - time.monotonic())
             self._stop.wait(wait)
 
@@ -51,8 +50,9 @@ class Scheduler:
 
     def stop(self, timeout: float = 5.0) -> None:
         self._stop.set()
+        deadline = time.monotonic() + max(0.0, timeout)
         for thread in self._threads:
-            thread.join(timeout=timeout)
+            thread.join(timeout=max(0.0, deadline - time.monotonic()))
         self._threads.clear()
 
     def run_forever(self) -> None:

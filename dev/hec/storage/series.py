@@ -29,11 +29,27 @@ def numeric(value: Any) -> float | None:
     return None
 
 
+def record_values(record: dict) -> dict[str, Any]:
+    """Vrátí kompatibilní plochý pohled na top-level a vnořené hodnoty."""
+    values = record.get("values")
+    if not isinstance(values, dict):
+        return record
+    flattened = {key: value for key, value in record.items() if key != "values"}
+    flattened.update(values)
+    return flattened
+
+
+def series_row(record: dict, fields: list[str]) -> dict:
+    values = record_values(record)
+    return {"timestamp": record.get("timestamp"),
+            **{field: values[field] for field in fields if field in values}}
+
+
 def downsample(records: list[dict], fields: list[str], bucket_seconds: int,
                how: str | dict[str, str] = "mean") -> list[dict]:
     """Zhustí vzorky do časových košů. Prázdný koš se nevytváří."""
     if bucket_seconds <= 0 or not records:
-        return records
+        return [series_row(record, fields) for record in records]
 
     buckets: dict[str, dict[str, list[float]]] = {}
     order: list[str] = []
@@ -45,8 +61,9 @@ def downsample(records: list[dict], fields: list[str], bucket_seconds: int,
         if key not in buckets:
             buckets[key] = {}
             order.append(key)
+        values = record_values(record)
         for field in fields:
-            value = numeric(record.get(field))
+            value = numeric(values.get(field))
             if value is not None:
                 buckets[key].setdefault(field, []).append(value)
 
@@ -64,7 +81,7 @@ def series_fields(records: list[dict], skip: tuple[str, ...] = ("timestamp", "so
     """Zjistí, které číselné veličiny se ve vzorcích vyskytují."""
     found: list[str] = []
     for record in records[:50]:
-        for key, value in record.items():
+        for key, value in record_values(record).items():
             if key in skip or key in found:
                 continue
             if numeric(value) is not None:
@@ -83,7 +100,7 @@ def integrate_kwh(records: list[dict], field: str, *, max_gap_seconds: int = 900
     previous_value = None
     for record in records:
         stamp = parse_iso(record.get("timestamp"))
-        value = numeric(record.get(field))
+        value = numeric(record_values(record).get(field))
         if stamp is None or value is None:
             continue
         if previous_time is not None:
