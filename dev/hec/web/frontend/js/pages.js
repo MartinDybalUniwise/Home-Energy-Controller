@@ -766,6 +766,138 @@ export async function status(view, { api }) {
   return () => clearInterval(timer);
 }
 
+// --- Control & Plan ------------------------------------------------------
+
+function controlPlanPill(level, key) {
+  return `<span class="pill" data-level="${level}">${t(key)}</span>`;
+}
+
+function controlPlanValue(value, formatter = (item) => escapeHtml(item)) {
+  return value === null || value === undefined ? '–' : formatter(value);
+}
+
+function sourceState(reader) {
+  if (!reader) return controlPlanPill('neutral', 'control_plan.unavailable');
+  if (!reader.enabled) return controlPlanPill('neutral', 'status.disabled');
+  if (reader.error_count && reader.last_error) return controlPlanPill('critical', 'status.reader_error');
+  if (reader.stale) return controlPlanPill('warning', 'status.stale');
+  return controlPlanPill('ok', 'status.ok');
+}
+
+function deviceMetric(labelKey, value) {
+  return `<div class="control-plan-metric"><dt>${t(labelKey)}</dt><dd>${value}</dd></div>`;
+}
+
+function renderControlPlanDevice(titleKey, source, current, reader) {
+  const values = current || {};
+  const sourceLabel = reader?.name || source;
+  return `<article class="control-plan-device">
+    <header><h3>${t(titleKey)}</h3>${sourceState(reader)}</header>
+    <p class="meta">${escapeHtml(sourceLabel)} · ${reader?.last_success ? dateTime(reader.last_success) : t('control_plan.no_observation')}</p>
+    <dl class="control-plan-metrics">${values}</dl>
+  </article>`;
+}
+
+function renderControlPlanMode(titleKey, enabled, reader) {
+  const state = enabled === true ? 'on' : enabled === false ? 'off' : 'unknown';
+  const labelKey = state === 'on' ? 'control_plan.on' : state === 'off' ? 'control_plan.off' : 'control_plan.unknown';
+  return `<article class="control-plan-device control-plan-device--mode control-plan-device--${state}">
+    <header><h3>${t(titleKey)}</h3><span class="control-plan-mode" data-state="${state}">${t(labelKey)}</span></header>
+    <p class="meta">${reader?.name || 'tng'} · ${reader?.last_success ? dateTime(reader.last_success) : t('control_plan.no_observation')}</p>`;
+}
+
+function renderControlPlanDailyEnergy(goodwe, sdg) {
+  const values = sdg?.values || sdg || {};
+  const source = Object.keys(values).length ? 'SDG' : 'GoodWe';
+  const daily = {
+    production: values.e_day_kwh ?? values.e_day ?? goodwe.e_day_kwh,
+    load: values.e_load_day_kwh ?? values.e_load_day ?? goodwe.e_load_day_kwh,
+    import: values.e_import_day_kwh ?? values.e_day_imp ?? goodwe.e_import_day_kwh,
+    export: values.e_export_day_kwh ?? values.e_day_exp ?? goodwe.e_export_day_kwh,
+  };
+  const metric = (labelKey, value, tone) => `<div class="control-plan-energy-metric" data-tone="${tone}"><span>${t(labelKey)}</span><strong>${controlPlanValue(value, (item) => `${num(item, 1)} ${t('unit.kwh')}`)}</strong></div>`;
+  const hasData = Object.values(daily).some((value) => value !== null && value !== undefined);
+  return `<article class="control-plan-daily-energy"><header><h3>${t('control_plan.daily_energy')}</h3><span class="meta">${t('control_plan.source_label')}: ${source}</span></header>
+    <div class="control-plan-energy-grid">${hasData ? [
+      metric('control_plan.production', daily.production, 'production'),
+      metric('control_plan.house_load', daily.load, 'load'),
+      metric('entity.grid_import', daily.import, 'import'),
+      metric('entity.grid_export', daily.export, 'export'),
+    ].join('') : `<p class="notice">${t('control_plan.no_daily_energy')}</p>`}</div></article>`;
+}
+
+function renderControlPlanOutlook(prices, prediction) {
+  const days = [];
+  const priceDays = [prices?.today || null, prices?.tomorrow || null];
+  priceDays.forEach((day, index) => {
+    const periods = (day?.periods || []).filter((period) => period.price_total_czk_kwh != null || period.price_czk_kwh != null);
+    const pricesForDay = periods.map((period) => period.price_total_czk_kwh ?? period.price_czk_kwh);
+    const min = pricesForDay.length ? Math.min(...pricesForDay) : null;
+    const max = pricesForDay.length ? Math.max(...pricesForDay) : null;
+    days.push(`<article class="control-plan-outlook-day"><h3>${t(index ? 'control_plan.tomorrow' : 'control_plan.today')}</h3>
+      <p>${periods.length ? `${t('control_plan.price_range')}: ${num(min, 2)}–${num(max, 2)} ${t('unit.czk_kwh')}` : t('control_plan.no_price_data')}</p>
+      <p class="meta">${day?.date ? escapeHtml(day.date) : t('control_plan.no_observation')}</p></article>`);
+  });
+  (prediction?.days || []).slice(0, 2).forEach((day) => {
+    days.push(`<article class="control-plan-outlook-day"><h3>${escapeHtml(day.date || t('control_plan.tomorrow'))}</h3>
+      <p>${t('entity.pv')}: ${controlPlanValue(day.pv_kwh, (value) => `${num(value, 1)} ${t('unit.kwh')}`)}</p>
+      <p>${t('entity.house')}: ${controlPlanValue(day.consumption_kwh, (value) => `${num(value, 1)} ${t('unit.kwh')}`)}</p>
+      <p class="meta">${day.confidence ? `${t('control_plan.confidence')}: ${escapeHtml(day.confidence)}` : t('control_plan.no_forecast_data')}</p></article>`);
+  });
+  return days.length ? days.join('') : `<p class="notice">${t('control_plan.no_outlook')}</p>`;
+}
+
+function renderControlPlanActivity(decisions) {
+  const today = new Date().toLocaleDateString('en-CA');
+  const rows = (decisions || []).filter((decision) => {
+    const stamp = new Date(decision.timestamp);
+    return !Number.isNaN(stamp.getTime()) && stamp.toLocaleDateString('en-CA') === today;
+  }).slice(-12).reverse();
+  if (!rows.length) return `<p class="notice">${t('control_plan.no_activity')}</p>`;
+  return `<div class="table-wrap"><table class="data control-plan-activity"><thead><tr>
+    <th>${t('control_plan.time')}</th><th>${t('control_plan.action')}</th><th>${t('control_plan.result')}</th><th>${t('control_plan.reason')}</th>
+  </tr></thead><tbody>${rows.map((decision) => `<tr>
+    <td>${dateTime(decision.timestamp)}</td><td>${escapeHtml(decision.action || decision.rule || '–')}</td>
+    <td>${decision.applied ? controlPlanPill('ok', 'control_plan.applied') : controlPlanPill('neutral', 'control_plan.not_applied')}</td>
+    <td>${translatedText(decision.reason_key, decision.reason_params)}</td>
+  </tr>`).join('')}</tbody></table></div>`;
+}
+
+export async function controlPlan(view, { api }) {
+  const [current, statusPayload, decisionsPayload, prices, prediction, appliances] = await Promise.all([
+    api.current().catch(() => ({})), api.status().catch(() => ({})), api.decisions(2).catch(() => ({ decisions: [] })),
+    api.prices().catch(() => ({})), api.prediction().catch(() => ({})), api.appliances(1).catch(() => ({ cycles: [] })),
+  ]);
+  const sources = current.sources || {};
+  const readers = statusPayload.readers || {};
+  const controller = statusPayload.controller || decisionsPayload.state || {};
+  const goodwe = sources.goodwe || {};
+  const tng = sources.tng || {};
+  const sdg = sources.sdg || sources.sdg_history || {};
+  const shelly = Object.entries(sources).filter(([name]) => name.startsWith('shelly'));
+  const writer = statusPayload.goodwe_writer_diagnostics || {};
+  const tngReader = readers.tng;
+  const goodweReader = readers.goodwe;
+  const cards = [
+    `${renderControlPlanMode('entity.heating', tng.heating_on, tngReader)}<dl class="control-plan-metrics">${deviceMetric('entity.outside', controlPlanValue(tng.outside_temperature, (value) => `${num(value, 1)} ${t('unit.celsius')}`))}${deviceMetric('entity.room', controlPlanValue(tng.room_temperature, (value) => `${num(value, 1)} ${t('unit.celsius')}`))}</dl></article>`,
+    `${renderControlPlanMode('entity.dhw', tng.boiler_on, tngReader)}<dl class="control-plan-metrics">${deviceMetric('control_plan.current', controlPlanValue(tng.boiler_temperature, (value) => `${num(value, 1)} ${t('unit.celsius')}`))}${deviceMetric('control_plan.setpoint', controlPlanValue(tng.boiler_set_temperature, (value) => `${num(value, 1)} ${t('unit.celsius')}`))}</dl></article>`,
+    renderControlPlanDevice('entity.pv', 'goodwe', `${deviceMetric('entity.pv', controlPlanValue(goodwe.pv_w, (value) => power(value).value + ' ' + power(value).unit))}${deviceMetric('entity.house', controlPlanValue(goodwe.house_w, (value) => power(value).value + ' ' + power(value).unit))}${deviceMetric('entity.battery_soc', controlPlanValue(goodwe.battery_soc, (value) => `${num(value, 0)} ${t('unit.percent')}`))}`, goodweReader),
+    renderControlPlanDevice('entity.grid', 'goodwe', `${deviceMetric('entity.grid_import', controlPlanValue(goodwe.grid_import_w, (value) => power(value).value + ' ' + power(value).unit))}${deviceMetric('entity.grid_export', controlPlanValue(goodwe.grid_export_w, (value) => power(value).value + ' ' + power(value).unit))}${deviceMetric('entity.battery', controlPlanValue(goodwe.battery_charge_w ?? goodwe.battery_discharge_w, (value) => power(value).value + ' ' + power(value).unit))}`, goodweReader),
+  ];
+  const shellyCards = shelly.length ? shelly.map(([name, values]) => renderControlPlanDevice('entity.appliances', name, deviceMetric('entity.appliances', controlPlanValue(values.power_w, (value) => power(value).value + ' ' + power(value).unit)), readers[name])).join('') : `<p class="notice">${t('control_plan.no_appliances')}</p>`;
+  view.innerHTML = `<div class="control-plan-page">
+    <header class="control-plan-header"><div><span class="section-tab">${t('control_plan.title')}</span><p class="meta">${t('control_plan.subtitle')}</p></div><span id="control-plan-updated" class="meta">${t('app.updated', { time: time(new Date()) })}</span></header>
+    <section class="panel control-plan-status" aria-labelledby="control-plan-status-title"><h2 id="control-plan-status-title">${t('control_plan.automation')}</h2><div class="control-plan-status-grid">
+      <article><h3>${t('control_plan.planner')}</h3>${controlPlanPill('neutral', 'control_plan.not_exposed')}<p class="meta">${t('control_plan.planner_note')}</p></article>
+      <article><h3>${t('settings.controller')}</h3>${controller.enabled ? controlPlanPill('ok', 'status.controller_running') : controlPlanPill('neutral', 'status.controller_disabled')}${controller.safe_mode ? controlPlanPill('warning', 'status.safe_mode') : ''}<p class="meta">${controller.last_run ? `${t('control_plan.last_run')}: ${dateTime(controller.last_run)}` : t('control_plan.no_run')}</p></article>
+      <article><h3>${t('control_plan.writers')}</h3>${writer.enabled ? controlPlanPill('warning', 'control_plan.available_disabled') : controlPlanPill('neutral', 'status.write_disabled')}<p class="meta">${t('control_plan.read_only')}</p></article>
+    </div></section>
+    <section class="panel control-plan-devices" aria-labelledby="control-plan-devices-title"><h2 id="control-plan-devices-title">${t('control_plan.devices')}</h2><div class="control-plan-device-grid">${cards.join('')}</div><h3 class="control-plan-subheading">${t('entity.appliances')}</h3><div class="control-plan-device-grid">${shellyCards}</div></section>
+    <section class="panel control-plan-lower"><div><h2>${t('control_plan.today_activity')}</h2>${renderControlPlanActivity(decisionsPayload.decisions)}</div><div><h2>${t('control_plan.outlook')}</h2><div class="control-plan-outlook">${renderControlPlanOutlook(prices, prediction)}</div><p class="meta">${t('control_plan.appliance_cycles')}: ${num((appliances.cycles || []).length, 0)}</p></div></section>
+    <section class="panel control-plan-daily-panel">${renderControlPlanDailyEnergy(goodwe, sdg)}</section>
+  </div>`;
+}
+
 // --- Data (prohlížeč JSONL historie) -------------------------------------
 //
 // Syrové, nezhuštěné záznamy jednoho zdroje – buď posledních N, nebo celý
@@ -889,6 +1021,7 @@ export const pages = {
   flow,
   finance,
   'finance/manual': financeManual,
+  'control-plan': controlPlan,
   status,
   logs: logsPage,
   settings,

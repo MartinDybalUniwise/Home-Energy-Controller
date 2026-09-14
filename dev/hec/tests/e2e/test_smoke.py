@@ -84,6 +84,42 @@ def test_english_navigation_catalog(page: Page):
     expect(page.locator('#nav a[data-page="overview"]')).to_contain_text("Today")
 
 
+def test_control_plan_read_only_monitor(page: Page):
+    import re
+
+    from playwright.sync_api import expect
+
+    page.set_viewport_size({"width": 1920, "height": 1080})
+    page.goto("/")
+    set_language_in_settings(page, "cs")
+    page.goto("/#/control-plan")
+    expect(page.locator(".control-plan-page")).to_be_visible()
+    expect(page.locator(".control-plan-status")).to_be_visible()
+    expect(page.locator(".control-plan-devices")).to_be_visible()
+    expect(page.locator(".control-plan-lower")).to_be_visible()
+    expect(page.locator(".control-plan-status")).to_contain_text(re.compile("Zápis|Writing"))
+    expect(page.locator(".control-plan-page")).to_contain_text(re.compile("Topení|Heating"))
+    expect(page.locator(".control-plan-page")).to_contain_text(re.compile("Baterie|Battery"))
+    expect(page.locator(".control-plan-page")).to_contain_text(re.compile("Dnes|Today"))
+    expect(page.locator(".control-plan-page")).to_contain_text(re.compile("Zítra|Tomorrow"))
+    expect(page.locator(".control-plan-daily-energy")).to_be_visible()
+    expect(page.locator(".control-plan-mode")).to_have_count(2)
+    expect(page.locator(".notice.error")).to_have_count(0)
+
+
+def test_control_plan_english_catalog(page: Page):
+    from playwright.sync_api import expect
+
+    page.goto("/")
+    set_language_in_settings(page, "en")
+    expect(page.locator("html")).to_have_attribute("lang", "en")
+    page.reload()
+    page.goto("/#/control-plan")
+    expect(page.locator(".control-plan-page")).to_contain_text("Control & Plan")
+    expect(page.locator(".control-plan-page")).to_contain_text("Heating")
+    expect(page.locator(".notice.error")).to_have_count(0)
+
+
 @pytest.mark.parametrize("viewport", [(1920, 1080), (1440, 900), (1280, 800), (1024, 768), (390, 844)])
 def test_today_screen_touchscreen_redesign(page: Page, viewport: tuple[int, int]):
     from playwright.sync_api import expect

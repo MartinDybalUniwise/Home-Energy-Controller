@@ -14,12 +14,12 @@ is expected through tomorrow" while keeping existing API and safety contracts.
 
 | Step | Purpose | Status |
 |---|---|---|
-| S01 | Inventory existing frontend routes, API payloads, and status fields | PLANNED |
-| S02 | Define page information architecture and state vocabulary | PLANNED |
-| S03 | Implement localized read-only route and status sections | PLANNED |
-| S04 | Implement today/tomorrow activity and outlook timeline | PLANNED |
-| S05 | Add responsive/accessibility/empty-state behavior | PLANNED |
-| S06 | Add focused E2E coverage and run validation | PLANNED |
+| S01 | Inventory existing frontend routes, API payloads, and status fields | DONE |
+| S02 | Define page information architecture and state vocabulary | DONE |
+| S03 | Implement localized read-only route and status sections | DONE |
+| S04 | Implement today/tomorrow activity and outlook timeline | DONE |
+| S05 | Add responsive/accessibility/empty-state behavior | DONE |
+| S06 | Add focused E2E coverage and run validation | DONE |
 
 ## Detailed implementation strategy
 
