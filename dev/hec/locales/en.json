@@ -608,6 +608,7 @@
     "unknown": "No data",
     "daily_energy": "Energy balance today",
     "source_label": "Source",
+      "historical": "Historical daily balance",
     "production": "Production",
     "house_load": "House load",
     "no_daily_energy": "Daily production, import, and export counters are unavailable",

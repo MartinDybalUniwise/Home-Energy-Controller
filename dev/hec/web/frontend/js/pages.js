@@ -268,17 +268,18 @@ export async function history(view, { api, state }) {
     const chart = view.querySelector('#chart');
     chart.innerHTML = `<p class="notice">${t('app.loading')}</p>`;
     const payload = await api.history({ source: state.historySource, from: state.historyRange, to: 'now' });
+    const isSdgHistory = state.historySource === 'sdg_history';
     const isTemperature = payload.fields.some((field) => field.includes('temperature'));
     const series = payload.fields
-      .filter((field) => SERIES_LABELS[field] || isTemperature)
+      .filter((field) => isSdgHistory || SERIES_LABELS[field] || isTemperature)
       .map((field) => ({
         field,
         label: t(SERIES_LABELS[field] || field),
         color: SERIES_COLORS[field] || 'var(--series-house)',
         area: field === 'pv_w',
       }));
-    const unit = isTemperature ? t('unit.celsius') : t('unit.kw');
-    const scale = isTemperature ? 1 : 0.001;
+    const unit = isSdgHistory ? '' : isTemperature ? t('unit.celsius') : t('unit.kw');
+    const scale = isSdgHistory || isTemperature ? 1 : 0.001;
 
     // Navigace může mezitím nahradit celý view. Starý dotaz pak nesmí
     // přepisovat novou stránku ani vyvolat chybu při hledání původní tabulky.
@@ -836,15 +837,28 @@ function renderControlPlanMode(titleKey, enabled, reader) {
     <p class="meta">${reader?.name || 'tng'} · ${reader?.last_success ? dateTime(reader.last_success) : t('control_plan.no_observation')}</p>`;
 }
 
-function renderControlPlanDailyEnergy(goodwe, sdg) {
+function renderControlPlanDailyEnergy(goodwe, sdg, summary) {
   const values = sdg?.values || sdg || {};
-  const source = Object.keys(values).length ? 'SDG' : 'GoodWe';
-  const daily = {
-    production: values.e_day_kwh ?? values.e_day ?? goodwe.e_day_kwh,
-    load: values.e_load_day_kwh ?? values.e_load_day ?? goodwe.e_load_day_kwh,
-    import: values.e_import_day_kwh ?? values.e_day_imp ?? goodwe.e_import_day_kwh,
-    export: values.e_export_day_kwh ?? values.e_day_exp ?? goodwe.e_export_day_kwh,
+  const currentDaily = {
+    production: values.e_day_kwh ?? values.e_day,
+    load: values.e_load_day_kwh ?? values.e_load_day,
+    import: values.e_import_day_kwh ?? values.e_day_imp,
+    export: values.e_export_day_kwh ?? values.e_day_exp,
   };
+  const historicalDaily = {
+    production: summary?.pv_kwh,
+    load: summary?.house_kwh,
+    import: summary?.grid_import_kwh,
+    export: summary?.grid_export_kwh,
+  };
+  const hasCurrentDaily = Object.values(currentDaily).some((value) => value !== null && value !== undefined);
+  const daily = hasCurrentDaily ? currentDaily : {
+    production: historicalDaily.production ?? goodwe.e_day_kwh,
+    load: historicalDaily.load ?? goodwe.e_load_day_kwh,
+    import: historicalDaily.import ?? goodwe.e_import_day_kwh,
+    export: historicalDaily.export ?? goodwe.e_export_day_kwh,
+  };
+  const source = hasCurrentDaily ? (Object.keys(values).length ? 'SDG' : 'GoodWe') : t('control_plan.historical');
   const metric = (labelKey, value, tone) => `<div class="control-plan-energy-metric" data-tone="${tone}"><span>${t(labelKey)}</span><strong>${controlPlanValue(value, (item) => `${num(item, 1)} ${t('unit.kwh')}`)}</strong></div>`;
   const hasData = Object.values(daily).some((value) => value !== null && value !== undefined);
   return `<article class="control-plan-daily-energy"><header><h3>${t('control_plan.daily_energy')}</h3><span class="meta">${t('control_plan.source_label')}: ${source}</span></header>
@@ -898,6 +912,7 @@ export async function controlPlan(view, { api }) {
     api.current().catch(() => ({})), api.status().catch(() => ({})), api.decisions(2).catch(() => ({ decisions: [] })),
     api.prices().catch(() => ({})), api.prediction().catch(() => ({})), api.appliances(1).catch(() => ({ cycles: [] })),
   ]);
+  const summaryPayload = await api.summaries(1).catch(() => ({ days: [] }));
   const sources = current.sources || {};
   const readers = statusPayload.readers || {};
   const controller = statusPayload.controller || decisionsPayload.state || {};
@@ -924,7 +939,7 @@ export async function controlPlan(view, { api }) {
     </div></section>
     <section class="panel control-plan-devices" aria-labelledby="control-plan-devices-title"><h2 id="control-plan-devices-title">${t('control_plan.devices')}</h2><div class="control-plan-device-grid">${cards.join('')}</div><h3 class="control-plan-subheading">${t('entity.appliances')}</h3><div class="control-plan-device-grid">${shellyCards}</div></section>
     <section class="panel control-plan-lower"><div><h2>${t('control_plan.today_activity')}</h2>${renderControlPlanActivity(decisionsPayload.decisions)}</div><div><h2>${t('control_plan.outlook')}</h2><div class="control-plan-outlook">${renderControlPlanOutlook(prices, prediction)}</div><p class="meta">${t('control_plan.appliance_cycles')}: ${num((appliances.cycles || []).length, 0)}</p></div></section>
-    <section class="panel control-plan-daily-panel">${renderControlPlanDailyEnergy(goodwe, sdg)}</section>
+    <section class="panel control-plan-daily-panel">${renderControlPlanDailyEnergy(goodwe, sdg, summaryPayload.days?.at(-1))}</section>
   </div>`;
 }
 

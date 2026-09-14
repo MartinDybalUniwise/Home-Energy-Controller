@@ -608,6 +608,7 @@
     "unknown": "Bez dat",
     "daily_energy": "Energetická bilance dnes",
     "source_label": "Zdroj",
+      "historical": "Historická denní bilance",
     "production": "Výroba",
     "house_load": "Spotřeba domu",
     "no_daily_energy": "Denní čítače výroby, nákupu a prodeje nejsou k dispozici",

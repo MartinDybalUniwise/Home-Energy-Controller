@@ -12,13 +12,18 @@ service, or device was changed.
 - Implemented: Scheduler schedules after poll completion, stop uses one total
 	timeout budget, status exposes non-secret process/configuration context, and
 	SDG nested `values` are flattened for History API series discovery,
-	aggregation, and raw rows. Focused tests cover timing, isolation, stop, SDG
-	regression, storage, and API output.
+	aggregation, and raw rows. The History frontend accepts SDG numeric fields,
+	so the UI renders values instead of timestamps only. Control & Plan now uses
+	the latest daily summary when current counters are unavailable. Tests cover
+	timing, isolation, stop, SDG regression, storage, API output, and browser
+	rendering.
 
 ## Validation
 
 - Command: `python -m pytest dev/hec/tests/test_scheduler_app.py -q`
 - Result: PASS, 10 passed.
+- Command: `$env:HEC_RUN_E2E='1'; $env:HEC_BASE_URL='http://127.0.0.1:8181'; python -m pytest dev/hec/tests/e2e -o addopts= -m e2e -x -q`
+- Result: PASS, 27 passed with safe preview running.
 - Command: `python -m pytest dev/hec/tests/test_step16_goodwe_implementation.py -k 'sdg' -q`
 - Result: PASS, 5 passed.
 - Command: `python -m pytest dev/hec/tests/test_web_api.py -k 'sdg_history' -q`

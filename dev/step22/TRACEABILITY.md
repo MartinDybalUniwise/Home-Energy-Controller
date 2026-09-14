@@ -6,7 +6,7 @@
 | REQ-022-002 | AC-022-002 | S03-S04 | E-022-002 reader isolation test | VERIFIED |
 | REQ-022-003 | AC-022-003 | S03-S04 | E-022-003 bounded stop test | VERIFIED |
 | REQ-022-004 | AC-022-004 | S01-S05 | E-022-004 runtime/status evidence | VERIFIED locally; external open |
-| REQ-022-005 | AC-022-005 | S03-S04 | E-022-005 Step 21 regression suite and nested-values API regression | VERIFIED |
+| REQ-022-005 | AC-022-005 | S03-S04 | E-022-005 Step 21 regression, nested-values API, SDG History, and Control & Plan regression | VERIFIED |
 | REQ-022-005 | AC-022-006 | S05 | E-022-006 read-only external validation | PLANNED |
 | REQ-022-001 | AC-022-007 | S04-S06 | E-022-007 safety configuration checks | VERIFIED |
 | REQ-022-003 | AC-022-008 | S06 | E-022-008 validation command record | VERIFIED locally; unrelated failure remains |
@@ -20,8 +20,9 @@
 	budget for all reader threads.
 - E-022-004: Preview `/api/status` exposed process/configuration context and
 	write gates were false; external live-process validation remains open.
-- E-022-005: Step 21 focused SDG tests passed (`5 passed`), History API and
-	nested-values series regressions passed (`31 passed` broader focused set).
+- E-022-005: Step 21 focused SDG tests passed (`5 passed`), backend storage/API
+	regressions passed, real Playwright SDG History passed, and Control & Plan
+	E2E tests passed (`2 passed`).
 - E-022-006: Read-only inspection record for `T:\Home-Energy-Controller` and
 	the configured Promotic share.
 - E-022-007: Local/preview/automated write-gate assertions.

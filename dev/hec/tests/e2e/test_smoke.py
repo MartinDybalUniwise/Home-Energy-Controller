@@ -95,8 +95,8 @@ def test_history_renders_sdg_history_source(page: Page):
             route.fulfill(status=200, content_type="application/json", body=(
                 '{"source":"sdg_history","from":"2026-09-14T10:00:00+02:00",'
                 '"to":"2026-09-14T10:05:00+02:00","bucket_seconds":0,'
-                '"fields":["pv_w"],"count":1,"raw_count":1,'
-                '"rows":[{"timestamp":"2026-09-14T10:05:00+02:00","pv_w":123}]}'
+                '"fields":["total__w"],"count":1,"raw_count":1,'
+                '"rows":[{"timestamp":"2026-09-14T10:05:00+02:00","total__w":123}]}'
             ))
             return
         route.continue_()
@@ -105,7 +105,7 @@ def test_history_renders_sdg_history_source(page: Page):
     page.goto("/#/history")
     expect(page.locator("#source")).to_have_value("sdg_history")
     page.locator("#toggle-view").click()
-    expect(page.locator("#table")).to_contain_text("0,12")
+    expect(page.locator("#table")).to_contain_text("123")
 
 
 def test_czech_navigation_catalog(page: Page):
