@@ -389,6 +389,25 @@ def test_sdg_reader_discovers_sdgeco_installation_layout(tmp_path):
     assert reader.paths() == [source]
 
 
+def test_sdg_reader_retries_file_after_all_rows_were_skipped(tmp_path):
+    root = tmp_path / "sdg" / "Data" / "trend" / "min"
+    root.mkdir(parents=True)
+    source = root / "sample.dbf"
+    write_dbf(source, [("not-a-timestamp", 100, "OK")])
+    config = enabled_config(tmp_path, sdg={"log_root_path": str(tmp_path / "sdg")})
+    storage = JsonlStorage(config.data_dir, config.history_dir)
+    reader = SDGHistoryReader(config, storage)
+
+    first = reader.import_history()
+    assert first["imported"] == 0
+    assert first["skipped"] == 1
+
+    write_dbf(source, [("2026-09-14 10:00:00", 100, "OK")])
+    second = reader.import_history()
+    assert second["imported"] == 1
+    assert len(storage.last("sdg_history", 10)) == 1
+
+
 def test_sdg_import_is_incremental_deduplicated_and_tolerates_corruption(tmp_path):
     root = tmp_path / "sdg" / "Data" / "trend" / "min"
     root.mkdir(parents=True)

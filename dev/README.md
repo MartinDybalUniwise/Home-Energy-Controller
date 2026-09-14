@@ -1,3 +1,4 @@
+| [`step21/`](step21/) | Spolehlivé čtení SDG historie: DBF discovery, pm_time, checkpoint/retry a historie sdg_history | 📝 plánováno <!-- status: PLANNED --> |
 # dev/ – vývojový adresář Home Energy Controller
 
 Veškerý nový vývoj probíhá **výhradně v tomto adresáři**. Kořen repozitáře
@@ -52,6 +53,7 @@ Každý `stepNN/` obsahuje minimálně:
 | [`step01/UI_DESIGN.md`](step01/UI_DESIGN.md) | Vizuální jazyk webu podle televizní meteo grafiky, design tokeny, ověřená paleta grafů |
 | [`step01/I18N.md`](step01/I18N.md) | Jazykové mutace CZ/EN a postup přidání dalšího jazyka |
 | [`step20/`](step20/) | New step placeholder | 📝 plánováno <!-- status: PLANNED --> |
+| [`step21/`](step21/) | New step placeholder | 📝 plánováno <!-- status: PLANNED --> |
 
 ## Aktuálně připravovaný Step 16
 

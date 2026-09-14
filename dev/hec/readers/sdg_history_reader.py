@@ -117,21 +117,26 @@ class SDGHistoryReader(BaseReader):
 
     @staticmethod
     def _timestamp(row: dict[str, Any]) -> str | None:
+        def parse_text(text: str) -> str | None:
+            normalized = text.strip().replace(".", "-").replace(" ", "T")
+            candidate = normalized if "+" in normalized else f"{normalized}+00:00"
+            try:
+                return to_iso(datetime.fromisoformat(candidate))
+            except ValueError:
+                return None
+
         pm_time = row.get("pm_time")
         if pm_time is not None:
             text = str(pm_time).strip()
             if text:
-                normalized = text.replace(".", "-").replace(" ", "T")
-                return normalized if "+" in normalized else f"{normalized}+00:00"
+                return parse_text(text)
 
         date_value = row.get("date")
         time_value = row.get("time")
         if date_value is not None and time_value is not None:
-            date_text = str(date_value).strip().replace(" ", "T")
+            date_text = str(date_value).strip()
             time_text = str(time_value).strip()
-            if "T" not in date_text:
-                date_text = f"{date_text}T{time_text}"
-            return date_text if "+" in date_text else f"{date_text}+00:00"
+            return parse_text(date_text if "T" in date_text else f"{date_text} {time_text}")
 
         for key in ("timestamp", "datetime", "date_time", "dt"):
             value = row.get(key)
@@ -142,12 +147,9 @@ class SDGHistoryReader(BaseReader):
                 return to_iso(moment)
             text = str(value).strip()
             if text:
-                normalized = text.replace(".", "-").replace(" ", "T")
-                if normalized.endswith("Z"):
-                    return normalized[:-1] + "+00:00"
-                if "+" not in normalized and "-" in normalized[10:]:
-                    normalized += "+00:00"
-                return normalized
+                if text.endswith("Z"):
+                    text = text[:-1] + "+00:00"
+                return parse_text(text)
 
         return None
 
@@ -193,11 +195,13 @@ class SDGHistoryReader(BaseReader):
                 self._terminal_status("file_failed", file=path.name)
                 continue
             records: list[dict[str, Any]] = []
+            valid_rows = 0
             for row in rows:
                 normalized = self._normalize(row, path)
                 if normalized is None:
                     skipped += 1
                     continue
+                valid_rows += 1
                 fingerprint = hashlib.sha256(json.dumps(normalized, sort_keys=True,
                                                         ensure_ascii=False).encode("utf-8")).hexdigest()
                 if fingerprint in seen:
@@ -207,10 +211,11 @@ class SDGHistoryReader(BaseReader):
                 records.append(normalized)
             if self.storage is not None and records:
                 imported += self.storage.append_many(self.name, records)
-            with path.open("rb") as source:
-                end_prefix_hash = hashlib.sha256(source.read(end_offset)).hexdigest()
-            file_state[key] = {"size": stat.st_size, "mtime_ns": stat.st_mtime_ns,
-                               "offset": end_offset, "prefix_hash": end_prefix_hash}
+            if valid_rows:
+                with path.open("rb") as source:
+                    end_prefix_hash = hashlib.sha256(source.read(end_offset)).hexdigest()
+                file_state[key] = {"size": stat.st_size, "mtime_ns": stat.st_mtime_ns,
+                                   "offset": end_offset, "prefix_hash": end_prefix_hash}
         checkpoint["records"] = sorted(seen)
         atomic_write_json(self.checkpoint_path, checkpoint)
         self._checkpoint = checkpoint
