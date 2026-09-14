@@ -9,6 +9,7 @@ from __future__ import annotations
 import re
 from copy import deepcopy
 from datetime import datetime, timedelta
+from pathlib import Path
 
 from ..core import config as config_mod
 from ..core import i18n
@@ -17,6 +18,7 @@ from ..core.timeutil import now_local, parse_iso, to_iso
 from ..finance.service import FinanceService
 from ..forecast.household_consumption_forecast import forecast_household_consumption
 from ..forecast.pv_forecast import forecast_pv
+from ..readers.sdg_history_reader import SDGHistoryReader
 from ..storage.base import read_json
 from ..storage.series import downsample, series_fields
 
@@ -72,7 +74,7 @@ def history(app, params: dict) -> tuple[int, dict]:
 
     bucket = params.get("bucket")
     bucket = int(bucket) if bucket and bucket.isdigit() else auto_bucket((to - frm).total_seconds())
-    rows = downsample(records, fields, bucket) if bucket else records
+    rows = downsample(records, fields, bucket)
 
     return 200, {
         "source": source,
@@ -211,6 +213,43 @@ def config_get(app) -> tuple[int, dict]:
 
 def config_schema(app) -> tuple[int, dict]:
     return 200, {"fields": schema_mod.describe()}
+
+
+def config_verify(app, target: str) -> tuple[int, dict]:
+    """Read-only checks for configured local paths; never probes device writes."""
+    targets = {
+        "storage.data": "storage.data_path",
+        "storage.logs": "storage.logs_path",
+        "storage.history": "storage.history_path",
+        "storage.archive": "storage.archive_path",
+        "sdg": "goodwe.sdg.log_root_path",
+    }
+    path_key = targets.get(target)
+    if path_key is None:
+        return 400, {"error": "unsupported_verify_target"}
+
+    raw_path = str(app.config.get(path_key, "") or "")
+    if not raw_path:
+        return 200, {"target": target, "configured": False, "available": False,
+                     "path": "", "message_key": "settings.verify_not_configured"}
+    path = Path(raw_path).expanduser()
+    if not path.is_absolute() and not raw_path.startswith("\\\\"):
+        path = app.config.root / path
+
+    result = {"target": target, "configured": True, "available": path.is_dir(),
+              "path": str(path), "message_key": "settings.verify_unavailable"}
+    if target == "sdg":
+        files = [file for directory in SDGHistoryReader.candidate_directories(path)
+                 if directory.is_dir() for file in directory.rglob("*")
+                 if file.is_file() and file.suffix.lower() == ".dbf"]
+        files.sort(key=lambda file: file.stat().st_mtime_ns, reverse=True)
+        result.update({"file_count": len(files),
+                       "latest_file": str(files[0]) if files else None,
+                       "available": path.is_dir() and bool(files),
+                       "message_key": "settings.verify_ok" if files else "settings.verify_no_files"})
+    elif path.is_dir():
+        result["message_key"] = "settings.verify_ok"
+    return 200, result
 
 
 def config_put(app, body: dict) -> tuple[int, dict]:

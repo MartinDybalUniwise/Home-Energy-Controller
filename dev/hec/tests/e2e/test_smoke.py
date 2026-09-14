@@ -66,6 +66,48 @@ def test_sidebar_service_menu_toggle(page: Page):
     expect(toggle).to_have_attribute("aria-expanded", "false")
 
 
+def test_settings_can_verify_sdg_path_without_saving(page: Page):
+    import re
+
+    from playwright.sync_api import expect
+
+    page.goto("/")
+    if page.viewport_size and page.viewport_size["width"] <= 1023:
+        page.locator("#menu-toggle").click()
+    page.locator("#more-toggle").click()
+    page.locator('#utility-nav a[data-page="settings"]').click()
+    page.locator("details.technical-settings").click()
+    button = page.locator('[data-verify-target="sdg"]')
+    expect(button).to_be_visible()
+    button.click()
+    expect(button.locator("xpath=following-sibling::span[contains(@class, 'field-verify-result')]")).to_have_text(re.compile(r".+"))
+
+
+def test_history_renders_sdg_history_source(page: Page):
+    from playwright.sync_api import expect
+
+    def route_api(route):
+        if route.request.url.endswith("/api/sources"):
+            route.fulfill(status=200, content_type="application/json",
+                          body='{"sources":["sdg_history"]}')
+            return
+        if "/api/history?" in route.request.url:
+            route.fulfill(status=200, content_type="application/json", body=(
+                '{"source":"sdg_history","from":"2026-09-14T10:00:00+02:00",'
+                '"to":"2026-09-14T10:05:00+02:00","bucket_seconds":0,'
+                '"fields":["total__w"],"count":1,"raw_count":1,'
+                '"rows":[{"timestamp":"2026-09-14T10:05:00+02:00","total__w":123}]}'
+            ))
+            return
+        route.continue_()
+
+    page.route("**/api/**", route_api)
+    page.goto("/#/history")
+    expect(page.locator("#source")).to_have_value("sdg_history")
+    page.locator("#toggle-view").click()
+    expect(page.locator("#table")).to_contain_text("123")
+
+
 def test_czech_navigation_catalog(page: Page):
     from playwright.sync_api import expect
 
@@ -82,6 +124,42 @@ def test_english_navigation_catalog(page: Page):
     set_language_in_settings(page, "en")
     expect(page.locator("html")).to_have_attribute("lang", "en")
     expect(page.locator('#nav a[data-page="overview"]')).to_contain_text("Today")
+
+
+def test_control_plan_read_only_monitor(page: Page):
+    import re
+
+    from playwright.sync_api import expect
+
+    page.set_viewport_size({"width": 1920, "height": 1080})
+    page.goto("/")
+    set_language_in_settings(page, "cs")
+    page.goto("/#/control-plan")
+    expect(page.locator(".control-plan-page")).to_be_visible()
+    expect(page.locator(".control-plan-status")).to_be_visible()
+    expect(page.locator(".control-plan-devices")).to_be_visible()
+    expect(page.locator(".control-plan-lower")).to_be_visible()
+    expect(page.locator(".control-plan-status")).to_contain_text(re.compile("Zápis|Writing"))
+    expect(page.locator(".control-plan-page")).to_contain_text(re.compile("Topení|Heating"))
+    expect(page.locator(".control-plan-page")).to_contain_text(re.compile("Baterie|Battery"))
+    expect(page.locator(".control-plan-page")).to_contain_text(re.compile("Dnes|Today"))
+    expect(page.locator(".control-plan-page")).to_contain_text(re.compile("Zítra|Tomorrow"))
+    expect(page.locator(".control-plan-daily-energy")).to_be_visible()
+    expect(page.locator(".control-plan-mode")).to_have_count(2)
+    expect(page.locator(".notice.error")).to_have_count(0)
+
+
+def test_control_plan_english_catalog(page: Page):
+    from playwright.sync_api import expect
+
+    page.goto("/")
+    set_language_in_settings(page, "en")
+    expect(page.locator("html")).to_have_attribute("lang", "en")
+    page.reload()
+    page.goto("/#/control-plan")
+    expect(page.locator(".control-plan-page")).to_contain_text("Control & Plan")
+    expect(page.locator(".control-plan-page")).to_contain_text("Heating")
+    expect(page.locator(".notice.error")).to_have_count(0)
 
 
 @pytest.mark.parametrize("viewport", [(1920, 1080), (1440, 900), (1280, 800), (1024, 768), (390, 844)])

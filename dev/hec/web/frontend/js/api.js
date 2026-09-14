@@ -42,6 +42,7 @@ export const api = {
   logs: (source, params = {}) => request('/api/logs?' + new URLSearchParams({ source, ...params })),
   config: () => request('/api/config'),
   configSchema: () => request('/api/config/schema'),
+  verifyConfig: (target) => request(`/api/config/verify?target=${encodeURIComponent(target)}`),
   saveConfig: (config) => request('/api/config', { method: 'PUT', body: JSON.stringify({ config }) }),
   translations: (lang) => request(`/api/i18n/${lang}`),
 };

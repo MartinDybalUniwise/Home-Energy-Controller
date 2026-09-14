@@ -230,7 +230,9 @@ def test_audit_serializes_nested_datetime_payload_as_valid_json(tmp_path):
         readback=readback,
         final_status="success",
     )
-    audit_path = storage.history_dir / "goodwe_audit" / "2026-09-13.jsonl"
+    audit_files = list((storage.history_dir / "goodwe_audit").glob("*.jsonl"))
+    assert len(audit_files) == 1
+    audit_path = audit_files[0]
     raw = audit_path.read_text(encoding="utf-8").strip()
     parsed = json.loads(raw)
     assert parsed["command_id"] == "s07-audit-regression"
@@ -365,6 +367,7 @@ def test_controller_dispatches_goodwe_action_to_writer(tmp_path):
 
 def test_date_and_time_fields_are_combined_and_same_size_change_is_detected(tmp_path):
     assert SDGHistoryReader._timestamp({"date": "2026-09-13", "time": "10:05:00"}) == "2026-09-13T10:05:00+00:00"
+    assert SDGHistoryReader._timestamp({"pm_time": "2026.09.13 10:05:00"}) == "2026-09-13T10:05:00+00:00"
     root = tmp_path / "sdg" / "Data" / "trend" / "min"
     root.mkdir(parents=True)
     source = root / "sample.dbf"
@@ -376,6 +379,49 @@ def test_date_and_time_fields_are_combined_and_same_size_change_is_detected(tmp_
     write_dbf(source, [("2026-09-13 10:00:00", 999, "OK")])
     result = reader.import_history()
     assert result["imported"] == 1
+
+
+def test_sdg_reader_discovers_sdgeco_installation_layout(tmp_path):
+    root = tmp_path / "Promotic" / "Apps" / "SDGeco" / "Data" / "Event2"
+    root.mkdir(parents=True)
+    source = root / "Events22026-09-14.dbf"
+    write_dbf(source, [("2026-09-14 10:00:00", 100, "OK")])
+    config = enabled_config(tmp_path, sdg={"log_root_path": str(tmp_path / "Promotic")})
+    reader = SDGHistoryReader(config)
+    assert reader.paths() == [source]
+
+
+def test_sdg_reader_retries_file_after_all_rows_were_skipped(tmp_path):
+    root = tmp_path / "sdg" / "Data" / "trend" / "min"
+    root.mkdir(parents=True)
+    source = root / "sample.dbf"
+    write_dbf(source, [("not-a-timestamp", 100, "OK")])
+    config = enabled_config(tmp_path, sdg={"log_root_path": str(tmp_path / "sdg")})
+    storage = JsonlStorage(config.data_dir, config.history_dir)
+    reader = SDGHistoryReader(config, storage)
+
+    first = reader.import_history()
+    assert first["imported"] == 0
+    assert first["skipped"] == 1
+
+    write_dbf(source, [("2026-09-14 10:00:00", 100, "OK")])
+    second = reader.import_history()
+    assert second["imported"] == 1
+    assert len(storage.last("sdg_history", 10)) == 1
+
+
+def test_sdg_import_diagnostics_accumulate_valid_rows_across_files(tmp_path):
+    root = tmp_path / "sdg" / "Data" / "trend" / "min"
+    root.mkdir(parents=True)
+    write_dbf(root / "one.dbf", [("2026-09-14 10:00:00", 100, "OK")])
+    write_dbf(root / "two.dbf", [("2026-09-14 10:05:00", 110, "OK")])
+    config = enabled_config(tmp_path, sdg={"log_root_path": str(tmp_path / "sdg")})
+    storage = JsonlStorage(config.data_dir, config.history_dir)
+
+    result = SDGHistoryReader(config, storage).import_history()
+
+    assert result["valid_rows"] == 2
+    assert result["imported"] == 2
 
 
 def test_sdg_import_is_incremental_deduplicated_and_tolerates_corruption(tmp_path):
@@ -392,7 +438,7 @@ def test_sdg_import_is_incremental_deduplicated_and_tolerates_corruption(tmp_pat
     assert first["imported"] == 2
     assert second["imported"] == 0
     assert second["duplicates"] == 0
-    assert len(storage.last("sdg", 10)) == 2
+    assert len(storage.last("sdg_history", 10)) == 2
 
     source.write_bytes(b"broken")
     result = reader.import_history()

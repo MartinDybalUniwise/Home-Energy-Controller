@@ -35,19 +35,27 @@ class SDGHistoryReader(BaseReader):
         payload = " ".join(f"{key}={value}" for key, value in details.items())
         print(f"[SDGHistoryReader] state={state} {payload}".rstrip(), flush=True)
 
-    def paths(self) -> list[Path]:
-        root = Path(self.log_root_path) if self.log_root_path else Path(".")
-        candidates = [
+    @classmethod
+    def candidate_directories(cls, root: Path) -> list[Path]:
+        return [
             root / "Data" / "trend" / "min",
             root / "Data" / "trend" / "solar",
             root / "Data" / "Event2",
             root / "Data" / "Alarm",
+            root / "Apps" / "SDGeco" / "Data" / "trend" / "min",
+            root / "Apps" / "SDGeco" / "Data" / "trend" / "solar",
+            root / "Apps" / "SDGeco" / "Data" / "Event2",
+            root / "Apps" / "SDGeco" / "Data" / "Alarm",
         ]
+
+    def paths(self) -> list[Path]:
+        root = Path(self.log_root_path) if self.log_root_path else Path(".")
         files: list[Path] = []
-        for candidate in candidates:
+        for candidate in self.candidate_directories(root):
             if candidate.is_dir():
-                files.extend(sorted(path for path in candidate.rglob("*.dbf") if path.is_file()))
-        return files
+                files.extend(sorted(path for path in candidate.rglob("*")
+                                    if path.is_file() and path.suffix.lower() == ".dbf"))
+        return sorted(set(files))
 
     @staticmethod
     def _decode(value: bytes, field_type: str, decimals: int) -> Any:
@@ -109,15 +117,28 @@ class SDGHistoryReader(BaseReader):
 
     @staticmethod
     def _timestamp(row: dict[str, Any]) -> str | None:
+        def parse_text(text: str) -> str | None:
+            normalized = text.strip().replace(".", "-").replace(" ", "T")
+            candidate = normalized if "+" in normalized else f"{normalized}+00:00"
+            try:
+                return to_iso(datetime.fromisoformat(candidate))
+            except ValueError:
+                return None
+
+        pm_time = row.get("pm_time")
+        if pm_time is not None:
+            text = str(pm_time).strip()
+            if text:
+                return parse_text(text)
+
         date_value = row.get("date")
         time_value = row.get("time")
         if date_value is not None and time_value is not None:
-            date_text = str(date_value).strip().replace(" ", "T")
+            date_text = str(date_value).strip()
             time_text = str(time_value).strip()
-            if "T" not in date_text:
-                date_text = f"{date_text}T{time_text}"
-            return date_text if "+" in date_text else f"{date_text}+00:00"
-        for key in ("timestamp", "datetime", "date_time", "time", "date", "dt"):
+            return parse_text(date_text if "T" in date_text else f"{date_text} {time_text}")
+
+        for key in ("timestamp", "datetime", "date_time", "dt"):
             value = row.get(key)
             if value is None:
                 continue
@@ -126,12 +147,10 @@ class SDGHistoryReader(BaseReader):
                 return to_iso(moment)
             text = str(value).strip()
             if text:
-                normalized = text.replace(" ", "T")
-                if normalized.endswith("Z"):
-                    return normalized[:-1] + "+00:00"
-                if "+" not in normalized and "-" in normalized[10:]:
-                    normalized += "+00:00"
-                return normalized
+                if text.endswith("Z"):
+                    text = text[:-1] + "+00:00"
+                return parse_text(text)
+
         return None
 
     @classmethod
@@ -142,17 +161,22 @@ class SDGHistoryReader(BaseReader):
         values = {key: value for key, value in row.items() if not key.startswith("_")}
         return {
             "timestamp": timestamp,
-            "source": "sdg",
+            "source": cls.name,
             "sdg_file": source_file.name,
             "values": values,
         }
 
     def import_history(self) -> dict[str, Any]:
         checkpoint = dict(self._checkpoint)
+        if not checkpoint.get("records") and checkpoint.get("files"):
+            # A previous parser version could checkpoint files after rejecting
+            # every row. Re-read them after the normalizer is upgraded.
+            checkpoint["files"] = {}
         imported = 0
         skipped = 0
         corrupt_files = 0
         duplicates = 0
+        valid_rows = 0
         seen = set(checkpoint.get("records", []))
         file_state = checkpoint.setdefault("files", {})
         for path in self.paths():
@@ -172,11 +196,14 @@ class SDGHistoryReader(BaseReader):
                 self._terminal_status("file_failed", file=path.name)
                 continue
             records: list[dict[str, Any]] = []
+            file_valid_rows = 0
             for row in rows:
                 normalized = self._normalize(row, path)
                 if normalized is None:
                     skipped += 1
                     continue
+                valid_rows += 1
+                file_valid_rows += 1
                 fingerprint = hashlib.sha256(json.dumps(normalized, sort_keys=True,
                                                         ensure_ascii=False).encode("utf-8")).hexdigest()
                 if fingerprint in seen:
@@ -185,22 +212,24 @@ class SDGHistoryReader(BaseReader):
                 seen.add(fingerprint)
                 records.append(normalized)
             if self.storage is not None and records:
-                imported += self.storage.append_many("sdg", records)
-            with path.open("rb") as source:
-                end_prefix_hash = hashlib.sha256(source.read(end_offset)).hexdigest()
-            file_state[key] = {"size": stat.st_size, "mtime_ns": stat.st_mtime_ns,
-                               "offset": end_offset, "prefix_hash": end_prefix_hash}
+                imported += self.storage.append_many(self.name, records)
+            if file_valid_rows:
+                with path.open("rb") as source:
+                    end_prefix_hash = hashlib.sha256(source.read(end_offset)).hexdigest()
+                file_state[key] = {"size": stat.st_size, "mtime_ns": stat.st_mtime_ns,
+                                   "offset": end_offset, "prefix_hash": end_prefix_hash}
         checkpoint["records"] = sorted(seen)
         atomic_write_json(self.checkpoint_path, checkpoint)
         self._checkpoint = checkpoint
-        self._last_import = {"imported": imported, "skipped": skipped,
-                             "duplicates": duplicates, "corrupt_files": corrupt_files}
+        self._last_import = {"discovered_files": len(self.paths()), "valid_rows": valid_rows,
+                     "imported": imported, "skipped": skipped,
+                     "duplicates": duplicates, "corrupt_files": corrupt_files}
         self._terminal_status("import_ok", **self._last_import)
         return dict(self._last_import)
 
     def read(self) -> dict[str, Any]:
         result = self.import_history()
-        return {"online": True, "source": "sdg", "files": len(self.paths()), **result}
+        return {"online": True, "source": self.name, "files": len(self.paths()), **result}
 
     def status_snapshot(self) -> dict[str, Any]:
         return {

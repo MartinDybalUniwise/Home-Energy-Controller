@@ -7,6 +7,7 @@ nikdy nevolají navzájem.
 
 from __future__ import annotations
 
+import os
 import threading
 from typing import Any
 
@@ -109,6 +110,12 @@ class Application:
         }
         return {
             "started_at": to_iso(self.started_at),
+            "runtime": {
+                "process_id": os.getpid(),
+                "working_directory": os.getcwd(),
+                "config_path": str(self.config.path),
+                "project_root": str(self.config.root),
+            },
             "readers": statuses,
             "goodwe_diagnostics": diagnostics.get("goodwe", {}),
             "goodwe_writer_diagnostics": diagnostics.get("goodwe_writer", {}),

@@ -9,7 +9,7 @@ const REFRESH_MS = 10000;
 // Gesto swipe zůstává jen mezi třemi hlavními stránkami (kap. 13 zadání);
 // Stav, Data a Nastavení jsou dostupné výhradně přes menu.
 const PRIMARY_ORDER = ['overview', 'prediction', 'flow', 'history', 'finance'];
-const ALL_PAGES = ['overview', 'prediction', 'flow', 'history', 'finance', 'finance/manual', 'status', 'logs', 'settings'];
+const ALL_PAGES = ['overview', 'prediction', 'flow', 'history', 'finance', 'finance/manual', 'control-plan', 'status', 'logs', 'settings'];
 
 const state = {
   page: 'overview',
@@ -170,7 +170,7 @@ async function start() {
     refreshing = true;
     try {
       await refreshStatus();
-      if (state.page === 'overview') await render({ showLoading: false });
+      if (state.page === 'overview' || state.page === 'control-plan') await render({ showLoading: false });
     } finally {
       refreshing = false;
     }

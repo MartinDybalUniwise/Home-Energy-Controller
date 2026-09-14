@@ -166,6 +166,7 @@ class Handler(BaseHTTPRequestHandler):
             "/api/finance/manual": lambda: api.finance_manual(self.app, params),
             "/api/config": lambda: api.config_get(self.app),
             "/api/config/schema": lambda: api.config_schema(self.app),
+            "/api/config/verify": lambda: api.config_verify(self.app, params.get("target", "")),
         }
         handler = routes.get(route)
         if handler is None:

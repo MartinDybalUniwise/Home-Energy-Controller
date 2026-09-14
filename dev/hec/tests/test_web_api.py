@@ -76,6 +76,28 @@ def test_history_swaps_reversed_range(tmp_path):
     assert status == 200 and payload["from"] < payload["to"]
 
 
+def test_history_exposes_sdg_history_records(tmp_path):
+    app = FakeApp(tmp_path)
+    timestamp = to_iso(now_local())
+    app.storage.append("sdg_history", {
+        "timestamp": timestamp,
+        "source": "sdg_history",
+        "sdg_file": "solar2026-09-14.dbf",
+        "values": {"pm_time": "2026.09.14 10:00:00", "power": 123},
+    })
+
+    status, payload = api.history(app, {"source": "sdg_history", "from": "-1h", "to": "now", "bucket": "0"})
+
+    assert status == 200
+    assert payload["source"] == "sdg_history"
+    assert payload["count"] == 1
+    assert payload["rows"][0]["timestamp"] == timestamp
+    assert payload["fields"] == ["power"]
+    assert payload["rows"][0]["power"] == 123.0
+    assert app.storage.last("sdg_history", 1)[0]["values"]["power"] == 123
+    assert "sdg_history" in app.storage.sources()
+
+
 def test_config_get_hides_secrets(tmp_path):
     app = FakeApp(tmp_path)
     app.config.data["web"]["password"] = "tajne-heslo-123"
@@ -111,6 +133,26 @@ def test_config_put_reports_fields_needing_restart(tmp_path):
 
     _, payload = api.config_put(app, {"config": {"web": {"port": 9099}}})
     assert "web.port" in payload["restart_required"]
+
+
+def test_config_verify_checks_read_only_storage_path(tmp_path):
+    app = FakeApp(tmp_path)
+    app.config.data["storage"]["data_path"] = str(tmp_path / "data-check")
+    (tmp_path / "data-check").mkdir()
+
+    status, payload = api.config_verify(app, "storage.data")
+
+    assert status == 200
+    assert payload["available"] is True
+    assert payload["message_key"] == "settings.verify_ok"
+    assert not (tmp_path / "data-check" / "config.json").exists()
+
+
+def test_config_verify_rejects_unknown_target(tmp_path):
+    status, payload = api.config_verify(FakeApp(tmp_path), "goodwe.write")
+
+    assert status == 400
+    assert payload["error"] == "unsupported_verify_target"
 
 
 def test_prediction_is_optional_until_the_module_exists(tmp_path):
