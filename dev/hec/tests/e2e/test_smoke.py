@@ -66,6 +66,23 @@ def test_sidebar_service_menu_toggle(page: Page):
     expect(toggle).to_have_attribute("aria-expanded", "false")
 
 
+def test_settings_can_verify_sdg_path_without_saving(page: Page):
+    import re
+
+    from playwright.sync_api import expect
+
+    page.goto("/")
+    if page.viewport_size and page.viewport_size["width"] <= 1023:
+        page.locator("#menu-toggle").click()
+    page.locator("#more-toggle").click()
+    page.locator('#utility-nav a[data-page="settings"]').click()
+    page.locator("details.technical-settings").click()
+    button = page.locator('[data-verify-target="sdg"]')
+    expect(button).to_be_visible()
+    button.click()
+    expect(button.locator("xpath=following-sibling::span[contains(@class, 'field-verify-result')]")).to_have_text(re.compile(r".+"))
+
+
 def test_czech_navigation_catalog(page: Page):
     from playwright.sync_api import expect
 

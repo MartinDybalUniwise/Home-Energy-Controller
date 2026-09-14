@@ -35,19 +35,27 @@ class SDGHistoryReader(BaseReader):
         payload = " ".join(f"{key}={value}" for key, value in details.items())
         print(f"[SDGHistoryReader] state={state} {payload}".rstrip(), flush=True)
 
-    def paths(self) -> list[Path]:
-        root = Path(self.log_root_path) if self.log_root_path else Path(".")
-        candidates = [
+    @classmethod
+    def candidate_directories(cls, root: Path) -> list[Path]:
+        return [
             root / "Data" / "trend" / "min",
             root / "Data" / "trend" / "solar",
             root / "Data" / "Event2",
             root / "Data" / "Alarm",
+            root / "Apps" / "SDGeco" / "Data" / "trend" / "min",
+            root / "Apps" / "SDGeco" / "Data" / "trend" / "solar",
+            root / "Apps" / "SDGeco" / "Data" / "Event2",
+            root / "Apps" / "SDGeco" / "Data" / "Alarm",
         ]
+
+    def paths(self) -> list[Path]:
+        root = Path(self.log_root_path) if self.log_root_path else Path(".")
         files: list[Path] = []
-        for candidate in candidates:
+        for candidate in self.candidate_directories(root):
             if candidate.is_dir():
-                files.extend(sorted(path for path in candidate.rglob("*.dbf") if path.is_file()))
-        return files
+                files.extend(sorted(path for path in candidate.rglob("*")
+                                    if path.is_file() and path.suffix.lower() == ".dbf"))
+        return sorted(set(files))
 
     @staticmethod
     def _decode(value: bytes, field_type: str, decimals: int) -> Any:
@@ -142,7 +150,7 @@ class SDGHistoryReader(BaseReader):
         values = {key: value for key, value in row.items() if not key.startswith("_")}
         return {
             "timestamp": timestamp,
-            "source": "sdg",
+            "source": cls.name,
             "sdg_file": source_file.name,
             "values": values,
         }
@@ -185,7 +193,7 @@ class SDGHistoryReader(BaseReader):
                 seen.add(fingerprint)
                 records.append(normalized)
             if self.storage is not None and records:
-                imported += self.storage.append_many("sdg", records)
+                imported += self.storage.append_many(self.name, records)
             with path.open("rb") as source:
                 end_prefix_hash = hashlib.sha256(source.read(end_offset)).hexdigest()
             file_state[key] = {"size": stat.st_size, "mtime_ns": stat.st_mtime_ns,
@@ -200,7 +208,7 @@ class SDGHistoryReader(BaseReader):
 
     def read(self) -> dict[str, Any]:
         result = self.import_history()
-        return {"online": True, "source": "sdg", "files": len(self.paths()), **result}
+        return {"online": True, "source": self.name, "files": len(self.paths()), **result}
 
     def status_snapshot(self) -> dict[str, Any]:
         return {

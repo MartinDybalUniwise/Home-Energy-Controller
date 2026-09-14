@@ -378,6 +378,16 @@ def test_date_and_time_fields_are_combined_and_same_size_change_is_detected(tmp_
     assert result["imported"] == 1
 
 
+def test_sdg_reader_discovers_sdgeco_installation_layout(tmp_path):
+    root = tmp_path / "Promotic" / "Apps" / "SDGeco" / "Data" / "Event2"
+    root.mkdir(parents=True)
+    source = root / "Events22026-09-14.dbf"
+    write_dbf(source, [("2026-09-14 10:00:00", 100, "OK")])
+    config = enabled_config(tmp_path, sdg={"log_root_path": str(tmp_path / "Promotic")})
+    reader = SDGHistoryReader(config)
+    assert reader.paths() == [source]
+
+
 def test_sdg_import_is_incremental_deduplicated_and_tolerates_corruption(tmp_path):
     root = tmp_path / "sdg" / "Data" / "trend" / "min"
     root.mkdir(parents=True)
@@ -392,7 +402,7 @@ def test_sdg_import_is_incremental_deduplicated_and_tolerates_corruption(tmp_pat
     assert first["imported"] == 2
     assert second["imported"] == 0
     assert second["duplicates"] == 0
-    assert len(storage.last("sdg", 10)) == 2
+    assert len(storage.last("sdg_history", 10)) == 2
 
     source.write_bytes(b"broken")
     result = reader.import_history()

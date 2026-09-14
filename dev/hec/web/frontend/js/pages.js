@@ -527,6 +527,14 @@ const SUBGROUP_LABELS = {
 // Čistě interní pole, která uživatel nikdy nemá důvod měnit ručně.
 const HIDDEN_FIELDS = new Set(['system.config_version']);
 
+const VERIFY_TARGETS = {
+  'goodwe.sdg.log_root_path': 'sdg',
+  'storage.data_path': 'storage.data',
+  'storage.logs_path': 'storage.logs',
+  'storage.history_path': 'storage.history',
+  'storage.archive_path': 'storage.archive',
+};
+
 function groupFields(fields) {
   const groups = {};
   fields
@@ -591,6 +599,24 @@ export async function settings(view, { api, onUiChange }) {
       message.innerHTML = `<span class="error">${(error.payload?.errors || [t('error.save_failed')]).map(escapeHtml).join('<br>')}</span>`;
     }
   });
+
+  view.querySelectorAll('[data-verify-target]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const result = button.closest('.field').querySelector('.field-verify-result');
+      button.disabled = true;
+      result.textContent = t('settings.verify_checking');
+      try {
+        const payload = await api.verifyConfig(button.dataset.verifyTarget);
+        result.textContent = `${t(payload.message_key)}${payload.file_count !== undefined ? ` · ${payload.file_count} ${t('settings.verify_files')}` : ''}`;
+        result.dataset.level = payload.available ? 'ok' : 'warning';
+      } catch (error) {
+        result.textContent = error.unauthorised ? t('error.unauthorised') : t('settings.verify_failed');
+        result.dataset.level = 'critical';
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
 }
 
 function fieldRow(field, value) {
@@ -619,7 +645,11 @@ function fieldRow(field, value) {
     input = `<input id="${id}" data-path="${fieldPath}" type="${field.secret ? 'password' : 'text'}" value="${escapeHtml(value ?? '')}">`;
   }
   const hint = field.restart ? `<span class="hint">${t('settings.restart_required')}</span>` : '';
-  return `<div class="field"><label for="${id}">${label}</label>${input}${hint}${help}</div>`;
+  const verifyTarget = VERIFY_TARGETS[field.path];
+  const verify = verifyTarget
+    ? `<button type="button" class="field-verify" data-verify-target="${verifyTarget}">${t('settings.verify')}</button><span class="field-verify-result" aria-live="polite"></span>`
+    : '';
+  return `<div class="field"><label for="${id}">${label}</label>${input}${verify}${hint}${help}</div>`;
 }
 
 function readInput(input, field) {

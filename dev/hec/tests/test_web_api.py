@@ -113,6 +113,26 @@ def test_config_put_reports_fields_needing_restart(tmp_path):
     assert "web.port" in payload["restart_required"]
 
 
+def test_config_verify_checks_read_only_storage_path(tmp_path):
+    app = FakeApp(tmp_path)
+    app.config.data["storage"]["data_path"] = str(tmp_path / "data-check")
+    (tmp_path / "data-check").mkdir()
+
+    status, payload = api.config_verify(app, "storage.data")
+
+    assert status == 200
+    assert payload["available"] is True
+    assert payload["message_key"] == "settings.verify_ok"
+    assert not (tmp_path / "data-check" / "config.json").exists()
+
+
+def test_config_verify_rejects_unknown_target(tmp_path):
+    status, payload = api.config_verify(FakeApp(tmp_path), "goodwe.write")
+
+    assert status == 400
+    assert payload["error"] == "unsupported_verify_target"
+
+
 def test_prediction_is_optional_until_the_module_exists(tmp_path):
     status, payload = api.prediction(FakeApp(tmp_path))
     assert status == 200 and payload["available"] is False

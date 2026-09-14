@@ -280,6 +280,12 @@ table.data th:first-child, table.data td:first-child { text-align: left; }
 .field .hint { grid-column: 1 / -1; font-size: .76rem; color: var(--ink-muted); }
 .field .field-help { grid-column: 1 / -1; margin: 0; font-size: .8rem; color: var(--ink-secondary); }
 .field input, .field select { font: inherit; padding: 6px 9px; min-height: 40px; border-radius: var(--radius-card); border: 1px solid var(--panel-border); background: var(--panel-solid); color: var(--ink-primary); }
+.field-verify { min-height: 36px; margin-left: 8px; padding: 5px 10px; border: 1px solid var(--panel-border); border-radius: var(--radius-card); color: var(--ink-primary); background: color-mix(in srgb, var(--brand-accent) 18%, var(--panel-solid)); cursor: pointer; font: inherit; font-size: .78rem; }
+.field-verify:disabled { cursor: wait; opacity: .65; }
+.field-verify-result { margin-left: 8px; color: var(--ink-secondary); font-size: .75rem; }
+.field-verify-result[data-level="ok"] { color: var(--state-good); }
+.field-verify-result[data-level="warning"] { color: var(--state-warning); }
+.field-verify-result[data-level="critical"] { color: var(--state-critical); }
 .error { color: var(--state-critical); }
 .notice { padding: 10px 16px; color: var(--ink-secondary); }
 
