@@ -408,6 +408,20 @@ def test_sdg_reader_retries_file_after_all_rows_were_skipped(tmp_path):
     assert len(storage.last("sdg_history", 10)) == 1
 
 
+def test_sdg_import_diagnostics_accumulate_valid_rows_across_files(tmp_path):
+    root = tmp_path / "sdg" / "Data" / "trend" / "min"
+    root.mkdir(parents=True)
+    write_dbf(root / "one.dbf", [("2026-09-14 10:00:00", 100, "OK")])
+    write_dbf(root / "two.dbf", [("2026-09-14 10:05:00", 110, "OK")])
+    config = enabled_config(tmp_path, sdg={"log_root_path": str(tmp_path / "sdg")})
+    storage = JsonlStorage(config.data_dir, config.history_dir)
+
+    result = SDGHistoryReader(config, storage).import_history()
+
+    assert result["valid_rows"] == 2
+    assert result["imported"] == 2
+
+
 def test_sdg_import_is_incremental_deduplicated_and_tolerates_corruption(tmp_path):
     root = tmp_path / "sdg" / "Data" / "trend" / "min"
     root.mkdir(parents=True)

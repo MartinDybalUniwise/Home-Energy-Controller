@@ -5,12 +5,18 @@ Repair SDG history ingestion at the parser, discovery, checkpoint, and
 history-display boundaries. The implementation must remain read-only against
 the Promotic share and must not activate any device writer.
 
+## Goal
+
+Import valid SDG history records reliably, retain retryability after parser
+failures, and make the resulting `sdg_history` source available to the existing
+History API/UI without modifying external data or enabling device writes.
+
 ## Step sequence
 | Step | Purpose | Status |
-| S01 | Inventory real SDG DBF layouts, fields, and current runtime evidence | PLANNED |
-| S02 | Define timestamp, source, checkpoint, and diagnostics contracts | PLANNED |
-| S03 | Implement tolerant DBF discovery and timestamp normalization | PLANNED |
-| S04 | Repair checkpoint/retry/idempotency behavior | PLANNED |
+| S01 | Inventory real SDG DBF layouts, fields, and current runtime evidence | DONE |
+| S02 | Define timestamp, source, checkpoint, and diagnostics contracts | DONE |
+| S03 | Implement tolerant DBF discovery and timestamp normalization | DONE |
+| S04 | Repair checkpoint/retry/idempotency behavior | DONE |
 | S05 | Verify API/history visibility and read-only production validation | PLANNED |
 | S06 | Run focused and repository validation; prepare Reviewer handoff | PLANNED |
 ### S01 - Data contract inventory
@@ -102,32 +108,3 @@ Implementation:
 Risks:
 - Full suite may contain unrelated failures; classify them against the SDD
 	severity model and do not conceal them.
-# Plan
-
-## Status vocabulary
-
-`PLANNED`, `IN_PROGRESS`, `DONE`, `BLOCKED`.
-
-## Goal
-
-Describe the change and why it is needed.
-
-## Step sequence
-
-| Step | Purpose | Status |
-|---|---|---|
-| S01 |  | PLANNED |
-| S02 |  | PLANNED |
-
-## Detailed implementation strategy
-
-### S01 –
-
-Objectives:
-- 
-
-Implementation:
-- 
-
-Risks:
-- 

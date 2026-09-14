@@ -672,6 +672,7 @@
     "failed": "Nesprávné heslo"
   },
   "error": {
+    "unauthorised": "Přístup není autorizovaný",
     "load_failed": "Data se nepodařilo načíst",
     "save_failed": "Uložení se nezdařilo",
     "not_found": "Nenalezeno"

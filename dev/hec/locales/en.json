@@ -672,6 +672,7 @@
     "failed": "Wrong password"
   },
   "error": {
+    "unauthorised": "Access is not authorised",
     "load_failed": "Could not load data",
     "save_failed": "Could not save",
     "not_found": "Not found"

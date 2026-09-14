@@ -176,6 +176,7 @@ class SDGHistoryReader(BaseReader):
         skipped = 0
         corrupt_files = 0
         duplicates = 0
+        valid_rows = 0
         seen = set(checkpoint.get("records", []))
         file_state = checkpoint.setdefault("files", {})
         for path in self.paths():
@@ -195,13 +196,14 @@ class SDGHistoryReader(BaseReader):
                 self._terminal_status("file_failed", file=path.name)
                 continue
             records: list[dict[str, Any]] = []
-            valid_rows = 0
+            file_valid_rows = 0
             for row in rows:
                 normalized = self._normalize(row, path)
                 if normalized is None:
                     skipped += 1
                     continue
                 valid_rows += 1
+                file_valid_rows += 1
                 fingerprint = hashlib.sha256(json.dumps(normalized, sort_keys=True,
                                                         ensure_ascii=False).encode("utf-8")).hexdigest()
                 if fingerprint in seen:
@@ -211,7 +213,7 @@ class SDGHistoryReader(BaseReader):
                 records.append(normalized)
             if self.storage is not None and records:
                 imported += self.storage.append_many(self.name, records)
-            if valid_rows:
+            if file_valid_rows:
                 with path.open("rb") as source:
                     end_prefix_hash = hashlib.sha256(source.read(end_offset)).hexdigest()
                 file_state[key] = {"size": stat.st_size, "mtime_ns": stat.st_mtime_ns,
@@ -219,8 +221,9 @@ class SDGHistoryReader(BaseReader):
         checkpoint["records"] = sorted(seen)
         atomic_write_json(self.checkpoint_path, checkpoint)
         self._checkpoint = checkpoint
-        self._last_import = {"imported": imported, "skipped": skipped,
-                             "duplicates": duplicates, "corrupt_files": corrupt_files}
+        self._last_import = {"discovered_files": len(self.paths()), "valid_rows": valid_rows,
+                     "imported": imported, "skipped": skipped,
+                     "duplicates": duplicates, "corrupt_files": corrupt_files}
         self._terminal_status("import_ok", **self._last_import)
         return dict(self._last_import)
 

@@ -1,7 +1,7 @@
 {
   "step": 21,
   "classification": "LARGE",
-  "status": "PLANNED",
+  "status": "IN_PROGRESS",
   "gate_a": {
     "status": "APPROVED",
     "approved_by": "repository owner / maintainer",
@@ -22,7 +22,7 @@
   "source": "User request to plan reliable SDG history reading dated 2026-09-14",
   "branch": null,
   "pr": null,
-  "notes": "Gate A approved. Implementation may proceed only within the approved SDG read-only import scope; external paths remain read-only validation targets.",
+  "notes": "SDG parser/checkpoint implementation complete; History UI/API and read-only runtime validation remain open.",
   "requirements": [
     "REQ-021-001", "REQ-021-002", "REQ-021-003", "REQ-021-004",
     "REQ-021-005", "REQ-021-006", "REQ-021-007"
