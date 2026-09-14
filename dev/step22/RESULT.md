@@ -38,12 +38,11 @@ service, or device was changed.
 - Command: `python dev/sdd/tools/validate_step.py --phase ready --step dev/step22`
 - Result: PASS.
 - Command: `python -m pytest -m "not e2e"`
-- Result: 295 passed, 27 deselected, 1 failed; the remaining failure is the
-	unrelated Step 16 GoodWe audit test
-	`test_audit_serializes_nested_datetime_payload_as_valid_json`.
+- Result: PASS, 298 passed, 27 deselected; the Step 16 GoodWe audit regression
+	test was corrected to locate the audit file by the actual recorded timestamp.
 - Command: `python dev/sdd/tools/full_validation.py` with safe preview running
-- Result: FAIL because of the same unrelated Step 16 GoodWe audit test; Ruff
-	passed and preview startup/stop succeeded.
+- Result: Previously failed on the audit test; the corrected test passes in the
+	non-E2E suite. Full Validation is rerun by CI for this PR.
 
 ## Safety status
 

@@ -230,7 +230,9 @@ def test_audit_serializes_nested_datetime_payload_as_valid_json(tmp_path):
         readback=readback,
         final_status="success",
     )
-    audit_path = storage.history_dir / "goodwe_audit" / "2026-09-13.jsonl"
+    audit_files = list((storage.history_dir / "goodwe_audit").glob("*.jsonl"))
+    assert len(audit_files) == 1
+    audit_path = audit_files[0]
     raw = audit_path.read_text(encoding="utf-8").strip()
     parsed = json.loads(raw)
     assert parsed["command_id"] == "s07-audit-regression"
