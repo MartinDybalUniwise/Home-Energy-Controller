@@ -1,0 +1,41 @@
+{
+  "step": 20,
+  "classification": "LARGE",
+  "status": "PLANNED",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner / maintainer",
+    "approved_at": "2026-09-14T18:43:15.2502300+02:00"
+  },
+  "gate_b": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "User request for a separate visual controller/planner monitoring page dated 2026-09-14",
+  "branch": null,
+  "pr": null,
+  "notes": "Planning only. Gate A remains pending; no application code or runtime configuration may be changed.",
+  "requirements": [
+    "REQ-020-001", "REQ-020-002", "REQ-020-003", "REQ-020-004",
+    "REQ-020-005", "REQ-020-006", "REQ-020-007", "REQ-020-008",
+    "REQ-020-009", "REQ-020-010"
+  ],
+  "acceptance": [
+    "AC-020-001", "AC-020-002", "AC-020-003", "AC-020-004",
+    "AC-020-005", "AC-020-006", "AC-020-007", "AC-020-008",
+    "AC-020-009", "AC-020-010", "AC-020-011", "AC-020-012",
+    "AC-020-013"
+  ],
+  "evidence": [
+    "E-020-001", "E-020-002", "E-020-003", "E-020-004",
+    "E-020-005", "E-020-006", "E-020-007"
+  ]
+}

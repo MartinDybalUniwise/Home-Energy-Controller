@@ -31,6 +31,7 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | [`step17/`](step17/) | Repository/SDD review a doplnění povinných standardních souborů Step17, pouze plánování | 📝 plán schválený, pouze dokumentace / ready <!-- status: PLANNED --> |
 | [`step18/`](step18/) | UI/UX Redesign: optimalizace pro 11" dotykový wall displej (1080p), zero-waste prostor, vysoký kontrast | � rozpracováno <!-- status: IN_PROGRESS --> |
 | [`step19/`](step19/) | Home/Dnes cockpit: kompaktní no-scroll rozvržení 1920x1080, odstranění duplicit a dvoupanelová spodní část | 🚧 implementace schválena <!-- status: IN_PROGRESS --> |
+| [`step20/`](step20/) | Samostatná read-only stránka Control & Plan pro stav controlleru, planneru, readerů, writerů a výhled do zítřka | 📝 plánováno <!-- status: PLANNED --> |
 
 Další kroky se doplňují sem, jakmile vzniknou.
 
@@ -50,6 +51,7 @@ Každý `stepNN/` obsahuje minimálně:
 | [`step01/PROJECT_STRUCTURE.md`](step01/PROJECT_STRUCTURE.md) | Kompletní adresářová struktura se seznamem skriptů a % dokončení |
 | [`step01/UI_DESIGN.md`](step01/UI_DESIGN.md) | Vizuální jazyk webu podle televizní meteo grafiky, design tokeny, ověřená paleta grafů |
 | [`step01/I18N.md`](step01/I18N.md) | Jazykové mutace CZ/EN a postup přidání dalšího jazyka |
+| [`step20/`](step20/) | New step placeholder | 📝 plánováno <!-- status: PLANNED --> |
 
 ## Aktuálně připravovaný Step 16
 
