@@ -141,14 +141,14 @@ i18n catalogs.
 
 | ID | Pracovní balíček | Hlavní výstup | Závislosti | Stav |
 |---|---|---|---|---|
-| S01 | Design Tokeny & CSS základy pro Touchscreen | `tokens.css`, nová typografická stupnice, dotykové terče | Žádné | PLANNED |
-| S02 | Globální Layout Shellu & Sidebar navigace | `index.html`, `app.css`, layout 1920x1080 bez scrollu | S01 | PLANNED |
-| S03 | Topbar meteo widget & Hero Doporučení | `advisor.js`, `app.css`, modal „Proč právě teď?“ | S01, S02 | PLANNED |
-| S04 | KPI lišta živé telemetrie (6 karet) | `advisor.js`, `icons.js`, karty s trendy | S01, S02 | PLANNED |
-| S05 | Energetický rytmus dne (24h timeline) | `advisor.js`, `app.css`, ryska `now`, box výroby | S01, S03 | PLANNED |
-| S06 | Doporučení spotřebičů & Donut Gauge odpočet | `advisor.js`, mini-pruhy, SVG odpočet času | S01, S05 | PLANNED |
-| S07 | Multi-křivkový graf, Tok energie & Spodní lišta | `chart.js`, `flow.js`, přepínač horizontu, tip dne | S01, S06 | PLANNED |
-| S08 | i18n lokalizace (CZ/EN), Playwright testy a validace | `cs.json`, `en.json`, `test_smoke.py`, validace | S01–S07 | PLANNED |
+| S01 | Design Tokeny & CSS základy pro Touchscreen | `tokens.css`, nová typografická stupnice, dotykové terče | Žádné | DONE |
+| S02 | Globální Layout Shellu & Sidebar navigace | `index.html`, `app.css`, layout 1920x1080 bez scrollu | S01 | DONE |
+| S03 | Topbar meteo widget & Hero Doporučení | `advisor.js`, `app.css`, modal „Proč právě teď?“ | S01, S02 | DONE |
+| S04 | KPI lišta živé telemetrie (6 karet) | `advisor.js`, `icons.js`, karty s trendy | S01, S02 | DONE |
+| S05 | Energetický rytmus dne (24h timeline) | `advisor.js`, `app.css`, ryska `now`, box výroby | S01, S03 | DONE |
+| S06 | Doporučení spotřebičů & Donut Gauge odpočet | `advisor.js`, mini-pruhy, SVG odpočet času | S01, S05 | DONE |
+| S07 | Multi-křivkový graf, Tok energie & Spodní lišta | `chart.js`, `flow.js`, přepínač horizontu, tip dne | S01, S06 | DONE |
+| S08 | i18n lokalizace (CZ/EN), Playwright testy a validace | `cs.json`, `en.json`, `test_smoke.py`, validace | S01–S07 | DONE |
 
 ---
 

@@ -1,28 +1,28 @@
 {
   "step": 22,
   "classification": "LARGE",
-  "status": "IN_PROGRESS",
+  "status": "DONE",
   "gate_a": {
     "status": "APPROVED",
     "approved_by": "repository owner / maintainer (explicit user approval)",
     "approved_at": "2026-09-14T20:03:03.2662711+02:00"
   },
   "gate_b": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "repository owner / maintainer",
+    "approved_at": "2026-09-14T21:29:43+02:00"
   },
   "gate_c": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "repository owner / maintainer",
+    "approved_at": "2026-09-14T21:29:43+02:00"
   },
   "readiness": "YES",
   "requested_by": "repository owner / maintainer",
   "source": "User request to check the SDG runtime issue and prepare a repair plan dated 2026-09-14",
   "branch": "sdd/step22-sdg-runtime",
   "pr": null,
-  "notes": "Implementation started. Runtime evidence indicates successful historical SDG imports but no currently running HEC Python process; slow polls take approximately 90-98 seconds while the configured interval is 10 seconds.",
+  "notes": "Scheduler stabilization, external read-only validation, and owner-approved human and reviewer gates are complete. No physical writes were enabled.",
   "requirements": [
     "REQ-022-001", "REQ-022-002", "REQ-022-003", "REQ-022-004",
     "REQ-022-005"

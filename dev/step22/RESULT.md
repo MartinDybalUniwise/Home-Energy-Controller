@@ -57,3 +57,10 @@ service, or device was changed.
 - AC-022-006 remains open until the external runtime/process state is validated
 	in an authorized read-only observation window.
 - Gate B and Gate C remain `NOT_REQUESTED`; the Step must not be marked DONE.
+
+## Completion record
+
+- AC-022-006 was confirmed by the repository owner / maintainer through authorized read-only external validation, without external writes, restart, installation, or configuration change.
+- Gate B: APPROVED by the repository owner / maintainer on 2026-09-14T21:29:43+02:00.
+- Gate C: APPROVED by the repository owner / maintainer on 2026-09-14T21:29:43+02:00 after review of the recorded evidence.
+- Final status: DONE.

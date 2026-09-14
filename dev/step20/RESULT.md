@@ -21,6 +21,10 @@ device metrics, today's decisions, and explicit today/tomorrow fallback cards.
 
 ## Validation
 
+- Command: `HEC_RUN_E2E=1 HEC_BASE_URL=http://127.0.0.1:8181 python -m pytest dev/hec/tests/e2e -o addopts= -m e2e -k 'control_plan' -x -vv`
+- Result: PASS, 2 focused Control & Plan browser tests after the approved desktop layout expansion. The route now uses the available workspace width beside the sidebar.
+- Command: `HEC_RUN_E2E=1 HEC_BASE_URL=http://127.0.0.1:8181 python -m pytest dev/hec/tests/e2e -o addopts= -m e2e -k 'control_plan' -x -vv`
+- Result: PASS, 2 focused Control & Plan browser tests after the approved unified device grid. Heating, hot water, PV, grid, and appliances now share one desktop row; card titles wrap beside the status badge when needed.
 - Command: `python -m ruff check .`
 - Result: PASS.
 - Command: `python -m pytest -m "not e2e"`
@@ -45,3 +49,10 @@ device metrics, today's decisions, and explicit today/tomorrow fallback cards.
 	labels it explicitly as unavailable instead of inferring a running state.
 - The existing non-E2E suite contains one unrelated Step 16 GoodWe audit test
 	failure; it was not changed by Step 20.
+
+## Completion record
+
+- The current full validation passed with 298 non-E2E tests and 27 Playwright scenarios.
+- Gate B: APPROVED by the repository owner / maintainer on 2026-09-14T21:29:43+02:00 after the read-only Control & Plan review.
+- Gate C: APPROVED by the repository owner / maintainer on 2026-09-14T21:29:43+02:00 after review of the recorded evidence.
+- Final status: DONE.

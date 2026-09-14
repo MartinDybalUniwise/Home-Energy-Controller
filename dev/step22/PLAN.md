@@ -18,8 +18,8 @@ runtime is stopped, misconfigured, or actively importing SDG history.
 | S02 | Define scheduler timing and lifecycle diagnostics contract | DONE |
 | S03 | Implement the smallest scheduler/diagnostic correction | DONE |
 | S04 | Add focused regression and safety tests | DONE |
-| S05 | Perform read-only external/runtime validation | PLANNED |
-| S06 | Run repository validation and prepare Reviewer handoff | IN_PROGRESS |
+| S05 | Perform read-only external/runtime validation | DONE |
+| S06 | Run repository validation and prepare Reviewer handoff | DONE |
 
 ## Detailed implementation strategy
 

@@ -1,28 +1,28 @@
 {
   "step": 20,
   "classification": "LARGE",
-  "status": "IN_PROGRESS",
+  "status": "DONE",
   "gate_a": {
     "status": "APPROVED",
     "approved_by": "repository owner / maintainer",
     "approved_at": "2026-09-14T18:43:15.2502300+02:00"
   },
   "gate_b": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "repository owner / maintainer",
+    "approved_at": "2026-09-14T21:29:43+02:00"
   },
   "gate_c": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "repository owner / maintainer",
+    "approved_at": "2026-09-14T21:29:43+02:00"
   },
   "readiness": "YES",
   "requested_by": "repository owner / maintainer",
   "source": "User request for a separate visual controller/planner monitoring page dated 2026-09-14",
   "branch": null,
   "pr": null,
-  "notes": "Frontend implementation complete. Reviewer and Human Gate remain open; no physical writes enabled.",
+  "notes": "Frontend implementation, approved desktop layout expansion, and unified device grid are complete. Owner-approved human and reviewer gates closed with no physical writes enabled.",
   "requirements": [
     "REQ-020-001", "REQ-020-002", "REQ-020-003", "REQ-020-004",
     "REQ-020-005", "REQ-020-006", "REQ-020-007", "REQ-020-008",

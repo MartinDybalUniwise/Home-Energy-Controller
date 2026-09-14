@@ -944,7 +944,8 @@ dialog button { min-height: 48px; color: #06243b; border-radius: 8px; background
 @media (max-width: 720px) { .sidebar { position: fixed; width: min(280px, 86vw); transform: translateX(-100%); transition: transform .2s ease; }.sidebar.sidebar--open { transform: translateX(0); }.mobile-only { display: flex; }.mobile-title { min-width: 0; overflow: hidden; font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }.mobile-clock { margin-left: auto; font-size: .8rem; }.view { margin-left: 0; padding: 12px 10px 78px; }.today-header, .today-recommendation-panel { padding: 13px; }.weather-station-widget { width: 100%; justify-content: space-between; }.weather-details { padding-left: 10px; }.hero-primary-card { grid-template-columns: 1fr; }.recommendation-statuses { grid-template-columns: 1fr; }.today-kpi-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }.kpi-card { border-bottom: 1px solid rgba(178,215,233,.14); }.today-workspace-grid { grid-template-columns: 1fr; }.today-workspace-grid .workspace-card { min-height: 250px; }.rhythm-header { align-items: start; flex-wrap: wrap; }.rhythm-production-summary { margin-left: 0; }.rhythm-legend-tags { width: 100%; }.rhythm-left-panel { min-width: 720px; } }
 
 /* Control & Plan is a dense operational surface, not a command console. */
-.control-plan-page { display: grid; gap: 14px; max-width: 1480px; margin: 0 auto; }
+.view:has(.control-plan-page) { max-width: none; }
+.control-plan-page { display: grid; gap: 14px; width: 100%; max-width: none; }
 .control-plan-header { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
 .control-plan-header .meta { margin: 6px 0 0; }
 .control-plan-status, .control-plan-devices, .control-plan-lower { padding: 16px; }
@@ -954,8 +955,9 @@ dialog button { min-height: 48px; color: #06243b; border-radius: 8px; background
 .control-plan-status-grid article, .control-plan-device, .control-plan-outlook-day { min-width: 0; padding: 12px; border: 1px solid var(--panel-border); border-radius: var(--radius-card); background: color-mix(in srgb, var(--panel-solid) 58%, transparent); }
 .control-plan-status-grid h3, .control-plan-device h3, .control-plan-outlook-day h3 { margin: 0 0 8px; font-size: .86rem; }
 .control-plan-status-grid .pill + .pill { margin-left: 6px; }
-.control-plan-device-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.control-plan-device header { display: flex; align-items: start; justify-content: space-between; gap: 8px; }
+.control-plan-device-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.control-plan-device header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 8px; }
+.control-plan-device header h3 { min-width: 0; overflow-wrap: anywhere; }
 .control-plan-mode { display: inline-flex; align-items: center; min-height: 24px; padding: 3px 9px; border-radius: 999px; color: #06210f; background: var(--state-good); font-size: .72rem; font-weight: 700; }
 .control-plan-mode[data-state="off"] { color: var(--ink-secondary); background: var(--panel-border); }
 .control-plan-mode[data-state="unknown"] { color: #101010; background: var(--state-warning); }

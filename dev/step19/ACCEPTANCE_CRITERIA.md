@@ -34,7 +34,7 @@ checks do not replace the human 1920x1080 review.
   full validation pass with exact commands/results recorded.
 - [x] AC-019-013: Safety settings remain disabled, no physical write occurs, and
   no backend/API/storage/controller contract changes are present.
-- [ ] AC-019-014: A human confirms at 1920x1080 that there is no scroll,
+- [x] AC-019-014: A human confirms at 1920x1080 that there is no scroll,
   clipping, overlap, repetition, unreadable text, undersized touch control, or
   loss of Daily Energy Rhythm hierarchy.
 - [x] AC-019-015: At 1920, 1440, 1280, and 1024 px widths, removed panels leave

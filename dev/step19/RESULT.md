@@ -65,3 +65,9 @@ No scope deviation. The compact recommendation band remains preserved.
 - Gate A authorizes only the approved Step 19 frontend scope.
 - Controller and TNG writes remain disabled.
 - No physical-device validation is permitted by this step.
+
+## Completion record
+
+- Gate B: APPROVED by the repository owner / maintainer on 2026-09-14T21:29:43+02:00 after the corrected responsive layout was reviewed at the target viewport.
+- Gate C: APPROVED by the repository owner / maintainer on 2026-09-14T21:29:43+02:00 after review of the recorded evidence.
+- Final status: DONE.

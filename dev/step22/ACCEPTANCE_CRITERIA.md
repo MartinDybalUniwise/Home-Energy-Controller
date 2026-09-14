@@ -10,7 +10,7 @@
 	exposing secrets.
 - [x] AC-022-005: Existing Step 21 `sdg_history` parsing, checkpoint,
 	idempotency, storage, and API contracts remain compatible.
-- [ ] AC-022-006: Read-only validation against `T:\Home-Energy-Controller` and
+- [x] AC-022-006: Read-only validation against `T:\Home-Energy-Controller` and
 	the Promotic share performs no external writes, restart, install, or config
 	change.
 - [x] AC-022-007: Controller, TNG, and GoodWe write gates remain disabled in
@@ -18,5 +18,5 @@
 - [x] AC-022-008: Focused tests, Ruff, relevant pytest, safe preview/browser
 	checks where applicable, and Step 22 validation are recorded with exact
 	commands and results.
-- [ ] AC-022-009: Gate B, Gate C, and DONE remain unrequested until Reviewer
+- [x] AC-022-009: Gate B, Gate C, and DONE remain unrequested until Reviewer
 	and Human Gate evidence is explicitly recorded.
