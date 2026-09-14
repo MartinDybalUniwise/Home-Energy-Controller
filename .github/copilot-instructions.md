@@ -8,6 +8,14 @@ repository sources of truth. The root scripts are frozen production prototypes.
 
 - Preserve the existing `dev/hec/` architecture; do not refactor unrelated
   code.
+- Never create, edit, delete, rename, or otherwise modify files outside the
+  repository root `Home-Energy-Controller`. External paths, production
+  checkouts, UNC shares, mounted drives, and host/service directories are
+  read-only inspection targets only.
+- Connections to production data, devices, network shares, installations, or
+  services are allowed only to validate current state and diagnose read-side
+  behavior. Do not upload, install, uninstall, migrate, restart, reconfigure,
+  or write through those connections.
 - Never commit `.env`, credentials, tokens, `connect.json` values, production
   data, logs, runtime caches, or Playwright artifacts.
 - Never perform a physical-device write. Keep `controller.enabled=false` and

@@ -365,6 +365,7 @@ def test_controller_dispatches_goodwe_action_to_writer(tmp_path):
 
 def test_date_and_time_fields_are_combined_and_same_size_change_is_detected(tmp_path):
     assert SDGHistoryReader._timestamp({"date": "2026-09-13", "time": "10:05:00"}) == "2026-09-13T10:05:00+00:00"
+    assert SDGHistoryReader._timestamp({"pm_time": "2026.09.13 10:05:00"}) == "2026-09-13T10:05:00+00:00"
     root = tmp_path / "sdg" / "Data" / "trend" / "min"
     root.mkdir(parents=True)
     source = root / "sample.dbf"

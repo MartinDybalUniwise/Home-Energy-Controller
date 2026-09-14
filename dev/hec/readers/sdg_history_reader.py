@@ -117,6 +117,13 @@ class SDGHistoryReader(BaseReader):
 
     @staticmethod
     def _timestamp(row: dict[str, Any]) -> str | None:
+        pm_time = row.get("pm_time")
+        if pm_time is not None:
+            text = str(pm_time).strip()
+            if text:
+                normalized = text.replace(".", "-").replace(" ", "T")
+                return normalized if "+" in normalized else f"{normalized}+00:00"
+
         date_value = row.get("date")
         time_value = row.get("time")
         if date_value is not None and time_value is not None:
@@ -125,7 +132,8 @@ class SDGHistoryReader(BaseReader):
             if "T" not in date_text:
                 date_text = f"{date_text}T{time_text}"
             return date_text if "+" in date_text else f"{date_text}+00:00"
-        for key in ("timestamp", "datetime", "date_time", "time", "date", "dt"):
+
+        for key in ("timestamp", "datetime", "date_time", "dt"):
             value = row.get(key)
             if value is None:
                 continue
@@ -134,12 +142,13 @@ class SDGHistoryReader(BaseReader):
                 return to_iso(moment)
             text = str(value).strip()
             if text:
-                normalized = text.replace(" ", "T")
+                normalized = text.replace(".", "-").replace(" ", "T")
                 if normalized.endswith("Z"):
                     return normalized[:-1] + "+00:00"
                 if "+" not in normalized and "-" in normalized[10:]:
                     normalized += "+00:00"
                 return normalized
+
         return None
 
     @classmethod
@@ -157,6 +166,10 @@ class SDGHistoryReader(BaseReader):
 
     def import_history(self) -> dict[str, Any]:
         checkpoint = dict(self._checkpoint)
+        if not checkpoint.get("records") and checkpoint.get("files"):
+            # A previous parser version could checkpoint files after rejecting
+            # every row. Re-read them after the normalizer is upgraded.
+            checkpoint["files"] = {}
         imported = 0
         skipped = 0
         corrupt_files = 0
