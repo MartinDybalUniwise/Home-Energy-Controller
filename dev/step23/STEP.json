@@ -1,0 +1,51 @@
+{
+  "step": 23,
+  "classification": "LARGE",
+  "status": "PLANNED",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner / maintainer",
+    "approved_at": "2026-09-15T18:46:42+02:00"
+  },
+  "gate_b": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "Production-shaped browser evidence: prediction payload is valid, but Prediction remains loading or fails with formatCurrency is not defined.",
+  "branch": null,
+  "pr": null,
+  "notes": "Gate A approved by repository owner / maintainer. Implementation may begin within the approved scope; no application code or production configuration has been changed in the planning phase.",
+  "requirements": [
+    "REQ-023-001",
+    "REQ-023-002",
+    "REQ-023-003",
+    "REQ-023-004",
+    "REQ-023-005"
+  ],
+  "acceptance": [
+    "AC-023-001",
+    "AC-023-002",
+    "AC-023-003",
+    "AC-023-004",
+    "AC-023-005",
+    "AC-023-006",
+    "AC-023-007",
+    "AC-023-008",
+    "AC-023-009"
+  ],
+  "evidence": [
+    "E-023-001",
+    "E-023-002",
+    "E-023-003",
+    "E-023-004",
+    "E-023-005"
+  ]
+}
