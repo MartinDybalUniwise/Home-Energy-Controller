@@ -1,7 +1,7 @@
 {
   "step": 17,
   "classification": "LARGE",
-  "status": "PLANNED",
+  "status": "CANCELLED",
   "gate_a": {
     "status": "APPROVED",
     "approved_by": "repository owner / user",
@@ -25,7 +25,7 @@
   "source": "2026-09-10 CLI request: Step17 planning-only SDD completion",
   "branch": "copilot/step17-revision",
   "pr": null,
-  "notes": "Step17 contains a planning-only repository/SDD review package. No application code, frozen root prototypes, runtime configuration, or device-write behavior changed.",
+  "notes": "Cancelled as a standalone UI planning task and superseded by the completed Step18, Step19, and Step20 UI implementations and human reviews. No additional Step17 implementation is required.",
   "requirements": [
     "REQ-017-001",
     "REQ-017-002",

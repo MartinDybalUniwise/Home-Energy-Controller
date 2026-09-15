@@ -22,18 +22,19 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | `step08/` | Produktizace (M6) | ✅ hotovo |
 | `step09/` | Rozšíření: sdílení energie (EDC/GoEnergy), predikce, externí měření – plán a fáze A–D | 🚧 fáze A–D hotovo, E–G navrženo |
 | `step10/` | HEF (Home Energy Finance): integrovaná finanční vrstva, API/UI scaffold, import dokumentů | 🚧 MVP scaffold hotovo, další fáze navrženy |
-| [`step11/`](step11/) | AI-first / Spec-Driven Development bootstrap, bezpečný lokální preview, Playwright a PR evidence | ✅ bootstrap implementován, čeká human test |
-| [`step12/`](step12/) | SDD hardening, security cleanup, enforcement gates, repo hygiene, reusable `dev/sdd/` platform | 📝 plánováno <!-- status: PLANNED --> |
-| [`step13/`](step13/) | SDD enforcement completion, canonical ready/done workflow, validation evidence, PR projection a merge gate | 🚧 implementováno, provozní uzavření pokračuje <!-- status: IN_PROGRESS --> |
+| [`step11/`](step11/) | AI-first / Spec-Driven Development bootstrap, bezpečný lokální preview, Playwright a PR evidence | ✅ historicky uzavřeno, superseded Step14 |
+| [`step12/`](step12/) | SDD hardening, security cleanup, enforcement gates, repo hygiene, reusable `dev/sdd/` platform | ⛔ zrušeno jako samostatný task, nahrazeno Step14 <!-- status: CANCELLED --> |
+| [`step13/`](step13/) | SDD enforcement completion, canonical ready/done workflow, validation evidence, PR projection a merge gate | ⛔ zrušeno jako samostatný task, nahrazeno Step14 <!-- status: CANCELLED --> |
 | [`step14/`](step14/) | SDD operational closure, changed-step DONE enforcement, guarded evidence and merge protection | ✅ hotovo <!-- status: DONE --> |
 | [`step15/`](step15/) | Production deployment readiness for 192.168.2.115, safe host update, validation, and rollback | 🚧 implementováno, produkční ověření otevřeno <!-- status: IN_PROGRESS --> |
 | [`step16/`](step16/) | GoodWe Integration Refactor – nový GoodWeManager, reader/writer bez kolizí, SDG do role logger | ✅ dokončeno po S07 hardware ověření <!-- status: DONE --> |
-| [`step17/`](step17/) | Repository/SDD review a doplnění povinných standardních souborů Step17, pouze plánování | 📝 plán schválený, pouze dokumentace / ready <!-- status: PLANNED --> |
+| [`step17/`](step17/) | Repository/SDD review a doplnění povinných standardních souborů Step17, pouze plánování | ⛔ zrušeno jako samostatný UI plán, nahrazeno Step18–20 <!-- status: CANCELLED --> |
 | [`step18/`](step18/) | UI/UX Redesign: optimalizace pro 11" dotykový wall displej (1080p), zero-waste prostor, vysoký kontrast | ✅ hotovo <!-- status: DONE --> |
 | [`step19/`](step19/) | Home/Dnes cockpit: kompaktní no-scroll rozvržení 1920x1080, odstranění duplicit a dvoupanelová spodní část | ✅ hotovo <!-- status: DONE --> |
 | [`step20/`](step20/) | Samostatná read-only stránka Control & Plan pro stav controlleru, planneru, readerů, writerů a výhled do zítřka | ✅ hotovo <!-- status: DONE --> |
 | [`step21/`](step21/) | Spolehlivé čtení SDG historie: DBF discovery, pm_time, checkpoint/retry a historie sdg_history | 🚧 implementováno, validace pokračuje <!-- status: IN_PROGRESS --> |
 | [`step22/`](step22/) | Stabilní runtime SDG readeru: pomalé pollování, scheduler timing a provozní diagnostika | ✅ hotovo <!-- status: DONE --> |
+| [`step23/`](step23/) | Responsive startup stránek a oprava načítání Výhledu při pomalém status/SDG runtime | 🚧 implementace probíhá <!-- status: IN_PROGRESS --> |
 
 Další kroky se doplňují sem, jakmile vzniknou.
 
@@ -53,6 +54,8 @@ Každý `stepNN/` obsahuje minimálně:
 | [`step01/PROJECT_STRUCTURE.md`](step01/PROJECT_STRUCTURE.md) | Kompletní adresářová struktura se seznamem skriptů a % dokončení |
 | [`step01/UI_DESIGN.md`](step01/UI_DESIGN.md) | Vizuální jazyk webu podle televizní meteo grafiky, design tokeny, ověřená paleta grafů |
 | [`step01/I18N.md`](step01/I18N.md) | Jazykové mutace CZ/EN a postup přidání dalšího jazyka |
+| [`step23/`](step23/) | New step placeholder | 🚧 implementace probíhá <!-- status: IN_PROGRESS --> |
+| [`step24/`](step24/) | GoodWe autorizace v Config UI a odstranění `HEC_GOODWE_PHYSICAL_IO` z běžného produktového flow | ✅ hotovo <!-- status: DONE --> |
 
 ## Aktuálně připravovaný Step 16
 

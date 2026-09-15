@@ -6,6 +6,7 @@ import { applyTranslations, setLanguage, t, time } from './i18n.js';
 import { pages } from './pages.js?v=11';
 
 const REFRESH_MS = 10000;
+const STARTUP_STATUS_TIMEOUT_MS = 1500;
 // Gesto swipe zůstává jen mezi třemi hlavními stránkami (kap. 13 zadání);
 // Stav, Data a Nastavení jsou dostupné výhradně přes menu.
 const PRIMARY_ORDER = ['overview', 'prediction', 'flow', 'history', 'finance'];
@@ -148,7 +149,10 @@ function enableSwipe() {
 async function start() {
   let configuredUi = {};
   try {
-    const status = await api.status();
+    const status = await Promise.race([
+      api.status(),
+      new Promise((resolve) => setTimeout(() => resolve({}), STARTUP_STATUS_TIMEOUT_MS)),
+    ]);
     configuredUi = status?.ui || {};
   } catch {
     configuredUi = { language: CONFIG_DEFAULT_LANGUAGE };
@@ -157,8 +161,10 @@ async function start() {
   await setLanguage(languageFromConfig(configuredUi), api);
   applyPreferences(configuredUi);
   applyTranslations(document);
-  await refreshStatus();
   await render();
+  // Status diagnostics include slow optional readers; they must not block the
+  // first render of a page whose own data is already available.
+  void refreshStatus();
   clearInterval(state.timer);
 
   // Pokud by se jedno kolo někdy zdrželo (pomalá síť, uspaná záložka), další

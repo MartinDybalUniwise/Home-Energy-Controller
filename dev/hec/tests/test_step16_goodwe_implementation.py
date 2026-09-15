@@ -288,7 +288,7 @@ def test_manager_enforces_each_write_gate(tmp_path, gate):
         manager.execute("set_export_limit_w", value=4000)
 
 
-def test_physical_io_is_locked_out_without_explicit_runtime_mode(tmp_path, monkeypatch):
+def test_normal_goodwe_read_no_longer_requires_physical_io_flag(tmp_path, monkeypatch):
     config = enabled_config(tmp_path)
     called = False
 
@@ -298,12 +298,23 @@ def test_physical_io_is_locked_out_without_explicit_runtime_mode(tmp_path, monke
         raise AssertionError("physical GoodWe connect must not be called")
 
     monkeypatch.setattr("goodwe.connect", forbidden_connect)
-    manager = GoodWeManager(config)
-    with pytest.raises(PermissionError, match="physical I/O"):
+    monkeypatch.delenv("HEC_GOODWE_PHYSICAL_IO", raising=False)
+    manager = GoodWeManager(config, physical_io=False)
+    with pytest.raises(PermissionError, match="test mode"):
         manager.read_runtime()
-    with pytest.raises(PermissionError, match="physical_io"):
+    with pytest.raises(PermissionError, match="test mode"):
         manager.execute("set_export_limit_w", value=4000)
     assert called is False
+
+
+def test_write_gates_do_not_depend_on_removed_physical_io_flag(tmp_path, monkeypatch):
+    config = enabled_config(tmp_path)
+    monkeypatch.delenv("HEC_GOODWE_PHYSICAL_IO", raising=False)
+    manager = GoodWeManager(config, client=FakeClient(FakeInverter()), physical_io=False, test_fake=True)
+
+    result = manager.execute("set_export_limit_w", value=4000)
+
+    assert result["success"] is True
 
 
 def test_test_runtime_allows_only_explicitly_marked_fake_client(tmp_path):
@@ -328,6 +339,46 @@ def test_config_api_cannot_create_or_change_hardware_authorization(tmp_path):
     status, payload = api.config_put(app, {"config": {"goodwe": {"hardware_verified": True}}})
     assert status == 400
     assert payload["error"] == "hardware_authorization_read_only"
+    assert not (config.data_dir / "goodwe_hardware_authorization.json").exists()
+
+
+def test_goodwe_authorization_api_verifies_and_approves_current_host(tmp_path):
+    config = make_config(tmp_path, goodwe={"host": "192.168.2.116"})
+    manager = GoodWeManager(config, client=FakeClient(FakeInverter()), test_fake=True)
+    app = SimpleNamespace(config=config, goodwe_verifier=manager, goodwe_authorization_evidence=None)
+
+    status, verified = api.goodwe_authorization_verify(app)
+
+    assert status == 200
+    assert verified["verified"] is True
+    assert verified["host"] == "192.168.2.116"
+    assert verified["model"] == "FAKE-ET"
+
+    status, approved = api.goodwe_authorization_approve(app, {"approved_by": "automated-test"})
+
+    assert status == 200
+    assert approved["authorization"]["status"] == "APPROVED"
+    assert approved["authorization"]["device_host"] == "192.168.2.116"
+    assert approved["authorization"]["evidence_id"] == verified["evidence_id"]
+    assert approved["authorization"]["approved_by"] == "automated-test"
+
+
+def test_goodwe_authorization_api_refuses_without_current_host_verification(tmp_path):
+    config = make_config(tmp_path, goodwe={"host": "192.168.2.116"})
+    app = SimpleNamespace(config=config, goodwe_authorization_evidence=None)
+
+    status, payload = api.goodwe_authorization_approve(app, {"approved_by": "automated-test"})
+
+    assert status == 409
+    assert payload["error"] == "goodwe_verification_required"
+    assert not (config.data_dir / "goodwe_hardware_authorization.json").exists()
+
+    app.goodwe_authorization_evidence = {"status": "SUCCESS", "verified": True,
+                                         "host": "192.168.2.200", "evidence_id": "stale"}
+    status, payload = api.goodwe_authorization_approve(app, {"approved_by": "automated-test"})
+
+    assert status == 409
+    assert payload["error"] == "goodwe_verification_host_mismatch"
     assert not (config.data_dir / "goodwe_hardware_authorization.json").exists()
 
 

@@ -82,8 +82,9 @@ system must be classified as FUTURE HARDENING at most.
 11. Only after all required gates and evidence pass may the step be marked DONE.
 
 Changed-step CI validation follows the manifest lifecycle: planned or
-in-progress steps must pass the `ready` phase, while steps marked `DONE` must
-pass the stricter `done` phase.
+in-progress steps must pass the `ready` phase, steps marked `DONE` must pass
+the stricter `done` phase, and historically superseded steps may be marked
+`CANCELLED` without claiming that their unfinished acceptance criteria passed.
 
 ## Definition of ready
 

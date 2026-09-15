@@ -1,7 +1,7 @@
 {
   "step": 13,
   "classification": "LARGE",
-  "status": "IN_PROGRESS",
+  "status": "CANCELLED",
   "gate_a": {
     "status": "APPROVED",
     "approved_by": "repository owner",
@@ -22,7 +22,7 @@
   "source": "HEC_POST_STEP12_REVIEW_REMAINING.md",
   "branch": "claude/step13-sdd-enforcement",
   "pr": null,
-  "notes": "Step 13 completes SDD workflow enforcement and dogfoods the canonical ready/done process. LAN read-only preview remains out of scope and is planned separately.",
+  "notes": "Cancelled as a standalone implementation step and superseded operationally by Step14, which completed the SDD enforcement, security-owner evidence, merge protection, and final dogfood closure.",
   "requirements": [
     "REQ-013-001",
     "REQ-013-002",

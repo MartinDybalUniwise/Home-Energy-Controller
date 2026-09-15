@@ -15,3 +15,10 @@
 - Git history remediation requires credential rotation and explicit repository-owner approval.
 - GitHub branch protection requires repository administrator configuration.
 - LAN read-only preview is intentionally deferred until a dedicated reviewed profile exists.
+
+## Closure record
+
+Step12 is `CANCELLED` as a standalone open task and superseded by Step14.
+Its historical incomplete evidence remains intentionally preserved for the
+Step13 negative regression; the reusable SDD platform and operational closure
+are recorded in Step14.

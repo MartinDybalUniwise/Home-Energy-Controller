@@ -76,8 +76,6 @@ class GoodWeManager:
             raise PermissionError("GoodWe physical I/O is disabled in test mode")
         if self.client is not None:
             return self.client
-        if not self.physical_io:
-            raise PermissionError("GoodWe physical I/O is disabled")
         try:
             import goodwe
         except ImportError as exc:  # pragma: no cover - optional dependency
@@ -162,7 +160,6 @@ class GoodWeManager:
             "goodwe.enabled": bool(self.config.get("goodwe.enabled", False)),
             "goodwe.writer_enabled": bool(self.config.get("goodwe.writer_enabled", False)),
             "hardware_authorization": authorization.get("status") == "APPROVED",
-            "physical_io": self.physical_io or self.client is not None,
             "verify_after_write": bool(self.config.get("goodwe.verify_after_write", True)),
         }
 

@@ -67,7 +67,7 @@ const card = (titleKey, inner) => `<div class="card"><h3>${t(titleKey)}</h3>${in
 
 export async function overview(view, { api, motion }) {
   const [current, weather, prices, predictionPayload] = await Promise.all([
-    api.current(), api.weather().catch(() => ({})), api.prices().catch(() => ({})),
+    api.current({ fast: 1 }), api.weather().catch(() => ({})), api.prices().catch(() => ({})),
     api.prediction().catch(() => ({})),
   ]);
   renderToday(view, { current, weather, prices, prediction: predictionPayload, motion });
@@ -550,10 +550,53 @@ function groupFields(fields) {
   return groups;
 }
 
-function settingsGroup(section, group, config) {
+function verificationMatchesHost(verification, host) {
+  return Boolean(verification?.verified && verification.status === 'SUCCESS' && verification.host === host);
+}
+
+function goodweAuthorizationLevel(status) {
+  if (status === 'APPROVED') return 'ok';
+  if (status === 'INVALID') return 'critical';
+  return 'warning';
+}
+
+function renderGoodWeAuthorization(auth, config) {
+  const authorization = auth?.authorization || {};
+  const verification = auth?.verification || {};
+  const host = String(valueAt(config, 'goodwe.host') || '').trim();
+  const canApprove = verificationMatchesHost(verification, host);
+  const verificationText = verification.status
+    ? t(verification.message_key || (verification.verified ? 'settings.goodwe_verify_ok' : 'settings.goodwe_verify_failed'))
+    : t('settings.goodwe_verify_missing');
+  const details = [verification.host, verification.model, verification.firmware].filter(Boolean).map(escapeHtml).join(' · ');
+  return `<div class="goodwe-authorization" data-goodwe-authorization>
+    <h4>${t('settings.goodwe_authorization')}</h4>
+    <dl>
+      <dt>${t('settings.goodwe_authorization_status')}</dt><dd><span class="pill" data-level="${goodweAuthorizationLevel(authorization.status)}">${escapeHtml(authorization.status || 'NOT_AUTHORIZED')}</span></dd>
+      <dt>${t('settings.goodwe_verification_status')}</dt><dd data-goodwe-verification-text>${escapeHtml(verificationText)}${details ? ` · ${details}` : ''}</dd>
+    </dl>
+    <div class="goodwe-authorization__actions">
+      <button type="button" class="field-verify" data-goodwe-verify>${t('settings.verify')}</button>
+      <button type="button" class="field-verify" data-goodwe-approve${canApprove ? '' : ' disabled'}>${t('settings.goodwe_approve')}</button>
+      <span class="field-verify-result" data-goodwe-authorization-message aria-live="polite">${canApprove ? t('settings.goodwe_approve_ready') : t('settings.goodwe_approve_disabled')}</span>
+    </div>
+  </div>`;
+}
+
+function updateGoodWeAuthorization(view, auth) {
+  const config = {};
+  view.querySelectorAll('[data-path]').forEach((input) => {
+    setAt(config, input.dataset.path, input.type === 'checkbox' ? input.checked : input.value);
+  });
+  const panel = view.querySelector('[data-goodwe-authorization]');
+  if (panel) panel.outerHTML = renderGoodWeAuthorization(auth, config);
+}
+
+function settingsGroup(section, group, config, goodweAuth) {
   return `<div class="settings-group">
     <h3>${t(SECTION_LABELS[section] || section)}</h3>
     ${group.direct.map((field) => fieldRow(field, valueAt(config, field.path))).join('')}
+    ${section === 'goodwe' ? renderGoodWeAuthorization(goodweAuth, config) : ''}
     ${Object.entries(group.subs).map(([sub, list]) => `
       <div class="settings-subgroup">
         <h4>${t(SUBGROUP_LABELS[`${section}.${sub}`] || sub)}</h4>
@@ -563,7 +606,9 @@ function settingsGroup(section, group, config) {
 }
 
 export async function settings(view, { api, onUiChange }) {
-  const [{ config }, { fields }] = await Promise.all([api.config(), api.configSchema()]);
+  const [{ config }, { fields }, goodweAuth] = await Promise.all([
+    api.config(), api.configSchema(), api.goodweAuthorization().catch(() => ({})),
+  ]);
   const groups = groupFields(fields);
   const personal = Object.entries(groups).filter(([section]) => section === 'ui');
   const technical = Object.entries(groups).filter(([section]) => section !== 'ui');
@@ -572,9 +617,9 @@ export async function settings(view, { api, onUiChange }) {
     <section class="panel">
       <form id="settings-form">
         <div class="settings-intro"><p>${t('settings.personal_title')}</p><h2>${t('settings.personal_intro')}</h2></div>
-        ${personal.map(([section, group]) => settingsGroup(section, group, config)).join('')}
+        ${personal.map(([section, group]) => settingsGroup(section, group, config, goodweAuth)).join('')}
         <details class="technical-settings"><summary><span>${t('settings.technical_title')}</span><small>${t('settings.technical_intro')}</small></summary>
-          ${technical.map(([section, group]) => settingsGroup(section, group, config)).join('')}
+          ${technical.map(([section, group]) => settingsGroup(section, group, config, goodweAuth)).join('')}
         </details>
         <div class="controls">
           <button type="submit">${t('settings.save')}</button>
@@ -617,6 +662,34 @@ export async function settings(view, { api, onUiChange }) {
         button.disabled = false;
       }
     });
+  });
+
+  const hostInput = view.querySelector('[data-path="goodwe.host"]');
+  hostInput?.addEventListener('input', async () => {
+    const auth = await api.goodweAuthorization().catch(() => ({}));
+    updateGoodWeAuthorization(view, auth);
+  });
+
+  view.addEventListener('click', async (event) => {
+    const verify = event.target.closest?.('[data-goodwe-verify]');
+    const approve = event.target.closest?.('[data-goodwe-approve]');
+    if (!verify && !approve) return;
+    const message = view.querySelector('[data-goodwe-authorization-message]');
+    const button = verify || approve;
+    button.disabled = true;
+    if (message) message.textContent = t(verify ? 'settings.verify_checking' : 'settings.goodwe_approve_saving');
+    try {
+      const auth = verify ? await api.verifyGoodweAuthorization() : await api.approveGoodweAuthorization();
+      updateGoodWeAuthorization(view, verify ? { verification: auth } : auth);
+    } catch (error) {
+      const auth = error.payload?.authorization ? error.payload : await api.goodweAuthorization().catch(() => ({}));
+      updateGoodWeAuthorization(view, auth);
+      const targetMessage = view.querySelector('[data-goodwe-authorization-message]');
+      if (targetMessage) {
+        targetMessage.textContent = error.unauthorised ? t('error.unauthorised') : t(error.payload?.message_key || 'settings.verify_failed');
+        targetMessage.dataset.level = 'critical';
+      }
+    }
   });
 }
 

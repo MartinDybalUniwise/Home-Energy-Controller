@@ -83,6 +83,54 @@ def test_settings_can_verify_sdg_path_without_saving(page: Page):
     expect(button.locator("xpath=following-sibling::span[contains(@class, 'field-verify-result')]")).to_have_text(re.compile(r".+"))
 
 
+def test_settings_goodwe_authorization_flow_renders_and_enables_after_verify(page: Page):
+    from playwright.sync_api import expect
+
+    current_host = ""
+
+    def route_api(route):
+        url = route.request.url
+        if url.endswith("/api/goodwe/authorization"):
+            route.fulfill(status=200, content_type="application/json", body=(
+                '{"authorization":{"status":"NOT_AUTHORIZED"},"verification":null}'
+            ))
+            return
+        if url.endswith("/api/goodwe/authorization/verify"):
+            route.fulfill(status=200, content_type="application/json", body=(
+                f'{{"status":"SUCCESS","verified":true,"host":"{current_host}",'
+                '"model":"FAKE-ET","firmware":"1.2.3","evidence_id":"e2e-evidence",'
+                '"verified_at":"2026-09-15T20:00:00+02:00","message_key":"settings.goodwe_verify_ok"}'
+            ))
+            return
+        if url.endswith("/api/goodwe/authorization/approve"):
+            route.fulfill(status=200, content_type="application/json", body=(
+                f'{{"authorization":{{"status":"APPROVED","device_host":"{current_host}",'
+                '"evidence_id":"e2e-evidence","approved_by":"config-ui",'
+                '"approved_at":"2026-09-15T20:01:00+02:00"},'
+                f'"verification":{{"status":"SUCCESS","verified":true,"host":"{current_host}",'
+                '"model":"FAKE-ET","firmware":"1.2.3","evidence_id":"e2e-evidence",'
+                '"message_key":"settings.goodwe_verify_ok"}}'
+            ))
+            return
+        route.continue_()
+
+    page.route("**/api/goodwe/authorization**", route_api)
+    page.goto("/#/settings")
+    page.locator("details.technical-settings").click()
+
+    panel = page.locator("[data-goodwe-authorization]")
+    expect(panel).to_be_visible()
+    expect(page.locator("[data-goodwe-approve]")).to_be_disabled()
+    current_host = page.locator('[data-path="goodwe.host"]').input_value()
+
+    page.locator("[data-goodwe-verify]").click()
+    expect(page.locator("[data-goodwe-approve]")).to_be_enabled()
+    expect(panel).to_contain_text("FAKE-ET")
+
+    page.locator("[data-goodwe-approve]").click()
+    expect(panel).to_contain_text("APPROVED")
+
+
 def test_history_renders_sdg_history_source(page: Page):
     from playwright.sync_api import expect
 
@@ -106,6 +154,79 @@ def test_history_renders_sdg_history_source(page: Page):
     expect(page.locator("#source")).to_have_value("sdg_history")
     page.locator("#toggle-view").click()
     expect(page.locator("#table")).to_contain_text("123")
+
+
+def test_prediction_renders_forecast_without_application_error(page: Page):
+    from playwright.sync_api import expect
+
+    def route_api(route):
+        if route.request.url.endswith("/api/prediction"):
+            route.fulfill(status=200, content_type="application/json", body=(
+                '{"available":true,"generated_at":"2026-09-15T18:37:40+02:00",'
+                '"days":[{"date":"2026-09-16","pv_kwh":99.7,"pv_kwh_low":79.8,'
+                '"pv_kwh_high":119.6,"irradiation_kwh_m2":4.257,"confidence":"medium",'
+                '"consumption_kwh":16.87,"cost_czk":120,"best_appliance_window":"12:30–14:30",'
+                '"best_dhw_window":"12:30–14:30"},{"date":"2026-09-17",'
+                '"pv_kwh":70.5,"pv_kwh_low":56.4,"pv_kwh_high":84.6,'
+                '"irradiation_kwh_m2":3.1,"confidence":"medium","consumption_kwh":16.87,'
+                '"cost_czk":130}]}'
+            ))
+            return
+        route.continue_()
+
+    page.route("**/api/**", route_api)
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.goto("/#/prediction")
+    expect(page.locator(".forecast-day-card").first).to_be_visible()
+    expect(page.locator(".notice.error")).to_have_count(0)
+    assert not any("formatCurrency" in error for error in errors)
+
+
+def test_prediction_renders_when_status_is_slow(page: Page):
+    import time
+
+    from playwright.sync_api import expect
+
+    def route_api(route):
+        if route.request.url.endswith("/api/status"):
+            time.sleep(2)
+            route.fulfill(status=200, content_type="application/json", body=(
+                '{"ui":{"language":"cs","animations":"reduced","theme":"dark"}}'
+            ))
+            return
+        if route.request.url.endswith("/api/prediction"):
+            route.fulfill(status=200, content_type="application/json", body=(
+                '{"available":true,"generated_at":"2026-09-15T18:37:40+02:00",'
+                '"days":[{"date":"2026-09-16","pv_kwh":99.7,"pv_kwh_low":79.8,'
+                '"pv_kwh_high":119.6,"irradiation_kwh_m2":4.257,"confidence":"medium",'
+                '"consumption_kwh":16.87,"cost_czk":120}]}'
+            ))
+            return
+        route.continue_()
+
+    page.route("**/api/**", route_api)
+    page.goto("/#/prediction")
+    expect(page.locator(".forecast-day-card").first).to_be_visible()
+
+
+def test_today_renders_when_status_is_slow(page: Page):
+    import time
+
+    from playwright.sync_api import expect
+
+    def route_api(route):
+        if route.request.url.endswith("/api/status"):
+            time.sleep(2)
+            route.fulfill(status=200, content_type="application/json", body=(
+                '{"ui":{"language":"cs","animations":"reduced","theme":"dark"}}'
+            ))
+            return
+        route.continue_()
+
+    page.route("**/api/**", route_api)
+    page.goto("/")
+    expect(page.locator(".today-screen")).to_be_visible()
 
 
 def test_czech_navigation_catalog(page: Page):

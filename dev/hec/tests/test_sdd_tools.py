@@ -94,6 +94,10 @@ def test_changed_step_validation_phase_follows_manifest_status():
     validator = load_tool("validate_changed_steps")
     assert validator.validation_phase(ROOT / "dev" / "step15") == "ready"
 
+    cancelled = json.loads((ROOT / "dev" / "step12" / "STEP.json").read_text(encoding="utf-8"))
+    assert cancelled["status"] == "CANCELLED"
+    assert validator.validation_phase(ROOT / "dev" / "step12") == "structural"
+
     manifest = json.loads((ROOT / "dev" / "step14" / "STEP.json").read_text(encoding="utf-8"))
     assert manifest["status"] == "DONE"
     assert validator.validation_phase(ROOT / "dev" / "step14") == "done"
