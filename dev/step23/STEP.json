@@ -1,7 +1,7 @@
 {
   "step": 23,
   "classification": "LARGE",
-  "status": "PLANNED",
+  "status": "IN_PROGRESS",
   "gate_a": {
     "status": "APPROVED",
     "approved_by": "repository owner / maintainer",
@@ -20,9 +20,9 @@
   "readiness": "YES",
   "requested_by": "repository owner / maintainer",
   "source": "Production-shaped browser evidence: prediction payload is valid, but Prediction remains loading or fails with formatCurrency is not defined.",
-  "branch": null,
+  "branch": "task23-načítání-stránky-výhled",
   "pr": null,
-  "notes": "Gate A approved by repository owner / maintainer. Implementation may begin within the approved scope; no application code or production configuration has been changed in the planning phase.",
+  "notes": "Gate A approved. S03-S04 implementation and focused validation are complete; broader safety/evidence handoff remains open. No production writes or configuration changes were performed.",
   "requirements": [
     "REQ-023-001",
     "REQ-023-002",

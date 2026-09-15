@@ -2,7 +2,7 @@
 // Pracuje výhradně s daty, která rozhraní dostává z API: cenou, předpovědí počasí,
 // predikcí výroby a okamžitým stavem.
 
-import { dateTime, num, power, t, time, weekday } from './i18n.js';
+import { dateTime, formatCurrency, num, power, t, time, weekday } from './i18n.js';
 import { applianceIcon, weatherIcon } from './icons.js';
 
 const HTML_ESCAPES = {
@@ -22,6 +22,11 @@ function escapeParams(params) {
   return Object.fromEntries(Object.entries(params).map(([key, value]) => [key, escapeHtml(value)]));
 }
 
+function translatedText(key, params, fallback = '') {
+  const text = t(key, escapeParams(params));
+  return text === key ? escapeHtml(fallback) : text;
+}
+
 const dateKey = (value) => {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return '';
@@ -29,6 +34,15 @@ const dateKey = (value) => {
 };
 
 const values = (items, key) => items.map((item) => Number(item?.[key])).filter(Number.isFinite);
+const dayLabel = (value) => {
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value || '–';
+  return `${weekday(date)}, ${time(date, { day: '2-digit', month: '2-digit' })}`;
+};
+const formatRange = (low, high, digits, unitKey) => {
+  if (!Number.isFinite(Number(low)) || !Number.isFinite(Number(high))) return '–';
+  return `${num(low, digits)}–${num(high, digits)} ${t(unitKey)}`;
+};
 const percentile = (list, ratio) => {
   if (!list.length) return null;
   const sorted = [...list].sort((a, b) => a - b);

@@ -2,10 +2,10 @@
 
 | Requirement | Acceptance | Plan step | Evidence | Status |
 |---|---|---|---|---|
-| REQ-023-001, REQ-023-002 | AC-023-001, AC-023-002 | S01, S03, S04 | E-023-001: browser request/render regression | PLANNED |
-| REQ-023-002, REQ-023-003 | AC-023-003, AC-023-004 | S01, S03, S04 | E-023-002: Prediction payload/error-state regression | PLANNED |
-| REQ-023-004 | AC-023-005 | S04 | E-023-003: SDG History compatibility regression | PLANNED |
-| REQ-023-005 | AC-023-002, AC-023-004 | S01, S03, S04 | E-023-004: status latency and no-console-error evidence | PLANNED |
+| REQ-023-001, REQ-023-002 | AC-023-001, AC-023-002 | S01, S03, S04 | E-023-001: browser request/render regression | VERIFIED |
+| REQ-023-002, REQ-023-003 | AC-023-003, AC-023-004 | S01, S03, S04 | E-023-002: Prediction payload/error-state regression | VERIFIED |
+| REQ-023-004 | AC-023-005 | S04 | E-023-003: SDG History compatibility regression | VERIFIED |
+| REQ-023-005 | AC-023-002, AC-023-004 | S01, S03, S04 | E-023-004: status latency and no-console-error evidence | VERIFIED |
 | REQ-023-003, REQ-023-005 | AC-023-006, AC-023-007, AC-023-008, AC-023-009 | S02, S05, S06 | E-023-005: validation and owner review evidence | PLANNED |
 
 ## Evidence definitions

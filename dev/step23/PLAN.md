@@ -13,12 +13,12 @@ without changing SDG import semantics or forecast calculations.
 
 | Step | Purpose | Status |
 |---|---|---|
-| S01 | Reproduce production request ordering, status latency, and Prediction console error | PLANNED |
-| S02 | Define page-loading, diagnostic, timeout, and partial-state contracts | PLANNED |
-| S03 | Implement the smallest frontend/status-boundary correction | PLANNED |
-| S04 | Add Prediction, History, and slow-status regression coverage | PLANNED |
+| S01 | Reproduce production request ordering, status latency, and Prediction console error | DONE |
+| S02 | Define page-loading, diagnostic, timeout, and partial-state contracts | DONE |
+| S03 | Implement the smallest frontend/status-boundary correction | DONE |
+| S04 | Add Prediction, History, and slow-status regression coverage | DONE |
 | S05 | Run safe local validation and authorized read-only production observation | PLANNED |
-| S06 | Record evidence and prepare Reviewer/Human Gate handoff | PLANNED |
+| S06 | Record evidence and prepare Reviewer/Human Gate handoff | IN_PROGRESS |
 
 ## Detailed implementation strategy
 

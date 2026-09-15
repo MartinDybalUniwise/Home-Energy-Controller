@@ -34,7 +34,7 @@ Každá etapa vývoje má vlastní adresář `stepNN/` s vlastním plánem a dok
 | [`step20/`](step20/) | Samostatná read-only stránka Control & Plan pro stav controlleru, planneru, readerů, writerů a výhled do zítřka | ✅ hotovo <!-- status: DONE --> |
 | [`step21/`](step21/) | Spolehlivé čtení SDG historie: DBF discovery, pm_time, checkpoint/retry a historie sdg_history | 🚧 implementováno, validace pokračuje <!-- status: IN_PROGRESS --> |
 | [`step22/`](step22/) | Stabilní runtime SDG readeru: pomalé pollování, scheduler timing a provozní diagnostika | ✅ hotovo <!-- status: DONE --> |
-| [`step23/`](step23/) | Responsive startup stránek a oprava načítání Výhledu při pomalém status/SDG runtime | 📝 plánováno <!-- status: PLANNED --> |
+| [`step23/`](step23/) | Responsive startup stránek a oprava načítání Výhledu při pomalém status/SDG runtime | 🚧 implementace probíhá <!-- status: IN_PROGRESS --> |
 
 Další kroky se doplňují sem, jakmile vzniknou.
 
@@ -54,7 +54,7 @@ Každý `stepNN/` obsahuje minimálně:
 | [`step01/PROJECT_STRUCTURE.md`](step01/PROJECT_STRUCTURE.md) | Kompletní adresářová struktura se seznamem skriptů a % dokončení |
 | [`step01/UI_DESIGN.md`](step01/UI_DESIGN.md) | Vizuální jazyk webu podle televizní meteo grafiky, design tokeny, ověřená paleta grafů |
 | [`step01/I18N.md`](step01/I18N.md) | Jazykové mutace CZ/EN a postup přidání dalšího jazyka |
-| [`step23/`](step23/) | New step placeholder | 📝 plánováno <!-- status: PLANNED --> |
+| [`step23/`](step23/) | New step placeholder | 🚧 implementace probíhá <!-- status: IN_PROGRESS --> |
 
 ## Aktuálně připravovaný Step 16
 

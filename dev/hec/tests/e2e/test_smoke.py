@@ -108,6 +108,60 @@ def test_history_renders_sdg_history_source(page: Page):
     expect(page.locator("#table")).to_contain_text("123")
 
 
+def test_prediction_renders_forecast_without_application_error(page: Page):
+    from playwright.sync_api import expect
+
+    def route_api(route):
+        if route.request.url.endswith("/api/prediction"):
+            route.fulfill(status=200, content_type="application/json", body=(
+                '{"available":true,"generated_at":"2026-09-15T18:37:40+02:00",'
+                '"days":[{"date":"2026-09-16","pv_kwh":99.7,"pv_kwh_low":79.8,'
+                '"pv_kwh_high":119.6,"irradiation_kwh_m2":4.257,"confidence":"medium",'
+                '"consumption_kwh":16.87,"cost_czk":120,"best_appliance_window":"12:30–14:30",'
+                '"best_dhw_window":"12:30–14:30"},{"date":"2026-09-17",'
+                '"pv_kwh":70.5,"pv_kwh_low":56.4,"pv_kwh_high":84.6,'
+                '"irradiation_kwh_m2":3.1,"confidence":"medium","consumption_kwh":16.87,'
+                '"cost_czk":130}]}'
+            ))
+            return
+        route.continue_()
+
+    page.route("**/api/**", route_api)
+    errors = []
+    page.on("pageerror", lambda error: errors.append(str(error)))
+    page.goto("/#/prediction")
+    expect(page.locator(".forecast-day-card").first).to_be_visible()
+    expect(page.locator(".notice.error")).to_have_count(0)
+    assert not any("formatCurrency" in error for error in errors)
+
+
+def test_prediction_renders_when_status_is_slow(page: Page):
+    import time
+
+    from playwright.sync_api import expect
+
+    def route_api(route):
+        if route.request.url.endswith("/api/status"):
+            time.sleep(2)
+            route.fulfill(status=200, content_type="application/json", body=(
+                '{"ui":{"language":"cs","animations":"reduced","theme":"dark"}}'
+            ))
+            return
+        if route.request.url.endswith("/api/prediction"):
+            route.fulfill(status=200, content_type="application/json", body=(
+                '{"available":true,"generated_at":"2026-09-15T18:37:40+02:00",'
+                '"days":[{"date":"2026-09-16","pv_kwh":99.7,"pv_kwh_low":79.8,'
+                '"pv_kwh_high":119.6,"irradiation_kwh_m2":4.257,"confidence":"medium",'
+                '"consumption_kwh":16.87,"cost_czk":120}]}'
+            ))
+            return
+        route.continue_()
+
+    page.route("**/api/**", route_api)
+    page.goto("/#/prediction")
+    expect(page.locator(".forecast-day-card").first).to_be_visible()
+
+
 def test_czech_navigation_catalog(page: Page):
     from playwright.sync_api import expect
 
