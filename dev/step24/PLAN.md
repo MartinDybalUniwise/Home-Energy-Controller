@@ -15,12 +15,12 @@ existing artifact-based write authorization.
 
 | Step | Purpose | Status |
 |---|---|---|
-| S01 | Remove `HEC_GOODWE_PHYSICAL_IO` from normal GoodWe product flow | PLANNED |
-| S02 | Add read-only GoodWe verification API and evidence model | PLANNED |
-| S03 | Add explicit GoodWe authorization API using the existing artifact service | PLANNED |
-| S04 | Add simple Config UI controls and localized status text | PLANNED |
-| S05 | Add regression and browser coverage | PLANNED |
-| S06 | Run safe validation and record evidence | PLANNED |
+| S01 | Remove `HEC_GOODWE_PHYSICAL_IO` from normal GoodWe product flow | COMPLETED |
+| S02 | Add read-only GoodWe verification API and evidence model | COMPLETED |
+| S03 | Add explicit GoodWe authorization API using the existing artifact service | COMPLETED |
+| S04 | Add simple Config UI controls and localized status text | COMPLETED |
+| S05 | Add regression and browser coverage | COMPLETED |
+| S06 | Run safe validation and record evidence | COMPLETED |
 
 ## Detailed implementation strategy
 

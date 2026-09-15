@@ -55,7 +55,7 @@ Každý `stepNN/` obsahuje minimálně:
 | [`step01/UI_DESIGN.md`](step01/UI_DESIGN.md) | Vizuální jazyk webu podle televizní meteo grafiky, design tokeny, ověřená paleta grafů |
 | [`step01/I18N.md`](step01/I18N.md) | Jazykové mutace CZ/EN a postup přidání dalšího jazyka |
 | [`step23/`](step23/) | New step placeholder | 🚧 implementace probíhá <!-- status: IN_PROGRESS --> |
-| [`step24/`](step24/) | GoodWe autorizace v Config UI a odstranění `HEC_GOODWE_PHYSICAL_IO` z běžného produktového flow | 📝 plánováno <!-- status: PLANNED --> |
+| [`step24/`](step24/) | GoodWe autorizace v Config UI a odstranění `HEC_GOODWE_PHYSICAL_IO` z běžného produktového flow | ✅ hotovo <!-- status: DONE --> |
 
 ## Aktuálně připravovaný Step 16
 

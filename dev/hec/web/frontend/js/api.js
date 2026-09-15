@@ -43,6 +43,9 @@ export const api = {
   config: () => request('/api/config'),
   configSchema: () => request('/api/config/schema'),
   verifyConfig: (target) => request(`/api/config/verify?target=${encodeURIComponent(target)}`),
+  goodweAuthorization: () => request('/api/goodwe/authorization'),
+  verifyGoodweAuthorization: () => request('/api/goodwe/authorization/verify', { method: 'POST', body: JSON.stringify({}) }),
+  approveGoodweAuthorization: () => request('/api/goodwe/authorization/approve', { method: 'POST', body: JSON.stringify({ approved_by: 'config-ui' }) }),
   saveConfig: (config) => request('/api/config', { method: 'PUT', body: JSON.stringify({ config }) }),
   translations: (lang) => request(`/api/i18n/${lang}`),
 };

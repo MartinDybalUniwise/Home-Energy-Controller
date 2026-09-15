@@ -10,14 +10,18 @@ import re
 from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
+from uuid import uuid4
 
 from ..core import config as config_mod
 from ..core import i18n
 from ..core import schema as schema_mod
+from ..core.goodwe_hardware_authorization import authorize as authorize_goodwe_hardware
+from ..core.goodwe_hardware_authorization import load as load_goodwe_authorization
 from ..core.timeutil import now_local, parse_iso, to_iso
 from ..finance.service import FinanceService
 from ..forecast.household_consumption_forecast import forecast_household_consumption
 from ..forecast.pv_forecast import forecast_pv
+from ..readers.goodwe_manager import GoodWeManager
 from ..readers.sdg_history_reader import SDGHistoryReader
 from ..storage.base import read_json
 from ..storage.series import downsample, series_fields
@@ -221,6 +225,88 @@ def config_get(app) -> tuple[int, dict]:
 
 def config_schema(app) -> tuple[int, dict]:
     return 200, {"fields": schema_mod.describe()}
+
+
+def _goodwe_host(app) -> str:
+    return str(app.config.get("goodwe.host", "") or "").strip()
+
+
+def _goodwe_manager(app) -> GoodWeManager:
+    injected = getattr(app, "goodwe_verifier", None)
+    if injected is not None:
+        return injected
+    reader_lookup = getattr(app, "reader", None)
+    reader = reader_lookup("goodwe") if callable(reader_lookup) else None
+    manager = getattr(reader, "manager", None)
+    if manager is not None:
+        return manager
+    return GoodWeManager(app.config)
+
+
+def _goodwe_authorization_payload(app) -> dict:
+    return {
+        "authorization": load_goodwe_authorization(app.config),
+        "verification": getattr(app, "goodwe_authorization_evidence", None),
+    }
+
+
+def goodwe_authorization_status(app) -> tuple[int, dict]:
+    return 200, _goodwe_authorization_payload(app)
+
+
+def goodwe_authorization_verify(app) -> tuple[int, dict]:
+    host = _goodwe_host(app)
+    if not host:
+        result = {"status": "FAILED", "verified": False, "host": host,
+                  "error": "goodwe_host_not_configured", "message_key": "settings.goodwe_verify_not_configured",
+                  "verified_at": to_iso(now_local())}
+        app.goodwe_authorization_evidence = result
+        return 400, result
+    try:
+        manager = _goodwe_manager(app)
+        manager.read_runtime()
+        snapshot = manager.status_snapshot()
+        result = {
+            "status": "SUCCESS",
+            "verified": True,
+            "host": host,
+            "model": snapshot.get("model"),
+            "firmware": snapshot.get("firmware"),
+            "evidence_id": str(uuid4()),
+            "verified_at": to_iso(now_local()),
+            "message_key": "settings.goodwe_verify_ok",
+        }
+        app.goodwe_authorization_evidence = result
+        return 200, result
+    except Exception as exc:  # noqa: BLE001
+        result = {"status": "FAILED", "verified": False, "host": host,
+                  "error": f"{type(exc).__name__}: {exc}",
+                  "message_key": "settings.goodwe_verify_failed",
+                  "verified_at": to_iso(now_local())}
+        app.goodwe_authorization_evidence = result
+        return 502, result
+
+
+def goodwe_authorization_approve(app, body: dict) -> tuple[int, dict]:
+    evidence = getattr(app, "goodwe_authorization_evidence", None) or {}
+    host = _goodwe_host(app)
+    if not evidence.get("verified") or evidence.get("status") != "SUCCESS":
+        return 409, {"error": "goodwe_verification_required",
+                     "message_key": "settings.goodwe_approve_verification_required",
+                     **_goodwe_authorization_payload(app)}
+    if evidence.get("host") != host:
+        return 409, {"error": "goodwe_verification_host_mismatch",
+                     "message_key": "settings.goodwe_approve_host_mismatch",
+                     **_goodwe_authorization_payload(app)}
+    approved_by = str((body or {}).get("approved_by") or "local-admin")
+    artifact = authorize_goodwe_hardware(
+        app.config,
+        device_host=host,
+        evidence_id=str(evidence["evidence_id"]),
+        approved_by=approved_by,
+        verification=lambda: evidence.get("verified") is True and evidence.get("host") == host,
+    )
+    return 200, {"authorization": artifact, "verification": evidence}
 
 
 def config_verify(app, target: str) -> tuple[int, dict]:

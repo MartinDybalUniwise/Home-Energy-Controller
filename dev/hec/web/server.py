@@ -167,6 +167,7 @@ class Handler(BaseHTTPRequestHandler):
             "/api/config": lambda: api.config_get(self.app),
             "/api/config/schema": lambda: api.config_schema(self.app),
             "/api/config/verify": lambda: api.config_verify(self.app, params.get("target", "")),
+            "/api/goodwe/authorization": lambda: api.goodwe_authorization_status(self.app),
         }
         handler = routes.get(route)
         if handler is None:
@@ -187,6 +188,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, {"authorised": True}, headers={"Set-Cookie": cookie})
         if not self._authorised():
             return self._send(401, {"error": "unauthorised"})
+        if route == "/api/goodwe/authorization/verify":
+            return self._send(*api.goodwe_authorization_verify(self.app))
+        if route == "/api/goodwe/authorization/approve":
+            return self._send(*api.goodwe_authorization_approve(self.app, self._body()))
         return self._send(404, {"error": "not_found"})
 
     def do_PUT(self):                                  # noqa: N802

@@ -6,8 +6,6 @@ v konfiguračním schématu. Do controlleru se přitom nesahá.
 
 from __future__ import annotations
 
-import os
-
 from ..core.logging_setup import get_logger
 from .base import BaseReader
 from .finance_document_reader import FinanceDocumentReader
@@ -33,7 +31,6 @@ READER_CLASSES: dict[str, type[BaseReader]] = {
 def build_readers(config, storage, *, physical_io: bool = False) -> list[BaseReader]:
     """Vytvoří povolené readery. Selhání konstruktoru jeden zdroj vypne, ostatní běží."""
     log = get_logger("registry")
-    physical_io = physical_io or os.environ.get("HEC_GOODWE_PHYSICAL_IO") == "1"
     readers: list[BaseReader] = []
     for name, cls in READER_CLASSES.items():
         if not config.get(f"{name}.enabled", False):

@@ -1,28 +1,28 @@
 {
   "step": 24,
   "classification": "LARGE",
-  "status": "PLANNED",
+  "status": "DONE",
   "gate_a": {
     "status": "APPROVED",
     "approved_by": "repository owner / maintainer",
     "approved_at": "2026-09-15T19:54:43.6684614+02:00"
   },
   "gate_b": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "GitHub Copilot reviewer",
+    "approved_at": "2026-09-15T20:45:00+02:00"
   },
   "gate_c": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "repository owner / maintainer",
+    "approved_at": "2026-09-15T20:45:00+02:00"
   },
   "readiness": "YES",
   "requested_by": "repository owner / maintainer",
   "source": "User request on 2026-09-15: simplify GoodWe authorization in Config UI with status, verify button, Autorizuji button, and remove HEC_GOODWE_PHYSICAL_IO from normal product flow.",
-  "branch": null,
+  "branch": "step24-odstranění-kontrol",
   "pr": null,
-  "notes": "Gate A approved by explicit user message 'schvaluji' on 2026-09-15. No application code, runtime configuration, or device state was changed by the Planner.",
+  "notes": "Gate A approved by explicit user message 'schvaluji' on 2026-09-15. Step24 implementation and automated validation are complete. Reviewer Gate approved after safety review; Human Gate approved by owner after confirming the UI flow works. No runtime configuration, root prototype, or physical device state was changed.",
   "requirements": [
     "REQ-024-001",
     "REQ-024-002",

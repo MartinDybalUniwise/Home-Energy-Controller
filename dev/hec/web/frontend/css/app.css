@@ -286,6 +286,12 @@ table.data th:first-child, table.data td:first-child { text-align: left; }
 .field-verify-result[data-level="ok"] { color: var(--state-good); }
 .field-verify-result[data-level="warning"] { color: var(--state-warning); }
 .field-verify-result[data-level="critical"] { color: var(--state-critical); }
+.goodwe-authorization { margin: 8px 0 10px; padding: 10px 12px; border: 1px solid var(--divider); border-radius: var(--radius-card); background: color-mix(in srgb, var(--panel-solid) 82%, transparent); }
+.goodwe-authorization h4 { margin: 0 0 8px; font-size: .82rem; color: var(--ink-secondary); }
+.goodwe-authorization dl { display: grid; grid-template-columns: minmax(120px, .55fr) 1fr; gap: 6px 10px; margin: 0; font-size: .82rem; }
+.goodwe-authorization dt { color: var(--ink-muted); }
+.goodwe-authorization dd { margin: 0; }
+.goodwe-authorization__actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
 .error { color: var(--state-critical); }
 .notice { padding: 10px 16px; color: var(--ink-secondary); }
 
@@ -530,6 +536,7 @@ dialog button { min-height: 48px; color: #06243b; border-radius: 8px; background
   .controls button, .controls select { min-height: 48px; }
   .field { grid-template-columns: 1fr; gap: 6px; padding-block: 10px; }
   .field input, .field select { width: 100%; }
+  .goodwe-authorization dl { grid-template-columns: 1fr; }
   .settings-group { padding: 8px 10px; }
   .technical-settings { margin: 8px 10px 10px; }
 }

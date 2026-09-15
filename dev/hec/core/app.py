@@ -22,6 +22,7 @@ from ..readers.registry import build_readers
 from ..storage.jsonl import JsonlStorage
 from ..writers.fte_writer import FTEWriter
 from . import config as config_mod
+from .goodwe_hardware_authorization import load as load_goodwe_authorization
 from .logging_setup import configure, event, get_logger, register_secrets
 from .maintenance import Maintenance
 from .model import Sample
@@ -44,6 +45,7 @@ class Application:
         self.storage = JsonlStorage(self.config.data_dir, self.config.history_dir)
         self._lock = threading.Lock()
         self.snapshot: dict[str, dict] = {}
+        self.goodwe_authorization_evidence: dict[str, Any] | None = None
         self.readers = build_readers(self.config, self.storage)
         goodwe_reader = next((reader for reader in self.readers if reader.name == "goodwe"), None)
         goodwe_manager = getattr(goodwe_reader, "manager", None)
@@ -121,6 +123,10 @@ class Application:
             "readers": statuses,
             "goodwe_diagnostics": diagnostics.get("goodwe", {}),
             "goodwe_writer_diagnostics": diagnostics.get("goodwe_writer", {}),
+            "goodwe_authorization": {
+                "authorization": load_goodwe_authorization(self.config),
+                "verification": self.goodwe_authorization_evidence,
+            },
             "sdg_diagnostics": diagnostics.get("sdg_history", {}),
             "stale_sources": stale,
             "controller": controller_state,

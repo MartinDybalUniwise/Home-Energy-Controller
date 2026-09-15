@@ -83,6 +83,54 @@ def test_settings_can_verify_sdg_path_without_saving(page: Page):
     expect(button.locator("xpath=following-sibling::span[contains(@class, 'field-verify-result')]")).to_have_text(re.compile(r".+"))
 
 
+def test_settings_goodwe_authorization_flow_renders_and_enables_after_verify(page: Page):
+    from playwright.sync_api import expect
+
+    current_host = ""
+
+    def route_api(route):
+        url = route.request.url
+        if url.endswith("/api/goodwe/authorization"):
+            route.fulfill(status=200, content_type="application/json", body=(
+                '{"authorization":{"status":"NOT_AUTHORIZED"},"verification":null}'
+            ))
+            return
+        if url.endswith("/api/goodwe/authorization/verify"):
+            route.fulfill(status=200, content_type="application/json", body=(
+                f'{{"status":"SUCCESS","verified":true,"host":"{current_host}",'
+                '"model":"FAKE-ET","firmware":"1.2.3","evidence_id":"e2e-evidence",'
+                '"verified_at":"2026-09-15T20:00:00+02:00","message_key":"settings.goodwe_verify_ok"}'
+            ))
+            return
+        if url.endswith("/api/goodwe/authorization/approve"):
+            route.fulfill(status=200, content_type="application/json", body=(
+                f'{{"authorization":{{"status":"APPROVED","device_host":"{current_host}",'
+                '"evidence_id":"e2e-evidence","approved_by":"config-ui",'
+                '"approved_at":"2026-09-15T20:01:00+02:00"},'
+                f'"verification":{{"status":"SUCCESS","verified":true,"host":"{current_host}",'
+                '"model":"FAKE-ET","firmware":"1.2.3","evidence_id":"e2e-evidence",'
+                '"message_key":"settings.goodwe_verify_ok"}}'
+            ))
+            return
+        route.continue_()
+
+    page.route("**/api/goodwe/authorization**", route_api)
+    page.goto("/#/settings")
+    page.locator("details.technical-settings").click()
+
+    panel = page.locator("[data-goodwe-authorization]")
+    expect(panel).to_be_visible()
+    expect(page.locator("[data-goodwe-approve]")).to_be_disabled()
+    current_host = page.locator('[data-path="goodwe.host"]').input_value()
+
+    page.locator("[data-goodwe-verify]").click()
+    expect(page.locator("[data-goodwe-approve]")).to_be_enabled()
+    expect(panel).to_contain_text("FAKE-ET")
+
+    page.locator("[data-goodwe-approve]").click()
+    expect(panel).to_contain_text("APPROVED")
+
+
 def test_history_renders_sdg_history_source(page: Page):
     from playwright.sync_api import expect
 
