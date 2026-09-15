@@ -147,7 +147,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(401, {"error": "unauthorised"})
 
         routes = {
-            "/api/current": lambda: api.current(self.app),
+            "/api/current": lambda: api.current(self.app, params),
             "/api/status": lambda: api.status(self.app),
             "/api/history": lambda: api.history(self.app, params),
             "/api/sources": lambda: api.sources(self.app),

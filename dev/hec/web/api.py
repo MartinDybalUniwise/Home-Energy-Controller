@@ -51,8 +51,16 @@ def auto_bucket(span_seconds: float) -> int:
     return 3600
 
 
-def current(app) -> tuple[int, dict]:
-    return 200, app.current()
+def current(app, params: dict | None = None) -> tuple[int, dict]:
+    fast = (params or {}).get("fast") == "1"
+    try:
+        return 200, app.current(include_status=not fast)
+    except TypeError:
+        # Keep lightweight test doubles compatible with the optional fast mode.
+        payload = app.current()
+        if fast:
+            payload.pop("status", None)
+        return 200, payload
 
 
 def status(app) -> tuple[int, dict]:

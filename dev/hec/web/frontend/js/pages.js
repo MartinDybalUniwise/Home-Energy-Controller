@@ -67,7 +67,7 @@ const card = (titleKey, inner) => `<div class="card"><h3>${t(titleKey)}</h3>${in
 
 export async function overview(view, { api, motion }) {
   const [current, weather, prices, predictionPayload] = await Promise.all([
-    api.current(), api.weather().catch(() => ({})), api.prices().catch(() => ({})),
+    api.current({ fast: 1 }), api.weather().catch(() => ({})), api.prices().catch(() => ({})),
     api.prediction().catch(() => ({})),
   ]);
   renderToday(view, { current, weather, prices, prediction: predictionPayload, motion });

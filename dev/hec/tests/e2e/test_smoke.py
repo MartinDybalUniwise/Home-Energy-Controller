@@ -162,6 +162,25 @@ def test_prediction_renders_when_status_is_slow(page: Page):
     expect(page.locator(".forecast-day-card").first).to_be_visible()
 
 
+def test_today_renders_when_status_is_slow(page: Page):
+    import time
+
+    from playwright.sync_api import expect
+
+    def route_api(route):
+        if route.request.url.endswith("/api/status"):
+            time.sleep(2)
+            route.fulfill(status=200, content_type="application/json", body=(
+                '{"ui":{"language":"cs","animations":"reduced","theme":"dark"}}'
+            ))
+            return
+        route.continue_()
+
+    page.route("**/api/**", route_api)
+    page.goto("/")
+    expect(page.locator(".today-screen")).to_be_visible()
+
+
 def test_czech_navigation_catalog(page: Page):
     from playwright.sync_api import expect
 

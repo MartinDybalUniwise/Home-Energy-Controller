@@ -23,7 +23,7 @@ async function request(path, options = {}) {
 export const api = {
   session: () => request('/api/session'),
   login: (password) => request('/api/login', { method: 'POST', body: JSON.stringify({ password }) }),
-  current: () => request('/api/current'),
+  current: (params = {}) => request('/api/current?' + new URLSearchParams(params)),
   status: () => request('/api/status'),
   weather: () => request('/api/weather'),
   prices: () => request('/api/prices'),

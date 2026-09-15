@@ -80,7 +80,7 @@ class Application:
         if self.controller is not None:
             self.controller.on_sample(sample)
 
-    def current(self) -> dict[str, Any]:
+    def current(self, include_status: bool = True) -> dict[str, Any]:
         with self._lock:
             data = dict(self.snapshot)
         last_measurement = None
@@ -88,12 +88,14 @@ class Application:
             stamp = parse_iso(sample.get("timestamp"))
             if stamp and (last_measurement is None or stamp > last_measurement):
                 last_measurement = stamp
-        return {
+        payload = {
             "timestamp": to_iso(now_local()),
             "last_measurement_at": to_iso(last_measurement) if last_measurement else None,
             "sources": data,
-            "status": self.status(),
         }
+        if include_status:
+            payload["status"] = self.status()
+        return payload
 
     def status(self) -> dict[str, Any]:
         statuses = {reader.name: reader.status.to_dict() for reader in self.readers}
