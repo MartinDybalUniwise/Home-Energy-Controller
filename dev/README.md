@@ -56,6 +56,8 @@ Každý `stepNN/` obsahuje minimálně:
 | [`step01/I18N.md`](step01/I18N.md) | Jazykové mutace CZ/EN a postup přidání dalšího jazyka |
 | [`step23/`](step23/) | New step placeholder | 🚧 implementace probíhá <!-- status: IN_PROGRESS --> |
 | [`step24/`](step24/) | GoodWe autorizace v Config UI a odstranění `HEC_GOODWE_PHYSICAL_IO` z běžného produktového flow | ✅ hotovo <!-- status: DONE --> |
+| [`step25/`](step25/) | Oddělení readerů, telemetrie, analytiky, controllerů a HEC dashboardu – architektura a migrační plán | 📝 plánováno <!-- status: PLANNED --> |
+| [`step25/`](step25/) | New step placeholder | 📝 plánováno <!-- status: PLANNED --> |
 
 ## Aktuálně připravovaný Step 16
 
