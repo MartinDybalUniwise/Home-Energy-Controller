@@ -231,6 +231,10 @@ class SDGHistoryReader(BaseReader):
                 self._audited[key] = time.monotonic()
                 self._failed_files.pop(key, None)
             except (OSError, ValueError, struct.error) as exc:
+                # A failed attempt also consumes its audit turn. Otherwise a
+                # permanently broken oldest file starves every metadata-stable
+                # file of content checks, even after its retry cooldown.
+                self._audited[key] = time.monotonic()
                 if path.exists():
                     failed_stat = path.stat()
                     self._failed_files[key] = ([failed_stat.st_size, failed_stat.st_mtime_ns], now)
