@@ -14,7 +14,7 @@ Opravit existující historii a import, odstranit změřenou zbytečnou práci a
 | S04 | Autoritativní verze a changelog | PASS |
 | S05 | Servisní oprava na kopii dat | PASS |
 | S06 | Regrese, browser E2E, výkon a review | PASS |
-| S07 | Human Gate, PR, release a produkce | IN_PROGRESS |
+| S07 | Human Gate, PR, release a produkce | PASS |
 
 ## Detailed implementation strategy
 

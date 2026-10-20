@@ -1,12 +1,10 @@
 # Result - Step26
 
-## Current release readiness
+## Completed production release
 
-Independent Gate B and explicit owner deployment approval (Gate C) are recorded at 2026-10-20T16:01:30+00:00. Review of fa2fe02 found no remaining BLOCKER/IMPORTANT after the audit starvation fix 79ac8f2 (21 focused history PASS). Step27 is DONE and merged by PR41 (08c0cc4). Combined CI has unit, Python 3.11/3.12 and real browser full-validation PASS. Candidate 0.1.1 remains explicitly unreleased until actual deployment. Final validation, merge PR40, tag and production deployment verification follow. Production still runs original 3f0d9c2 / 0.1.0.
+Step26 DONE. See DEPLOYMENT_RESULT.md for the authoritative final record: deployed tag v0.1.1 / commit0b36d3e, actual release2026-10-20 18:29:45 Prague, final start18:32:30 PID4132. Consistent backup, production repair/repeat, complete SDG replay, six successful live readers, unchanged configuration/TNG protections and actual browser version/changelog checks PASS. Final release validation:355 unit and41 actual browser E2E PASS, all required gates approved.
 
-Integration decision: PR41 -> PR40 -> claude/reconcile-production-20261020. This keeps the production delta limited to the approved fixes. Existing older differences against main are not introduced by this release; main synchronization remains separate and is not claimed.
-
-The sections below retain the initial Step26 evidence before the separately approved Step27 resolved the baseline failures. Initial FAIL/PENDING/unreleased statements are historical, superseded by the current release record and final deployment evidence.
+PR41 and PR40 are merged into the existing production reconciliation branch; main synchronization remains separate. Historical sections below preserve the initial offline measurements and earlier FAIL/PENDING states before Step27 and the final deployment resolved them. The final report supersedes those historical state statements.
 
 ## Opravy
 

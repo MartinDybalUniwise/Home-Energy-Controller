@@ -58,7 +58,7 @@ Každý `stepNN/` obsahuje minimálně:
 | [`step24/`](step24/) | GoodWe autorizace v Config UI a odstranění `HEC_GOODWE_PHYSICAL_IO` z běžného produktového flow | ✅ hotovo <!-- status: DONE --> |
 | [`step25/`](step25/) | Oddělení readerů, telemetrie, analytiky, controllerů a HEC dashboardu – architektura a migrační plán | 📝 plánováno <!-- status: PLANNED --> |
 | [`step25/`](step25/) | New step placeholder | 📝 plánováno <!-- status: PLANNED --> |
-| [`step26/`](step26/) | Historie, výkon a verze HEC | 🚧 implementace, Gate A schválena <!-- status: IN_PROGRESS --> |
+| [`step26/`](step26/) | Historie, vykon a verze HEC | ✅ hotovo <!-- status: DONE --> |
 | [`step27/`](step27/) | Oprava vychozich testovych kontraktu | ✅ hotovo <!-- status: DONE --> |
 
 ## Aktuálně připravovaný Step 16

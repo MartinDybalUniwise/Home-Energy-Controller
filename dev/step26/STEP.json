@@ -1,7 +1,7 @@
 {
   "step": 26,
   "classification": "LARGE",
-  "status": "IN_PROGRESS",
+  "status": "DONE",
   "gate_a": {
     "status": "APPROVED",
     "approved_by": "repository owner; explicit chat approval: schvaluji a začni implementaci",
@@ -22,7 +22,7 @@
   "source": "Owner request 2026-10-20; USER_REQUEST.txt",
   "branch": "claude/step26-history-performance-version",
   "pr": "https://github.com/MartinDybalUniwise/Home-Energy-Controller/pull/40",
-  "notes": "Independent review and explicit owner deployment approval recorded. Step27 merged by PR41. Candidate 0.1.1 ready for final validation; released_at remains null until actual deployment. Release target is existing production reconciliation branch, main synchronization remains separate.",
+  "notes": "Production deployment complete: v0.1.1 / 0b36d3e, released from actual verified deployment at 2026-10-20T18:29:45.723111+02:00, final PID4132/start18:32:30, configuration unchanged, six readers OK, production browser PASS. Independent review and owner approval recorded; DEPLOYMENT_RESULT.md contains actual evidence. Main synchronization remains separate.",
   "requirements": [
     "REQ-026-001",
     "REQ-026-002",

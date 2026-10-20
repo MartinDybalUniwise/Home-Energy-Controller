@@ -7,4 +7,4 @@
 - [x] AC-026-005: Stejná data pro wall/CPU/paměť/I-O/checkpoint/log před/po; nulový přírůstek i backlog, staré změny zachyceny, rotace a omezené dávky ověřeny.
 - [x] AC-026-006: Skutečný browser test čísla/dialogu/Prague času/zavření a absence JS chyb; releasy nejnovější nahoře bez vymyšlených dat.
 - [x] AC-026-007: Zaznamenané pytest/ruff/SDD/full_validation, review a Human Gate; skipped není PASS, výchozí chyby neskrývat.
-- [ ] AC-026-008: Povinné PR kontroly/merge, tag na nasazeném ověřeném commitu, jedna instance, zachované controllery/config, správná nová historie a logy; čas restartu/záloha/rollback doloženy.
+- [x] AC-026-008: Povinné PR kontroly/merge, tag na nasazeném ověřeném commitu, jedna instance, zachované controllery/config, správná nová historie a logy; čas restartu/záloha/rollback doloženy.
