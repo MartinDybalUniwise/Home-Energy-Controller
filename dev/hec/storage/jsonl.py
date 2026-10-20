@@ -10,6 +10,7 @@ nepotřebuje databázový server.
 from __future__ import annotations
 
 import json
+import threading
 from collections.abc import Iterable, Iterator
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -22,6 +23,7 @@ class JsonlStorage:
     def __init__(self, data_dir: str | Path, history_dir: str | Path):
         self.data_dir = Path(data_dir)
         self.history_dir = Path(history_dir)
+        self._history_lock = threading.RLock()
 
     # --- zápis -------------------------------------------------------------
     def _day_file(self, source: str, when: datetime | None = None) -> Path:

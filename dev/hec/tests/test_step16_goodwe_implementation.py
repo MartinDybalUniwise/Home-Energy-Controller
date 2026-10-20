@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import struct
 import threading
 from datetime import UTC, date, datetime
@@ -505,7 +506,11 @@ def test_sdg_reader_retries_file_after_all_rows_were_skipped(tmp_path):
     assert first["imported"] == 0
     assert first["skipped"] == 1
 
+    previous_stat = source.stat()
     write_dbf(source, [("2026-09-14 10:00:00", 100, "OK")])
+    # Windows can assign identical mtimes to rapid equal-size rewrites.
+    # This case tests changed metadata; preserved metadata has a separate audit test.
+    os.utime(source, ns=(previous_stat.st_atime_ns, previous_stat.st_mtime_ns + 1_000_000_000))
     second = reader.import_history()
     assert second["imported"] == 1
     assert len(storage.last("sdg_history", 10)) == 1

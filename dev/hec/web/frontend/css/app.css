@@ -1073,3 +1073,9 @@ dialog button { min-height: 48px; color: #06243b; border-radius: 8px; background
 .control-plan-energy-metric[data-tone="export"] { border-top: 3px solid #35c86f; }
 @media (max-width: 1100px) { .control-plan-device-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 720px) { .control-plan-header { align-items: start; flex-direction: column; }.control-plan-status-grid, .control-plan-device-grid, .control-plan-lower, .control-plan-outlook, .control-plan-energy-grid { grid-template-columns: 1fr; }.control-plan-activity { min-width: 0; }.control-plan-lower { gap: 24px; }.control-plan-detail-list > div { grid-template-columns: 1fr; gap: 3px; } }
+
+.version-button { padding: 0.2rem 0.4rem; border: 0; background: transparent; color: var(--text-muted, #a0b4c8); cursor: pointer; font-size: 0.75rem; }
+.version-button:focus-visible { outline: 2px solid currentColor; }
+#release-dialog { max-width: min(36rem, 92vw); max-height: 85vh; overflow: auto; }
+#release-dialog .dialog-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+#release-dialog .dialog-close { background: transparent; color: inherit; padding: 0.3rem 0.7rem; font-size: 1.4rem; }

@@ -9,6 +9,7 @@ Pravidla, která platí pro každý reader:
 
 from __future__ import annotations
 
+import logging
 import re
 import time
 import unicodedata
@@ -82,13 +83,20 @@ class BaseReader:
                         backoff_s=int(self.backoff_seconds()), source=self.name)
             return Sample(source=self.name, values=values, ok=False, error=self.status.last_error)
 
+        sample = Sample(source=self.name, values=values, timestamp=now_local())
+        try:
+            self._persist(values, sample)
+        except Exception as exc:  # noqa: BLE001 - retain worker for safe persistence retry
+            self._failures += 1
+            self.status.error_count += 1
+            self.status.last_error = f"{type(exc).__name__}: {exc}"
+            error_event(self.log, 'persist_failed', error=type(exc).__name__)
+            return Sample(source=self.name, ok=False, error=self.status.last_error)
         self._failures = 0
-        self.status.last_success = now_local()
+        self.status.last_success = sample.timestamp
         self.status.success_count += 1
         self.status.last_error = None
-        sample = Sample(source=self.name, values=values, timestamp=self.status.last_success)
-        self._persist(values, sample)
-        event(self.log, "poll_success", duration_ms=int((time.monotonic() - started) * 1000),
+        event(self.log, "poll_success", level=logging.DEBUG, duration_ms=int((time.monotonic() - started) * 1000),
               **{k: v for k, v in list(values.items())[:3] if isinstance(v, (int, float))})
         return sample
 

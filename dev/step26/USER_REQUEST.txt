@@ -1,0 +1,207 @@
+# HEC — oprava historie, snížení zátěže a verzování aplikace
+
+## 1. Zadání a rozsah
+
+Pracuješ na projektu Home Energy Controller.
+
+Proveď pouze:
+1. Opravu existujícího načítání historie a opravu chybných historických dat.
+2. Optimalizaci existujícího zpracování tak, aby zbytečně nezatěžovalo notebook.
+3. Přidání verzování aplikace: viditelné číslo verze a po kliknutí changelog s datem a hodinou vydání každé verze.
+4. Otestování, uložení změn do Gitu a nasazení do produkce včetně restartu HEC.
+
+Toto zadání zahrnuje souhlas s uvedenými změnami, opravou dat a následným nasazením. Dodrž existující SDD workflow a povinné kontrolní brány repozitáře.
+
+### Pevné hranice
+
+- Kromě verzování NEZAVÁDĚJ nové uživatelské funkce.
+- Neměň řídicí logiku TČ, bojleru ani FVE, komfortní pravidla, rozvrhy nebo nastavení zařízení.
+- Neprováděj redesign UI; doplň pouze verzi a zobrazení changelogu.
+- Nepřidávej nové readery, datové zdroje, služby, databázi, monitoringový dashboard ani nový scheduler.
+- Nerozšiřuj SDD framework.
+- Zachovej existující funkce, rozhraní a datové formáty, pokud jejich oprava není nezbytná pro toto zadání.
+- Nesouvisející problémy pouze zaznamenej. Neopravuj je v tomto kroku.
+
+## 2. Nejdříve ověř skutečný stav
+
+Načti aktuální instrukce repozitáře, architekturu, SDD dokumentaci a postup nasazení.
+
+Dodrž pravidlo:
+**1 Step = 1 branch = 1 PR.**
+
+Číslo nového kroku odvoď ze skutečného stavu repozitáře. Vývoj prováděj v `dev/` podle aktuálních pravidel. Produkční soubory neměň před ověřením způsobu nasazení.
+
+Předchozí audit použij jako seznam podnětů k ověření, nikoli jako automaticky prokázanou příčinu.
+
+Prověř zejména:
+- časové značky a úplnost historie TNG/TČ;
+- možný časový posun SDG/Promotic;
+- práci SDG History Readeru s historickými DBF soubory a checkpointem;
+- opakované čtení, hashování a přepisování nezměněných dat;
+- frekvenci a způsob logování.
+
+Vše ověř na aktuálním kódu, konfiguraci a dostupných datech. Rozlišuj potvrzenou chybu, hypotézu a nedostatek důkazů.
+
+LAN a produkční operace prováděj z prostředí, které má skutečný přístup. Nepředpokládej, že cloudový agent vidí lokální síť.
+
+## 3. Oprava načítání a historických dat
+
+### Cíl
+
+Existující mechanismus musí správně doplňovat dostupnou historii po výpadku HEC a opakované načtení nesmí vytvářet duplicity ani poškozovat data.
+
+### Požadované opravy
+
+**Čas měření**
+- Historický záznam zařazuj podle skutečného času měření, nikoli podle času importu.
+- Ověř správné časové pásmo jednotlivých zdrojů včetně letního a zimního času.
+- Neprováděj plošný posun času o jednu hodinu pouze na základě předchozího podezření.
+- Aktuální nastavení TČ nepřiřazuj starším měřením jako historicky platné nastavení.
+
+**Doplňování a opakované zpracování**
+- Oprav pokračování od posledního spolehlivě uloženého bodu.
+- Zohledni přerušení importu, opakovaný import, nové záznamy i opravu již existujícího zdrojového záznamu.
+- Nepovažuj dostupnost historie SDG za důkaz úplnosti samostatné historie GoodWe nebo jiného zdroje.
+- Využij jen současné zdroje a existující možnosti načítání.
+
+**Oprava uložených dat**
+- Před opravou vytvoř konzistentní zálohu dotčené historie, checkpointů a souvisejícího stavu.
+- Nejprve proveď zkušební vyhodnocení na kopii dat.
+- Oprav chybné časové zařazení, duplicity a další prokázané chyby způsobené importem.
+- Chybějící historii doplň tam, kde je skutečně dostupná.
+- Navazující existující souhrny přepočítej pouze v dotčených obdobích a jen tehdy, jsou-li opravou ovlivněné.
+- Chybějící data nenahrazuj nulou, odhadem ani současnou hodnotou. Neověřitelné údaje ponech jako neznámé podle existujícího datového formátu a popiš je ve výsledku.
+- Oprava musí být opakovatelná: druhé spuštění nad stejnými vstupy nesmí znovu měnit již správná data.
+
+Připrav přehled před/po podle zdroje a období: doplněné, opravené a odstraněné duplicitní záznamy, zbývající mezery.
+
+Jednorázový servisní skript pro opravu dat je dovolený. Není požadována nová funkce ani ovládání v UI.
+
+## 4. Snížení zátěže notebooku
+
+### Cíl
+
+Odstranit zbytečnou práci v existující implementaci bez zhoršení aktuálnosti dat a bez omezení potřebné historie.
+
+### Postup
+
+Nejprve změř dostupný výchozí stav:
+- dobu běhu jednotlivých relevantních úloh;
+- využití CPU a paměti;
+- objem čtení a zápisů;
+- velikost a četnost zápisu checkpointu;
+- množství výpisů do konzole a logů.
+
+Měření je součást ověření, nikoli zadání pro novou trvalou monitoringovou funkci.
+
+Optimalizuj zejména:
+- opakované procházení a hashování nezměněných historických souborů;
+- opakované sestavování velkých struktur v paměti;
+- přepisování celého checkpointu kvůli několika novým záznamům;
+- zbytečné čtení přes síť;
+- duplicitní nebo překrývající se spuštění stejné importní úlohy;
+- nadměrné logování běžných nezměněných stavů.
+
+Upřednostni skutečně inkrementální zpracování v rámci současné architektury. Zachovej možnost zachytit změnu již existujících zdrojových dat.
+
+Doplňování rozsáhlejší historie zpracovávej omezeně po dávkách, pokud je to potřeba, aby neblokovalo běžný chod. Nevytvářej kvůli tomu novou službu.
+
+Do konzole ponech hlavně důležité změny, souhrny a chyby. Zachovej audit řídicích příkazů a diagnostiku potřebnou pro dohledání incidentů. Ověř existující rotaci logů.
+
+Samotné prodloužení pollingových intervalů nebo vypnutí potřebného sběru dat nepovažuj za opravu.
+
+Po změně zopakuj srovnatelné měření nad stejnými daty. Výsledky dolož čísly; co nebylo změřeno, neoznačuj jako ověřené zlepšení.
+
+## 5. Jediná nová vlastnost: verze a changelog
+
+Do stávajícího rozhraní přidej nenápadné, ale dostupné číslo verze.
+
+Po kliknutí se otevře jednoduchý přehled změn, například dialog, který:
+- zobrazí aktuální a předchozí zaznamenané verze, nejnovější nahoře;
+- u každé verze uvede datum a hodinu vydání;
+- stručně česky popíše změny;
+- půjde snadno zavřít a nenaruší rozložení aplikace.
+
+Použij existující systém verzování. Pokud žádný není, zaveď jednoduché `MAJOR.MINOR.PATCH`.
+
+Požadavky:
+- Verze má jediný autoritativní zdroj, nikoli několik ručně udržovaných kopií.
+- Musí být dohledatelná vazba mezi verzí aplikace, Git tagem a nasazeným commitem.
+- Čas vydání je pevně zaznamenaný údaj releasu, nikoli čas startu HEC nebo otevření stránky.
+- Datum a čas zobrazuj v `Europe/Prague`, například `20. 10. 2026 14:35`.
+- Nevymýšlej historická vydání ani jejich data.
+- Zobrazení verze nesmí opakovaně spouštět Git nebo zatěžovat hlavní smyčku.
+
+Nepřidávej automatické aktualizace, správu verzí v UI ani jiné související funkce.
+
+## 6. Testy a podmínky dokončení
+
+Použij existující testovací a validační postup projektu.
+
+Ověř alespoň:
+1. Doplnění historie po několikadenní odstávce v rozsahu dostupném ze zdroje.
+2. Správný čas měření, přechod přes půlnoc a změnu letního/zimního času.
+3. Opakovaný import bez duplicit a opakovanou opravu bez dalších změn.
+4. Bezpečné pokračování po přerušení importu.
+5. Zachycení nových i opravených zdrojových záznamů.
+6. Výkonnost při nulovém přírůstku i při větším doplňování historie.
+7. Zobrazení verze, otevření changelogu a správné datum i čas.
+8. Zachování dosavadních funkcí bez změny řídicí logiky.
+
+Testy nesmějí provádět zkušební fyzické zápisy do TČ nebo FVE.
+
+Přeskočený test není PASS. Povinný lidský test ani schvalovací bránu neoznačuj za splněnou bez skutečného ověření.
+
+## 7. Git, produkce a restart
+
+Po úspěšné validaci pokračuj až k nasazení, nikoli pouze k návrhu nebo lokálním změnám.
+
+### Git
+
+- Aktualizuj dokumentaci kroku a changelog.
+- Zkontroluj diff a nepřibaluj nesouvisející změny.
+- Commitni a pushni změny.
+- Vytvoř PR, ověř požadované kontroly a proveď merge podle pravidel repozitáře.
+- Vytvoř odpovídající release tag.
+- Do Gitu neukládej produkční historii, zálohy, logy ani tajné údaje.
+
+### Produkce
+
+Nejdříve ověř skutečný produkční adresář, způsob spuštění a existující postup nasazení. Nevymýšlej cestu ani příkaz pro restart.
+
+Před zásahem zaznamenej nasazenou verzi, konfiguraci a stav aktivních controllerů. Připrav návrat k předchozímu kódu i datům.
+
+Proveď kontrolované nasazení:
+1. Bezpečně zastav HEC nebo použij existující postup zajišťující, že během opravy nikdo nezapisuje do historie.
+2. Vytvoř konečnou konzistentní zálohu.
+3. Nasaď přesně otestovaný release.
+4. Proveď ověřenou opravu produkčních dat.
+5. Spusť HEC se zachovanou konfigurací a stavem controllerů.
+6. Ověř, že běží právě jedna instance.
+
+Restart nesmí aktivovat dříve vypnuté controllery ani měnit nastavení zařízení.
+
+Po restartu ověř:
+- dostupnost aplikace a správnou verzi;
+- funkčnost changelogu;
+- nové záznamy historie se správným časem;
+- stav doplnění dostupné historie;
+- nepřítomnost nových chyb v logu;
+- dobu běhu importu a dostupné ukazatele zátěže.
+
+Při selhání použij připravený rollback včetně potřebného obnovení dat a checkpointů. Neprováděj opakované neřízené restarty.
+
+Pokud chybí oprávnění, přístup nebo povinné schválení, dokonči bezpečně proveditelné části a přesně uveď blokaci. Nasazení ani restart netvrď bez důkazu.
+
+## 8. Závěrečný výstup
+
+Vrať stručný report:
+- potvrzené příčiny a provedené opravy;
+- přehled opravené/doplněné historie a neobnovitelných mezer;
+- měření výkonu před a po;
+- výsledky testů a neprovedená ověření;
+- číslo verze, čas vydání, commit, PR a tag;
+- stav nasazení, čas restartu a výsledek kontroly produkce;
+- umístění zálohy a možnost návratu.
+
+Výslovně potvrď, zda zůstala nezměněná řídicí logika TČ/FVE a zda mimo verzování nepřibyly žádné nové uživatelské funkce.

@@ -4,6 +4,7 @@ import { api } from './api.js';
 import { applyScene } from './background.js';
 import { applyTranslations, setLanguage, t, time } from './i18n.js';
 import { pages } from './pages.js?v=12';
+import { setupReleases } from './releases.js';
 
 const REFRESH_MS = 10000;
 const STARTUP_STATUS_TIMEOUT_MS = 1500;
@@ -161,6 +162,7 @@ async function start() {
   await setLanguage(languageFromConfig(configuredUi), api);
   applyPreferences(configuredUi);
   applyTranslations(document);
+  void setupReleases();
   await render();
   // Status diagnostics include slow optional readers; they must not block the
   // first render of a page whose own data is already available.

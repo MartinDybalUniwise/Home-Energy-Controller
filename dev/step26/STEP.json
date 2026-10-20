@@ -1,0 +1,56 @@
+{
+  "step": 26,
+  "classification": "LARGE",
+  "status": "IN_PROGRESS",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner; explicit chat approval: schvaluji a začni implementaci",
+    "approved_at": "2026-10-20T16:24:14.9424728+02:00"
+  },
+  "gate_b": {
+    "status": "PENDING",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "PENDING",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "Owner request 2026-10-20; USER_REQUEST.txt",
+  "branch": "claude/step26-history-performance-version",
+  "pr": null,
+  "notes": "Gate A approved. Implementation and offline repair in isolated checkout; full_validation remains FAIL on three reproduced baseline unit defects, browser suite has one reproduced baseline failure. Review/Human Gate and production deployment not performed.",
+  "requirements": [
+    "REQ-026-001",
+    "REQ-026-002",
+    "REQ-026-003",
+    "REQ-026-004",
+    "REQ-026-005",
+    "REQ-026-006",
+    "REQ-026-007",
+    "REQ-026-008"
+  ],
+  "acceptance": [
+    "AC-026-001",
+    "AC-026-002",
+    "AC-026-003",
+    "AC-026-004",
+    "AC-026-005",
+    "AC-026-006",
+    "AC-026-007",
+    "AC-026-008"
+  ],
+  "evidence": [
+    "E-026-001",
+    "E-026-002",
+    "E-026-003",
+    "E-026-004",
+    "E-026-005",
+    "E-026-006",
+    "E-026-007",
+    "E-026-008"
+  ]
+}
