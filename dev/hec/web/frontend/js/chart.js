@@ -279,6 +279,7 @@ function attachGoodWeCrosshair(container, rawRows, series, { x, plotWidth, paddi
  */
 export function renderChart(container, {
   rows = [], series = [], unit = '', scale = 1, yMin = null, yMax = null,
+  responsive = false, range = '-24h',
 }) {
   const available = series.filter((entry) => rows.some((row) => numericValue(row[entry.field]) !== null));
   if (!rows.length || !available.length) {
@@ -288,6 +289,12 @@ export function renderChart(container, {
   const enabled = new Set(available.map((entry) => entry.field));
 
   const draw = () => {
+    const style = getComputedStyle(container);
+    const width = responsive
+      ? Math.max(240, container.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight))
+      : WIDTH;
+    const height = responsive && width < 600 ? 260 : HEIGHT;
+    const multiDay = responsive && (range === '-7d' || range === '-30d');
     container.innerHTML = '';
     const active = available.filter((entry) => enabled.has(entry.field));
 
@@ -307,22 +314,23 @@ export function renderChart(container, {
     const top = Math.ceil(max / step) * step;
     const bottom = Math.floor(min / step) * step;
 
-    const plotWidth = WIDTH - PAD.left - PAD.right;
-    const plotHeight = HEIGHT - PAD.top - PAD.bottom;
+    const plotWidth = width - PAD.left - PAD.right;
+    const plotHeight = height - PAD.top - PAD.bottom;
     const x = (index) => PAD.left + (scaled.length === 1 ? plotWidth / 2 : (index / (scaled.length - 1)) * plotWidth);
     const y = (value) => PAD.top + plotHeight - ((value - bottom) / (top - bottom || 1)) * plotHeight;
 
     const gridLines = [];
     for (let value = bottom; value <= top + 1e-9; value += step) {
-      gridLines.push(`<line class="grid-line" x1="${PAD.left}" x2="${WIDTH - PAD.right}" y1="${y(value).toFixed(1)}" y2="${y(value).toFixed(1)}"/>`
+      gridLines.push(`<line class="grid-line" x1="${PAD.left}" x2="${width - PAD.right}" y1="${y(value).toFixed(1)}" y2="${y(value).toFixed(1)}"/>`
         + `<text class="axis-label" x="${PAD.left - 8}" y="${(y(value) + 4).toFixed(1)}" text-anchor="end">${num(value, step < 1 ? 1 : 0)}</text>`);
     }
 
     const ticks = [];
-    const tickCount = Math.min(6, scaled.length);
+    const tickCount = Math.min(responsive && width < 600 ? 4 : 6, scaled.length);
     for (let i = 0; i < tickCount; i += 1) {
       const index = Math.round((i / Math.max(1, tickCount - 1)) * (scaled.length - 1));
-      ticks.push(`<text class="axis-label" x="${x(index).toFixed(1)}" y="${HEIGHT - 8}" text-anchor="middle">${time(scaled[index].timestamp)}</text>`);
+      const label = time(scaled[index].timestamp, multiDay ? { day: '2-digit', month: '2-digit' } : undefined);
+      ticks.push(`<text class="axis-label" x="${x(index).toFixed(1)}" y="${height - 8}" text-anchor="middle">${label}</text>`);
     }
 
     const paths = active.map((entry) => {
@@ -334,12 +342,12 @@ export function renderChart(container, {
     }).join('');
 
     container.insertAdjacentHTML('beforeend', `
-      <svg class="chart" viewBox="0 0 ${WIDTH} ${HEIGHT}" preserveAspectRatio="none" role="img">
+      <svg class="chart" viewBox="0 0 ${width} ${height}" preserveAspectRatio="none" role="img"${responsive ? ` style="height:${height}px"` : ''}>
         <g>${gridLines.join('')}</g>
         <g>${ticks.join('')}</g>
         <text class="axis-label" x="${PAD.left - 8}" y="${PAD.top - 4}" text-anchor="end">${unit}</text>
         ${paths}
-        <line class="crosshair" y1="${PAD.top}" y2="${HEIGHT - PAD.bottom}" x1="0" x2="0" hidden/>
+        <line class="crosshair" y1="${PAD.top}" y2="${height - PAD.bottom}" x1="0" x2="0" hidden/>
         <rect x="${PAD.left}" y="${PAD.top}" width="${plotWidth}" height="${plotHeight}" fill="transparent"/>
       </svg>
       <div class="tooltip" hidden></div>
@@ -355,13 +363,13 @@ export function renderChart(container, {
       });
     });
 
-    attachCrosshair(container, scaled, active, unit, { x, plotWidth });
+    attachCrosshair(container, scaled, active, unit, { x, plotWidth, width, multiDay });
   };
 
   draw();
 }
 
-function attachCrosshair(container, rows, series, unit, { x, plotWidth }) {
+function attachCrosshair(container, rows, series, unit, { x, plotWidth, width, multiDay }) {
   const svg = container.querySelector('svg');
   const crosshair = svg.querySelector('.crosshair');
   const tooltip = container.querySelector('.tooltip');
@@ -370,15 +378,17 @@ function attachCrosshair(container, rows, series, unit, { x, plotWidth }) {
     const bounds = svg.getBoundingClientRect();
     const pointer = (event.touches ? event.touches[0].clientX : event.clientX) - bounds.left;
     const ratio = pointer / bounds.width;
-    const index = Math.max(0, Math.min(rows.length - 1, Math.round((ratio * WIDTH - PAD.left) / plotWidth * (rows.length - 1))));
+    const index = Math.max(0, Math.min(rows.length - 1, Math.round((ratio * width - PAD.left) / plotWidth * (rows.length - 1))));
     const row = rows[index];
     crosshair.setAttribute('x1', x(index));
     crosshair.setAttribute('x2', x(index));
     crosshair.removeAttribute('hidden');
-    tooltip.innerHTML = `<strong>${time(row.timestamp)}</strong>` + series.map((entry) =>
+    const stamp = time(row.timestamp, multiDay
+      ? { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' } : undefined);
+    tooltip.innerHTML = `<strong>${stamp}</strong>` + series.map((entry) =>
       `<span class="tooltip-row" style="color:${entry.color}"><span class="swatch" style="background:${entry.color}"></span>${entry.label}: ${num(row[entry.field], 2)} ${unit}</span>`).join('');
     tooltip.hidden = false;
-    const left = Math.min(bounds.width - tooltip.offsetWidth - 8, Math.max(0, pointer + 12));
+    const left = Math.max(0, Math.min(bounds.width - tooltip.offsetWidth - 8, pointer + 12));
     tooltip.style.left = `${left}px`;
     tooltip.style.top = '16px';
   };

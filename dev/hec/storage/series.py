@@ -6,6 +6,7 @@ Mobil nesmí stahovat 96 000 řádků – zhuštění dělá server.
 from __future__ import annotations
 
 from collections.abc import Callable
+from math import isfinite
 from statistics import mean
 from typing import Any
 
@@ -19,6 +20,32 @@ AGGREGATIONS: dict[str, Callable[[list[float]], float]] = {
     "last": lambda values: values[-1],
     "first": lambda values: values[0],
 }
+
+TNG_TEMPERATURE_FIELDS = (
+    "outside_temperature", "water_output_temperature", "boiler_temperature", "room_temperature",
+)
+
+
+def history_record(source: str, record: dict) -> dict:
+    """Expose impossible TNG temperatures as unknown, without altering raw/current data.
+
+    No vendor flag decoding is assumed. Below absolute zero and non-finite
+    inputs cannot be Celsius measurements; valid negative and zero values stay.
+    Apply before aggregation so an invalid input cannot contaminate a mean.
+    """
+    if source != "tng":
+        return record
+    values = record_values(record)
+    invalid = {
+        field: None for field in TNG_TEMPERATURE_FIELDS if field in values
+        and values[field] is not None
+        and ((value := numeric(values[field])) is None or not isfinite(value) or value < -273.15)
+    }
+    if not invalid:
+        return record
+    if isinstance(record.get("values"), dict):
+        return {**record, "values": {**record["values"], **invalid}}
+    return {**record, **invalid}
 
 
 def numeric(value: Any) -> float | None:

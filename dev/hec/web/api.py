@@ -24,7 +24,7 @@ from ..forecast.pv_forecast import forecast_pv
 from ..readers.goodwe_manager import GoodWeManager
 from ..readers.sdg_history_reader import SDGHistoryReader
 from ..storage.base import read_json
-from ..storage.series import downsample, series_fields
+from ..storage.series import TNG_TEMPERATURE_FIELDS, downsample, record_values, series_fields
 
 RELATIVE = re.compile(r"^-(\d+)([hdm])$")
 BUCKET_FOR_SPAN = ((6 * 3600, 60), (48 * 3600, 300), (8 * 86400, 900), (None, 3600))
@@ -83,6 +83,10 @@ def history(app, params: dict) -> tuple[int, dict]:
 
     records = app.storage.query(source, frm, to)
     fields = [f for f in (params.get("fields") or "").split(",") if f] or series_fields(records)
+    if source == "tng" and not params.get("fields"):
+        # Retain table columns even when every measurement in the window is missing.
+        fields += [field for field in TNG_TEMPERATURE_FIELDS if field not in fields
+                   and any(field in record_values(record) for record in records[:50])]
 
     bucket = params.get("bucket")
     bucket = int(bucket) if bucket and bucket.isdigit() else auto_bucket((to - frm).total_seconds())

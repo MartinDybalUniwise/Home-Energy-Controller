@@ -825,6 +825,7 @@
     "count": "Položek: {count}"
   },
   "release": {
+    "tng_history": "Neplatné teploty v historii jako chybějící měření a čitelnější graf TNG na mobilu.",
     "title": "Verze a změny",
     "pending": "Připravované vydání",
     "history": "Opravy času měření, doplňování historie a bezpečného pokračování importu.",

@@ -825,6 +825,7 @@
     "count": "Items: {count}"
   },
   "release": {
+    "tng_history": "Show invalid historical temperatures as missing measurements and improve the mobile TNG chart.",
     "title": "Version and changes",
     "pending": "Unreleased",
     "history": "Correct measurement timestamps, history backfill and restart-safe imports.",
