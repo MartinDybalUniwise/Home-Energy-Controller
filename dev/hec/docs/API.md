@@ -24,6 +24,9 @@ endpointy kromě `/api/session`, `/api/login` a `/api/i18n/*` platnou cookie
 | GET | `/api/config` | konfigurace (tajemství zamaskovaná) |
 | PUT | `/api/config` | `{"config": {...}}` – validuje, zálohuje, uloží |
 | GET | `/api/config/schema` | popis polí pro nastavení v UI |
+| GET | `/api/goodwe/authorization` | stav lokální GoodWe autorizace a posledního ověření |
+| POST | `/api/goodwe/authorization/verify` | read-only ověření nakonfigurovaného měniče GoodWe |
+| POST | `/api/goodwe/authorization/approve` | explicitní vytvoření autorizačního artefaktu po úspěšném ověření |
 | GET | `/api/finance` | KPI a auditní souhrn HEF dashboardu |
 | GET | `/api/finance/manual` | seznam ručních položek HEF (`limit`) |
 | GET | `/api/i18n/{lang}` | překladový katalog |
@@ -38,6 +41,10 @@ endpointy kromě `/api/session`, `/api/login` a `/api/i18n/*` platnou cookie
 Server podvzorkuje sám podle délky rozsahu (do 6 h minutové koše, do 48 h
 pětiminutové, do 8 dní čtvrthodinové, dál hodinové). Vlastní hodnotu lze
 vynutit parametrem `bucket` v sekundách.
+
+Historické záznamy s vnořeným objektem `values` (například `sdg_history`) se
+pro `/api/history` vracejí ve stejném plochém tvaru jako ostatní zdroje.
+Numerická pole jsou uvedena v `fields` a v každém řádku pod svým názvem.
 
 ## Příklady
 

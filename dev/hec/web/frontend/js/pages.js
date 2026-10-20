@@ -1,6 +1,6 @@
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 
-import { renderChart, renderTable } from './chart.js';
+import { renderChart, renderGoodWeHistoryChart, renderTable } from './chart.js?v=3';
 import { renderForecastStory, renderToday } from './advisor.js?v=13';
 import { renderFlow } from './flow.js';
 import { availableLanguages, currentLanguage, dateTime, duration, num, power, t, time, weekday } from './i18n.js';
@@ -56,6 +56,76 @@ const SERIES_LABELS = {
   water_output_temperature: 'entity.water_out',
 };
 
+const GOODWE_HISTORY_FIELDS = new Set([
+  'house_w', 'grid_import_w', 'grid_export_w', 'battery_soc',
+]);
+
+const GOODWE_HISTORY_METADATA = {
+  house_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-house)', defaultEnabled: true },
+  grid_import_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-grid-import)', defaultEnabled: true },
+  grid_export_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-grid-export)', defaultEnabled: true },
+  battery_soc: { group: 'percent', unitKey: 'unit.percent', scale: 1, axis: 'right', color: 'var(--series-battery)', defaultEnabled: true },
+  pv_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-pv)', defaultEnabled: true },
+  pv1_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-pv)' },
+  pv2_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-pv)' },
+  grid_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-grid-import)' },
+  battery_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-battery)' },
+  battery_charge_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-battery)' },
+  battery_discharge_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-battery)' },
+  l1_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: '#6b9ee8' },
+  l2_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: '#9b8be8' },
+  l3_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: '#d07eb5' },
+  phase_imbalance_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: '#8b9bad' },
+  battery_soh: { group: 'percent', unitKey: 'unit.percent', scale: 1, axis: 'right', color: '#5dbb91' },
+  battery_v: { group: 'voltage', unitKey: 'unit.v', scale: 1, axis: 'left', color: '#8f77d6' },
+  l1_v: { group: 'voltage', unitKey: 'unit.v', scale: 1, axis: 'left', color: '#5d78d6' },
+  l2_v: { group: 'voltage', unitKey: 'unit.v', scale: 1, axis: 'left', color: '#7d68c4' },
+  l3_v: { group: 'voltage', unitKey: 'unit.v', scale: 1, axis: 'left', color: '#9b62b5' },
+  battery_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#31a7a0' },
+  battery_charge_limit_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#278e83' },
+  battery_discharge_limit_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#4ab0a0' },
+  charge_current_limit_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#278e83' },
+  discharge_current_limit_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#4ab0a0' },
+  l1_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#2f9ca6' },
+  l2_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#3b8caa' },
+  l3_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#4d7fae' },
+  battery_temp_c: { group: 'temperature', unitKey: 'unit.celsius', scale: 1, axis: 'left', color: '#d46a72' },
+  temperature_c: { group: 'temperature', unitKey: 'unit.celsius', scale: 1, axis: 'left', color: '#c45f74' },
+  inverter_temp_c: { group: 'temperature', unitKey: 'unit.celsius', scale: 1, axis: 'left', color: '#b85577' },
+  e_day_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-pv)' },
+  e_load_day_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-house)' },
+  e_import_day_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-grid-import)' },
+  e_export_day_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-grid-export)' },
+  grid_frequency_hz: { group: 'frequency', unitKey: 'unit.hz', scale: 1, axis: 'left', color: '#78899a' },
+};
+
+function goodweHistoryMetadata(field) {
+  const known = GOODWE_HISTORY_METADATA[field];
+  return {
+    field,
+    label: known ? t(`history.goodwe_metrics.${field}.label`) : field,
+    explanation: known
+      ? t(`history.goodwe_metrics.${field}.explanation`)
+      : t('history.goodwe_unknown_explanation', { field }),
+    group: known?.group || `unknown:${field}`,
+    unit: known ? t(known.unitKey) : t('unit.raw'),
+    scale: known?.scale ?? 1,
+    axis: known?.axis || 'left',
+    axisMin: known?.group === 'percent' ? 0 : null,
+    axisMax: known?.group === 'percent' ? 100 : null,
+    color: known?.color || '#78899a',
+    defaultEnabled: known?.defaultEnabled === true,
+  };
+}
+
+function historyFieldKind(source, field) {
+  if (source === 'sdg_history') return 'raw';
+  if (field === 'battery_soc') return 'percent';
+  if (field.includes('temperature')) return 'temperature';
+  if (field.endsWith('_w')) return 'power';
+  return null;
+}
+
 const bigValue = (watts) => {
   const { value, unit } = power(watts);
   return `<span class="value big">${value}<span class="unit">${unit}</span></span>`;
@@ -67,7 +137,7 @@ const card = (titleKey, inner) => `<div class="card"><h3>${t(titleKey)}</h3>${in
 
 export async function overview(view, { api, motion }) {
   const [current, weather, prices, predictionPayload] = await Promise.all([
-    api.current(), api.weather().catch(() => ({})), api.prices().catch(() => ({})),
+    api.current({ fast: 1 }), api.weather().catch(() => ({})), api.prices().catch(() => ({})),
     api.prediction().catch(() => ({})),
   ]);
   renderToday(view, { current, weather, prices, prediction: predictionPayload, motion });
@@ -234,6 +304,206 @@ const RANGES = [
   { key: 'history.range_30d', from: '-30d' },
 ];
 
+const GOODWE_PRIMARY_ORDER = ['house_w', 'grid_import_w', 'grid_export_w', 'battery_soc', 'pv_w'];
+
+function orderedGoodWeFields(fields) {
+  return [...fields].sort((left, right) => {
+    const leftPrimary = GOODWE_PRIMARY_ORDER.indexOf(left);
+    const rightPrimary = GOODWE_PRIMARY_ORDER.indexOf(right);
+    if (leftPrimary >= 0 || rightPrimary >= 0) {
+      return (leftPrimary < 0 ? GOODWE_PRIMARY_ORDER.length : leftPrimary)
+        - (rightPrimary < 0 ? GOODWE_PRIMARY_ORDER.length : rightPrimary);
+    }
+    return left.localeCompare(right);
+  });
+}
+
+function goodweHistoryState(state, fields) {
+  state.goodweHistory ||= {
+    mode: 'actual', selection: {}, groupAxes: { power: 'left', percent: 'right' },
+  };
+  fields.forEach((field) => {
+    if (!(field in state.goodweHistory.selection)) {
+      state.goodweHistory.selection[field] = goodweHistoryMetadata(field).defaultEnabled;
+    }
+  });
+  return state.goodweHistory;
+}
+
+function selectedGroups(series, selection) {
+  return [...new Set(series.filter((entry) => selection[entry.field]).map((entry) => entry.group))];
+}
+
+let activeMetricPopupContainer = null;
+
+function closeMetricPopups(container) {
+  container.querySelectorAll('.metric-info-button[aria-expanded="true"]').forEach((button) => {
+    button.setAttribute('aria-expanded', 'false');
+    button.closest('.goodwe-metric').querySelector('[role="tooltip"]').hidden = true;
+    button.dataset.pinned = 'false';
+  });
+  if (activeMetricPopupContainer === container) activeMetricPopupContainer = null;
+}
+
+function bindMetricPopups(container) {
+  container.querySelectorAll('.metric-info-button').forEach((button) => {
+    const popup = button.closest('.goodwe-metric').querySelector('[role="tooltip"]');
+    const open = (pinned = false) => {
+      closeMetricPopups(container);
+      popup.hidden = false;
+      const bounds = button.getBoundingClientRect();
+      const popupWidth = Math.min(320, window.innerWidth - 24);
+      popup.style.width = `${popupWidth}px`;
+      popup.style.left = `${Math.max(12, Math.min(window.innerWidth - popupWidth - 12, bounds.right - popupWidth))}px`;
+      const below = bounds.bottom + 8;
+      popup.style.top = `${below + popup.offsetHeight <= window.innerHeight - 12
+        ? below : Math.max(12, bounds.top - popup.offsetHeight - 8)}px`;
+      button.setAttribute('aria-expanded', 'true');
+      button.dataset.pinned = String(pinned);
+      activeMetricPopupContainer = container;
+    };
+    const closeTransient = () => {
+      if (button.dataset.pinned !== 'true') closeMetricPopups(container);
+    };
+    button.addEventListener('mouseenter', () => open(false));
+    button.addEventListener('mouseleave', closeTransient);
+    button.addEventListener('focus', () => open(false));
+    button.addEventListener('blur', closeTransient);
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (button.getAttribute('aria-expanded') === 'true' && button.dataset.pinned === 'true') {
+        closeMetricPopups(container);
+      } else {
+        open(true);
+      }
+    });
+  });
+  container.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeMetricPopups(container);
+  });
+}
+
+document.addEventListener('pointerdown', (event) => {
+  if (activeMetricPopupContainer && !event.target.closest('.goodwe-metric')) {
+    closeMetricPopups(activeMetricPopupContainer);
+  }
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && activeMetricPopupContainer) {
+    closeMetricPopups(activeMetricPopupContainer);
+  }
+});
+
+function goodweLegendHtml(series, selection) {
+  return `<div class="goodwe-metric-list" aria-label="${escapeHtml(t('history.series'))}">${series.map((entry) => {
+    const popupId = `metric-info-${entry.field.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+    return `<div class="goodwe-metric" data-field="${escapeHtml(entry.field)}" data-active="${selection[entry.field] === true}">
+      <label class="goodwe-metric-check">
+        <input type="checkbox" data-goodwe-field="${escapeHtml(entry.field)}"${selection[entry.field] ? ' checked' : ''}>
+        <span class="swatch" style="background:${entry.color}" aria-hidden="true"></span>
+        <span>${escapeHtml(entry.label)}</span><small>${escapeHtml(entry.unit)}</small>
+      </label>
+      <button type="button" class="metric-info-button" aria-label="${escapeHtml(t('history.metric_explanation', { metric: entry.label }))}" aria-describedby="${popupId}" aria-expanded="false">i</button>
+      <div class="metric-popup" id="${popupId}" role="tooltip" hidden>${escapeHtml(entry.explanation)}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderGoodWeHistory(view, payload, state) {
+  const chart = view.querySelector('#chart');
+  const table = view.querySelector('#table');
+  const tools = view.querySelector('#goodwe-history-tools');
+  const legend = view.querySelector('#goodwe-history-legend');
+  const fields = orderedGoodWeFields(payload.fields);
+  const series = fields.map(goodweHistoryMetadata);
+  const chartState = goodweHistoryState(state, fields);
+  const active = series.filter((entry) => chartState.selection[entry.field]);
+  const groups = selectedGroups(series, chartState.selection);
+
+  tools.hidden = false;
+  tools.innerHTML = `
+    <div class="goodwe-mode-row">
+      <fieldset class="goodwe-mode-selector">
+        <legend>${t('history.display_mode')}</legend>
+        <label><input type="radio" name="goodwe-history-mode" value="actual"${chartState.mode === 'actual' ? ' checked' : ''}>${t('history.mode_actual')}</label>
+        <label><input type="radio" name="goodwe-history-mode" value="trend"${chartState.mode === 'trend' ? ' checked' : ''}>${t('history.mode_trend')}</label>
+      </fieldset>
+      <p class="goodwe-mode-note">${t(chartState.mode === 'trend' ? 'history.trend_disclosure' : 'history.actual_disclosure')}</p>
+    </div>
+    <p class="goodwe-history-message" aria-live="polite"></p>`;
+  legend.hidden = false;
+  legend.innerHTML = goodweLegendHtml(series, chartState.selection);
+
+  const message = tools.querySelector('.goodwe-history-message');
+  const showGuard = (key) => { message.textContent = t(key); };
+  tools.querySelectorAll('input[name="goodwe-history-mode"]').forEach((input) => {
+    input.addEventListener('change', () => {
+      if (input.value === 'actual' && groups.length > 2) {
+        tools.querySelector('input[value="trend"]').checked = true;
+        showGuard('history.actual_mode_guard');
+        return;
+      }
+      if (input.value === 'actual') {
+        const occupied = new Set(groups.map((group) => chartState.groupAxes[group]).filter(Boolean));
+        groups.forEach((group) => {
+          if (chartState.groupAxes[group]) return;
+          const preferred = series.find((entry) => entry.group === group)?.axis || 'left';
+          chartState.groupAxes[group] = occupied.has(preferred)
+            ? (preferred === 'left' ? 'right' : 'left') : preferred;
+          occupied.add(chartState.groupAxes[group]);
+        });
+      }
+      chartState.mode = input.value;
+      renderGoodWeHistory(view, payload, state);
+    });
+  });
+  legend.querySelectorAll('[data-goodwe-field]').forEach((checkbox) => {
+    checkbox.addEventListener('change', () => {
+      const entry = series.find((candidate) => candidate.field === checkbox.dataset.goodweField);
+      if (checkbox.checked && chartState.mode === 'actual') {
+        const currentGroups = selectedGroups(series, chartState.selection);
+        if (!currentGroups.includes(entry.group) && currentGroups.length >= 2) {
+          checkbox.checked = false;
+          showGuard('history.third_unit_guard');
+          return;
+        }
+        if (!chartState.groupAxes[entry.group]) {
+          const occupied = new Set(currentGroups.map((group) => chartState.groupAxes[group]));
+          chartState.groupAxes[entry.group] = occupied.has(entry.axis)
+            ? (entry.axis === 'left' ? 'right' : 'left') : entry.axis;
+        }
+      }
+      chartState.selection[entry.field] = checkbox.checked;
+      renderGoodWeHistory(view, payload, state);
+    });
+  });
+  bindMetricPopups(legend);
+
+  if (state.historyView === 'table') {
+    chart.innerHTML = '';
+    renderTable(table, payload.rows.map((row) => {
+      const copy = { timestamp: row.timestamp };
+      active.forEach((entry) => {
+        const raw = row[entry.field];
+        const value = raw === null || raw === undefined || raw === '' ? null : Number(raw);
+        copy[entry.field] = Number.isFinite(value) ? value * entry.scale : null;
+      });
+      return copy;
+    }), active, '');
+    return;
+  }
+  table.innerHTML = '';
+  chart.dataset.emptyText = t('app.no_data');
+  renderGoodWeHistoryChart(chart, {
+    rows: payload.rows,
+    series: active.map((entry) => ({ ...entry, axis: chartState.groupAxes[entry.group] || entry.axis })),
+    mode: chartState.mode,
+    range: state.historyRange,
+    trendAxisLabel: t('history.relative_trend_axis'),
+    ariaLabel: t('history.goodwe_chart_label'),
+  });
+}
+
 export async function history(view, { api, state }) {
   const { sources } = await api.sources();
   state.historySource = state.historySource && sources.includes(state.historySource)
@@ -251,7 +521,9 @@ export async function history(view, { api, state }) {
           ${RANGES.map((range) => `<button data-range="${range.from}" aria-pressed="${state.historyRange === range.from}">${t(range.key)}</button>`).join('')}
           <button id="toggle-view" aria-pressed="${state.historyView === 'table'}">${t('history.table')}</button>
         </div>
-        <div class="chart-wrap" id="chart" style="position:relative"></div>
+        <div id="goodwe-history-tools" hidden></div>
+        <div class="chart-wrap" id="chart" data-chart="history" style="position:relative"></div>
+        <div id="goodwe-history-legend" hidden></div>
         <div id="table"></div>
       </section>
     </div>
@@ -266,19 +538,37 @@ export async function history(view, { api, state }) {
 
   const draw = async () => {
     const chart = view.querySelector('#chart');
+    const goodweTools = view.querySelector('#goodwe-history-tools');
+    const goodweLegend = view.querySelector('#goodwe-history-legend');
     chart.innerHTML = `<p class="notice">${t('app.loading')}</p>`;
+    goodweTools.hidden = true;
+    goodweTools.innerHTML = '';
+    goodweLegend.hidden = true;
+    goodweLegend.innerHTML = '';
     const payload = await api.history({ source: state.historySource, from: state.historyRange, to: 'now' });
-    const isTemperature = payload.fields.some((field) => field.includes('temperature'));
-    const series = payload.fields
-      .filter((field) => SERIES_LABELS[field] || isTemperature)
-      .map((field) => ({
+    if (!chart.isConnected || !view.querySelector('#table')) return;
+    if (state.historySource === 'goodwe') {
+      renderGoodWeHistory(view, payload, state);
+      return;
+    }
+    const isSdgHistory = state.historySource === 'sdg_history';
+    const classifiedFields = payload.fields.map((field) => ({
+      field,
+      kind: historyFieldKind(state.historySource, field),
+    }));
+    const primaryKind = isSdgHistory ? 'raw'
+      : classifiedFields.some((entry) => entry.kind === 'power') ? 'power'
+        : classifiedFields.some((entry) => entry.kind === 'temperature') ? 'temperature' : null;
+    const series = classifiedFields
+      .filter(({ field, kind }) => (state.historySource !== 'goodwe' || GOODWE_HISTORY_FIELDS.has(field))
+        && (kind === primaryKind || kind === 'percent'))
+      .map(({ field }) => ({
         field,
         label: t(SERIES_LABELS[field] || field),
         color: SERIES_COLORS[field] || 'var(--series-house)',
-        area: field === 'pv_w',
       }));
-    const unit = isTemperature ? t('unit.celsius') : t('unit.kw');
-    const scale = isTemperature ? 1 : 0.001;
+    const unit = primaryKind === 'temperature' ? t('unit.celsius') : primaryKind === 'power' ? t('unit.kw') : '';
+    const scale = primaryKind === 'power' ? 0.001 : 1;
 
     // Navigace může mezitím nahradit celý view. Starý dotaz pak nesmí
     // přepisovat novou stránku ani vyvolat chybu při hledání původní tabulky.
@@ -288,9 +578,12 @@ export async function history(view, { api, state }) {
       chart.innerHTML = '';
       renderTable(view.querySelector('#table'), payload.rows.map((row) => {
         const copy = { timestamp: row.timestamp };
-        series.forEach(({ field }) => { copy[field] = Number(row[field]) * scale; });
+        series.forEach(({ field }) => { copy[field] = Number(row[field]) * (field === 'battery_soc' ? 1 : scale); });
         return copy;
-      }), series, unit);
+      }), series.map((entry) => ({
+        ...entry,
+        unit: entry.field === 'battery_soc' ? t('unit.percent') : unit,
+      })), unit);
     } else {
       view.querySelector('#table').innerHTML = '';
       chart.dataset.emptyText = t('app.no_data');
@@ -442,7 +735,7 @@ export async function flow(view, { api, motion }) {
   ].filter(Boolean).join('');
 
   view.innerHTML = `<div class="story-page story-page--flow">
-      <section class="story-hero story-hero--flow">
+      <section class="story-hero story-hero--flow flow-hero">
         <div class="story-hero__main">
           <p class="story-hero__eyebrow">${t('flow.eyebrow')}</p>
           <h2>${t('flow.title')}</h2>
@@ -457,7 +750,7 @@ export async function flow(view, { api, motion }) {
           </dl>
         </div>
       </section>
-      <section class="story-surface story-surface--flow">
+      <section class="story-surface story-surface--flow flow-stage">
         <header class="story-surface__header">
           <div>
             <p>${t('overview.flow')}</p>
@@ -474,7 +767,7 @@ export async function flow(view, { api, motion }) {
           </div>
         </div>
       </section>
-      <section class="story-card-grid story-card-grid--flow-support">
+      <section class="story-card-grid story-card-grid--flow-support flow-details">
         <article class="story-card story-card--soft">
           <p class="story-card__eyebrow">${t('entity.grid')}</p>
           <strong class="story-card__value">${bigValue(gridPower)}</strong>
@@ -500,7 +793,14 @@ export async function flow(view, { api, motion }) {
         </article>
       </section>
     </div>`;
-  renderFlow(view.querySelector('#live-flow'), { ...goodwe, heatpump_power_w: shelly.heatpump_power_w, devices: shelly.devices }, t, motion);
+  renderFlow(view.querySelector('#live-flow'), {
+    ...goodwe,
+    heatpump_power_w: shelly.heatpump_power_w,
+    heating_on: tng.heating_on,
+    boiler_temperature: tng.boiler_temperature,
+    water_output_temperature: tng.water_output_temperature,
+    devices: shelly.devices,
+  }, t, motion);
 }
 
 // --- Nastavení ---------------------------------------------------------------
@@ -527,6 +827,14 @@ const SUBGROUP_LABELS = {
 // Čistě interní pole, která uživatel nikdy nemá důvod měnit ručně.
 const HIDDEN_FIELDS = new Set(['system.config_version']);
 
+const VERIFY_TARGETS = {
+  'goodwe.sdg.log_root_path': 'sdg',
+  'storage.data_path': 'storage.data',
+  'storage.logs_path': 'storage.logs',
+  'storage.history_path': 'storage.history',
+  'storage.archive_path': 'storage.archive',
+};
+
 function groupFields(fields) {
   const groups = {};
   fields
@@ -541,10 +849,53 @@ function groupFields(fields) {
   return groups;
 }
 
-function settingsGroup(section, group, config) {
+function verificationMatchesHost(verification, host) {
+  return Boolean(verification?.verified && verification.status === 'SUCCESS' && verification.host === host);
+}
+
+function goodweAuthorizationLevel(status) {
+  if (status === 'APPROVED') return 'ok';
+  if (status === 'INVALID') return 'critical';
+  return 'warning';
+}
+
+function renderGoodWeAuthorization(auth, config) {
+  const authorization = auth?.authorization || {};
+  const verification = auth?.verification || {};
+  const host = String(valueAt(config, 'goodwe.host') || '').trim();
+  const canApprove = verificationMatchesHost(verification, host);
+  const verificationText = verification.status
+    ? t(verification.message_key || (verification.verified ? 'settings.goodwe_verify_ok' : 'settings.goodwe_verify_failed'))
+    : t('settings.goodwe_verify_missing');
+  const details = [verification.host, verification.model, verification.firmware].filter(Boolean).map(escapeHtml).join(' · ');
+  return `<div class="goodwe-authorization" data-goodwe-authorization>
+    <h4>${t('settings.goodwe_authorization')}</h4>
+    <dl>
+      <dt>${t('settings.goodwe_authorization_status')}</dt><dd><span class="pill" data-level="${goodweAuthorizationLevel(authorization.status)}">${escapeHtml(authorization.status || 'NOT_AUTHORIZED')}</span></dd>
+      <dt>${t('settings.goodwe_verification_status')}</dt><dd data-goodwe-verification-text>${escapeHtml(verificationText)}${details ? ` · ${details}` : ''}</dd>
+    </dl>
+    <div class="goodwe-authorization__actions">
+      <button type="button" class="field-verify" data-goodwe-verify>${t('settings.verify')}</button>
+      <button type="button" class="field-verify" data-goodwe-approve${canApprove ? '' : ' disabled'}>${t('settings.goodwe_approve')}</button>
+      <span class="field-verify-result" data-goodwe-authorization-message aria-live="polite">${canApprove ? t('settings.goodwe_approve_ready') : t('settings.goodwe_approve_disabled')}</span>
+    </div>
+  </div>`;
+}
+
+function updateGoodWeAuthorization(view, auth) {
+  const config = {};
+  view.querySelectorAll('[data-path]').forEach((input) => {
+    setAt(config, input.dataset.path, input.type === 'checkbox' ? input.checked : input.value);
+  });
+  const panel = view.querySelector('[data-goodwe-authorization]');
+  if (panel) panel.outerHTML = renderGoodWeAuthorization(auth, config);
+}
+
+function settingsGroup(section, group, config, goodweAuth) {
   return `<div class="settings-group">
     <h3>${t(SECTION_LABELS[section] || section)}</h3>
     ${group.direct.map((field) => fieldRow(field, valueAt(config, field.path))).join('')}
+    ${section === 'goodwe' ? renderGoodWeAuthorization(goodweAuth, config) : ''}
     ${Object.entries(group.subs).map(([sub, list]) => `
       <div class="settings-subgroup">
         <h4>${t(SUBGROUP_LABELS[`${section}.${sub}`] || sub)}</h4>
@@ -554,7 +905,9 @@ function settingsGroup(section, group, config) {
 }
 
 export async function settings(view, { api, onUiChange }) {
-  const [{ config }, { fields }] = await Promise.all([api.config(), api.configSchema()]);
+  const [{ config }, { fields }, goodweAuth] = await Promise.all([
+    api.config(), api.configSchema(), api.goodweAuthorization().catch(() => ({})),
+  ]);
   const groups = groupFields(fields);
   const personal = Object.entries(groups).filter(([section]) => section === 'ui');
   const technical = Object.entries(groups).filter(([section]) => section !== 'ui');
@@ -563,9 +916,9 @@ export async function settings(view, { api, onUiChange }) {
     <section class="panel">
       <form id="settings-form">
         <div class="settings-intro"><p>${t('settings.personal_title')}</p><h2>${t('settings.personal_intro')}</h2></div>
-        ${personal.map(([section, group]) => settingsGroup(section, group, config)).join('')}
+        ${personal.map(([section, group]) => settingsGroup(section, group, config, goodweAuth)).join('')}
         <details class="technical-settings"><summary><span>${t('settings.technical_title')}</span><small>${t('settings.technical_intro')}</small></summary>
-          ${technical.map(([section, group]) => settingsGroup(section, group, config)).join('')}
+          ${technical.map(([section, group]) => settingsGroup(section, group, config, goodweAuth)).join('')}
         </details>
         <div class="controls">
           <button type="submit">${t('settings.save')}</button>
@@ -578,17 +931,67 @@ export async function settings(view, { api, onUiChange }) {
     event.preventDefault();
     const message = view.querySelector('#settings-message');
     const payload = {};
+    const uiLanguageInput = view.querySelector('[data-path="ui.language"]');
+    const uiUpdate = { ...(payload.ui || {}) };
+    if (uiLanguageInput) uiUpdate.language = uiLanguageInput.value;
     view.querySelectorAll('[data-path]').forEach((input) => {
       const field = fields.find((entry) => entry.path === input.dataset.path);
       setAt(payload, input.dataset.path, readInput(input, field));
     });
+    await onUiChange?.(uiUpdate);
     try {
       const result = await api.saveConfig(payload);
       message.textContent = t('settings.saved')
         + (result.restart_required?.length ? ` · ${t('settings.restart_required')}` : '');
-      await onUiChange?.(payload.ui || {});
     } catch (error) {
+      await onUiChange?.(uiUpdate);
       message.innerHTML = `<span class="error">${(error.payload?.errors || [t('error.save_failed')]).map(escapeHtml).join('<br>')}</span>`;
+    }
+  });
+
+  view.querySelectorAll('[data-verify-target]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const result = button.closest('.field').querySelector('.field-verify-result');
+      button.disabled = true;
+      result.textContent = t('settings.verify_checking');
+      try {
+        const payload = await api.verifyConfig(button.dataset.verifyTarget);
+        result.textContent = `${t(payload.message_key)}${payload.file_count !== undefined ? ` · ${payload.file_count} ${t('settings.verify_files')}` : ''}`;
+        result.dataset.level = payload.available ? 'ok' : 'warning';
+      } catch (error) {
+        result.textContent = error.unauthorised ? t('error.unauthorised') : t('settings.verify_failed');
+        result.dataset.level = 'critical';
+      } finally {
+        button.disabled = false;
+      }
+    });
+  });
+
+  const hostInput = view.querySelector('[data-path="goodwe.host"]');
+  hostInput?.addEventListener('input', async () => {
+    const auth = await api.goodweAuthorization().catch(() => ({}));
+    updateGoodWeAuthorization(view, auth);
+  });
+
+  view.addEventListener('click', async (event) => {
+    const verify = event.target.closest?.('[data-goodwe-verify]');
+    const approve = event.target.closest?.('[data-goodwe-approve]');
+    if (!verify && !approve) return;
+    const message = view.querySelector('[data-goodwe-authorization-message]');
+    const button = verify || approve;
+    button.disabled = true;
+    if (message) message.textContent = t(verify ? 'settings.verify_checking' : 'settings.goodwe_approve_saving');
+    try {
+      const auth = verify ? await api.verifyGoodweAuthorization() : await api.approveGoodweAuthorization();
+      updateGoodWeAuthorization(view, verify ? { verification: auth } : auth);
+    } catch (error) {
+      const auth = error.payload?.authorization ? error.payload : await api.goodweAuthorization().catch(() => ({}));
+      updateGoodWeAuthorization(view, auth);
+      const targetMessage = view.querySelector('[data-goodwe-authorization-message]');
+      if (targetMessage) {
+        targetMessage.textContent = error.unauthorised ? t('error.unauthorised') : t(error.payload?.message_key || 'settings.verify_failed');
+        targetMessage.dataset.level = 'critical';
+      }
     }
   });
 }
@@ -619,7 +1022,11 @@ function fieldRow(field, value) {
     input = `<input id="${id}" data-path="${fieldPath}" type="${field.secret ? 'password' : 'text'}" value="${escapeHtml(value ?? '')}">`;
   }
   const hint = field.restart ? `<span class="hint">${t('settings.restart_required')}</span>` : '';
-  return `<div class="field"><label for="${id}">${label}</label>${input}${hint}${help}</div>`;
+  const verifyTarget = VERIFY_TARGETS[field.path];
+  const verify = verifyTarget
+    ? `<button type="button" class="field-verify" data-verify-target="${verifyTarget}">${t('settings.verify')}</button><span class="field-verify-result" aria-live="polite"></span>`
+    : '';
+  return `<div class="field"><label for="${id}">${label}</label>${input}${verify}${hint}${help}</div>`;
 }
 
 function readInput(input, field) {
@@ -701,6 +1108,22 @@ function renderStatusReport(payload) {
                  : t('overview.no_decision')}
     </p>`);
 
+  const goodwe = payload.goodwe_diagnostics || {};
+  const writer = payload.goodwe_writer_diagnostics || {};
+  const sdg = payload.sdg_diagnostics || {};
+  const diagnosticsCard = card('status.goodwe_diagnostics', `
+    <dl class="status-details">
+      <dt>${t('status.connection')}</dt><dd>${goodwe.connected ? t('status.connected') : t('status.disconnected')}</dd>
+      <dt>${t('status.model_firmware')}</dt><dd>${escapeHtml(goodwe.model || '–')} / ${escapeHtml(goodwe.firmware || '–')}</dd>
+      <dt>${t('status.last_read')}</dt><dd>${goodwe.last_read ? dateTime(goodwe.last_read) : '–'}</dd>
+      <dt>${t('status.last_write')}</dt><dd>${goodwe.last_write?.command || '–'}</dd>
+      <dt>${t('status.retries')}</dt><dd>${num(goodwe.retry_count, 0)}</dd>
+      <dt>${t('status.writer')}</dt><dd>${writer.enabled ? t('status.enabled') : t('status.disabled')}</dd>
+      <dt>${t('status.authorization')}</dt><dd>${escapeHtml(writer.hardware_authorization?.status || goodwe.hardware_authorization?.status || 'NOT_AUTHORIZED')}</dd>
+      <dt>${t('status.sdg')}</dt><dd>${sdg.enabled ? t('status.enabled') : t('status.disabled')} / ${sdg.available ? t('status.available') : t('status.unavailable')}</dd>
+      <dt>${t('status.sdg_checkpoint')}</dt><dd>${escapeHtml(sdg.checkpoint || '–')}</dd>
+    </dl>`);
+
   const stale = payload.stale_sources || [];
   const infoCard = card('status.title', `
     <p class="meta">
@@ -711,7 +1134,7 @@ function renderStatusReport(payload) {
         : `<span class="pill" data-level="ok">${t('status.ok')}</span>`}
     </p>`);
 
-  return `<div class="cards">${infoCard}${controllerCard}</div>${readerTable}`;
+  return `<div class="cards">${infoCard}${controllerCard}${diagnosticsCard}</div>${readerTable}`;
 }
 
 export async function status(view, { api }) {
@@ -748,6 +1171,242 @@ export async function status(view, { api }) {
   const auto = view.querySelector('#status-auto');
   const timer = setInterval(() => { if (auto.checked) draw(); }, 5000);
   return () => clearInterval(timer);
+}
+
+// --- Control & Plan ------------------------------------------------------
+
+function controlPlanPill(level, key, helpKey = 'control_plan.status_help') {
+  const label = t(key);
+  return `<span class="pill" data-level="${level}" title="${escapeHtml(t(helpKey, { status: label }))}" aria-label="${escapeHtml(`${label}: ${t(helpKey, { status: label })}`)}">${label}</span>`;
+}
+
+function controlPlanValue(value, formatter = (item) => escapeHtml(item)) {
+  return value === null || value === undefined ? '–' : formatter(value);
+}
+
+function sourceState(reader) {
+  if (!reader) return controlPlanPill('neutral', 'control_plan.unavailable', 'control_plan.help_unavailable');
+  if (!reader.enabled) return controlPlanPill('neutral', 'status.disabled', 'control_plan.help_disabled');
+  if (reader.error_count && reader.last_error) return controlPlanPill('critical', 'status.reader_error', 'control_plan.help_error');
+  if (reader.stale) return controlPlanPill('warning', 'status.stale', 'control_plan.help_stale');
+  return controlPlanPill('ok', 'status.ok', 'control_plan.help_ok');
+}
+
+function deviceMetric(labelKey, value) {
+  return `<div class="control-plan-metric"><dt>${t(labelKey)}</dt><dd>${value}</dd></div>`;
+}
+
+function renderControlPlanDevice(titleKey, source, current, reader) {
+  const values = current || {};
+  const sourceLabel = reader?.name || source;
+  return `<article class="control-plan-device">
+    <header><h3>${t(titleKey)}</h3>${sourceState(reader)}</header>
+    <p class="meta">${escapeHtml(sourceLabel)} · ${reader?.last_success ? dateTime(reader.last_success) : t('control_plan.no_observation')}</p>
+    <dl class="control-plan-metrics">${values}</dl>
+  </article>`;
+}
+
+function renderControlPlanMode(titleKey, enabled, reader) {
+  const state = enabled === true ? 'on' : enabled === false ? 'off' : 'unknown';
+  const labelKey = state === 'on' ? 'control_plan.on' : state === 'off' ? 'control_plan.off' : 'control_plan.unknown';
+  const helpKey = state === 'on' ? 'control_plan.help_mode_on' : state === 'off' ? 'control_plan.help_mode_off' : 'control_plan.help_mode_unknown';
+  const label = t(labelKey);
+  return `<article class="control-plan-device control-plan-device--mode control-plan-device--${state}">
+    <header><h3>${t(titleKey)}</h3><span class="control-plan-mode" data-state="${state}" title="${escapeHtml(t(helpKey))}" aria-label="${escapeHtml(`${label}: ${t(helpKey)}`)}">${label}</span></header>
+    <p class="meta">${reader?.name || 'tng'} · ${reader?.last_success ? dateTime(reader.last_success) : t('control_plan.no_observation')}</p>`;
+}
+
+function renderControlPlanDailyEnergy(goodwe, sdg, summary) {
+  const values = sdg?.values || sdg || {};
+  const currentDaily = {
+    production: values.e_day_kwh ?? values.e_day,
+    load: values.e_load_day_kwh ?? values.e_load_day,
+    import: values.e_import_day_kwh ?? values.e_day_imp,
+    export: values.e_export_day_kwh ?? values.e_day_exp,
+  };
+  const historicalDaily = {
+    production: summary?.pv_kwh,
+    load: summary?.house_kwh,
+    import: summary?.grid_import_kwh,
+    export: summary?.grid_export_kwh,
+  };
+  const hasCurrentDaily = Object.values(currentDaily).some((value) => value !== null && value !== undefined);
+  const daily = hasCurrentDaily ? currentDaily : {
+    production: historicalDaily.production ?? goodwe.e_day_kwh,
+    load: historicalDaily.load ?? goodwe.e_load_day_kwh,
+    import: historicalDaily.import ?? goodwe.e_import_day_kwh,
+    export: historicalDaily.export ?? goodwe.e_export_day_kwh,
+  };
+  const source = hasCurrentDaily ? (Object.keys(values).length ? 'SDG' : 'GoodWe') : t('control_plan.historical');
+  const metric = (labelKey, value, tone) => `<div class="control-plan-energy-metric" data-tone="${tone}"><span>${t(labelKey)}</span><strong>${controlPlanValue(value, (item) => `${num(item, 1)} ${t('unit.kwh')}`)}</strong></div>`;
+  const hasData = Object.values(daily).some((value) => value !== null && value !== undefined);
+  return `<article class="control-plan-daily-energy"><header><h3>${t('control_plan.daily_energy')}</h3><span class="meta">${t('control_plan.source_label')}: ${source}</span></header>
+    <div class="control-plan-energy-grid">${hasData ? [
+      metric('control_plan.production', daily.production, 'production'),
+      metric('control_plan.house_load', daily.load, 'load'),
+      metric('entity.grid_import', daily.import, 'import'),
+      metric('entity.grid_export', daily.export, 'export'),
+    ].join('') : `<p class="notice">${t('control_plan.no_daily_energy')}</p>`}</div></article>`;
+}
+
+function renderControlPlanOutlook(prices, prediction) {
+  const days = [];
+  const priceDays = [prices?.today || null, prices?.tomorrow || null];
+  priceDays.forEach((day, index) => {
+    const periods = (day?.periods || []).filter((period) => period.price_total_czk_kwh != null || period.price_czk_kwh != null);
+    const pricesForDay = periods.map((period) => period.price_total_czk_kwh ?? period.price_czk_kwh);
+    const min = pricesForDay.length ? Math.min(...pricesForDay) : null;
+    const max = pricesForDay.length ? Math.max(...pricesForDay) : null;
+    days.push(`<article class="control-plan-outlook-day"><h3>${t(index ? 'control_plan.tomorrow' : 'control_plan.today')}</h3>
+      <p>${periods.length ? `${t('control_plan.price_range')}: ${num(min, 2)}–${num(max, 2)} ${t('unit.czk_kwh')}` : t('control_plan.no_price_data')}</p>
+      <p class="meta">${day?.date ? escapeHtml(day.date) : t('control_plan.no_observation')}</p></article>`);
+  });
+  (prediction?.days || []).slice(0, 2).forEach((day) => {
+    days.push(`<article class="control-plan-outlook-day"><h3>${escapeHtml(day.date || t('control_plan.tomorrow'))}</h3>
+      <p>${t('entity.pv')}: ${controlPlanValue(day.pv_kwh, (value) => `${num(value, 1)} ${t('unit.kwh')}`)}</p>
+      <p>${t('entity.house')}: ${controlPlanValue(day.consumption_kwh, (value) => `${num(value, 1)} ${t('unit.kwh')}`)}</p>
+      <p class="meta">${day.confidence ? `${t('control_plan.confidence')}: ${escapeHtml(day.confidence)}` : t('control_plan.no_forecast_data')}</p></article>`);
+  });
+  return days.length ? days.join('') : `<p class="notice">${t('control_plan.no_outlook')}</p>`;
+}
+
+function stableDecisionIdentity(decision) {
+  return JSON.stringify({
+    rule: decision.rule || '',
+    action: decision.action || '',
+    value: decision.value ?? null,
+    applied: decision.applied === true,
+    reason_key: decision.reason_key || '',
+    reason_params: decision.reason_params || {},
+  });
+}
+
+function groupControlPlanDecisions(decisions) {
+  const groups = [];
+  (decisions || []).forEach((decision) => {
+    const identity = stableDecisionIdentity(decision);
+    const previous = groups.at(-1);
+    if (previous && previous.identity === identity) {
+      previous.items.push(decision);
+      previous.latest = decision;
+      return;
+    }
+    groups.push({ identity, items: [decision], latest: decision });
+  });
+  return groups;
+}
+
+function renderControlPlanDecisionDialog(group) {
+  const decision = group.latest;
+  const parameters = decision.reason_params && Object.keys(decision.reason_params).length
+    ? Object.entries(decision.reason_params).map(([key, value]) => `<li><strong>${escapeHtml(key)}</strong>: ${escapeHtml(String(value))}</li>`).join('')
+    : `<li>${t('control_plan.no_parameters')}</li>`;
+  const resultKey = decision.applied ? 'control_plan.applied' : 'control_plan.not_applied';
+  const resultNote = decision.applied ? t('control_plan.detail_applied_note') : t('control_plan.detail_not_applied_note');
+  return `<dialog id="control-plan-decision-dialog" class="hec-dialog control-plan-decision-dialog">
+    <div class="dialog-content">
+      <header class="dialog-header"><h2>${t('control_plan.decision_detail')}</h2><button type="button" class="dialog-close" data-control-plan-close aria-label="${escapeHtml(t('app.close'))}">×</button></header>
+      <div class="dialog-body">
+        <dl class="control-plan-detail-list">
+          <div><dt>${t('control_plan.detail_when')}</dt><dd>${dateTime(decision.timestamp)}</dd></div>
+          <div><dt>${t('control_plan.detail_rule')}</dt><dd>${escapeHtml(decision.rule || '–')}</dd></div>
+          <div><dt>${t('control_plan.detail_command')}</dt><dd>${decisionCommandText(decision)}</dd></div>
+          <div><dt>${t('control_plan.detail_reason')}</dt><dd>${translatedText(decision.reason_key, decision.reason_params, t('control_plan.unknown_reason'))}</dd></div>
+          <div><dt>${t('control_plan.result')}</dt><dd>${controlPlanPill(decision.applied ? 'ok' : 'neutral', resultKey)}<span class="control-plan-detail-note">${escapeHtml(resultNote)}</span></dd></div>
+        </dl>
+        <h3>${t('control_plan.detail_parameters')}</h3><ul class="control-plan-detail-parameters">${parameters}</ul>
+        ${group.items.length > 1 ? `<p class="meta">${t('control_plan.grouped_count', { count: group.items.length })}</p>` : ''}
+      </div>
+      <footer class="dialog-footer"><button type="button" class="btn btn--primary" data-control-plan-close>${t('app.close')}</button></footer>
+    </div>
+  </dialog>`;
+}
+
+function decisionCommandText(decision) {
+  const action = decision.action || decision.rule || t('control_plan.unknown_command');
+  if (decision.value === null || decision.value === undefined) return action;
+  return `${action}: ${escapeHtml(String(decision.value))}`;
+}
+
+function renderControlPlanActivity(decisions) {
+  const today = new Date().toLocaleDateString('en-CA');
+  const rows = (decisions || []).filter((decision) => {
+    const stamp = new Date(decision.timestamp);
+    return !Number.isNaN(stamp.getTime()) && stamp.toLocaleDateString('en-CA') === today;
+  }).slice(-12).reverse();
+  if (!rows.length) return `<p class="notice">${t('control_plan.no_activity')}</p>`;
+  const groups = groupControlPlanDecisions(rows);
+  return `<div class="table-wrap"><table class="data control-plan-activity"><thead><tr>
+    <th>${t('control_plan.time')}</th><th>${t('control_plan.action')}</th><th>${t('control_plan.result')}</th><th>${t('control_plan.reason')}</th>
+  </tr></thead><tbody>${groups.map((group, groupIndex) => {
+    const decision = group.latest;
+    const count = group.items.length;
+    const countText = count > 1 ? ` <span class="control-plan-activity__count">×${count}</span>` : '';
+    return `<tr data-decision-group="${groupIndex}" tabindex="0" aria-label="${escapeHtml(t('control_plan.open_detail'))}">
+    <td>${dateTime(decision.timestamp)}${countText}</td><td>${decisionCommandText(decision)}</td>
+    <td>${decision.applied ? controlPlanPill('ok', 'control_plan.applied') : controlPlanPill('neutral', 'control_plan.not_applied')}</td>
+    <td>${translatedText(decision.reason_key, decision.reason_params)}</td>
+  </tr>`;
+  }).join('')}</tbody></table></div>`;
+}
+
+export async function controlPlan(view, { api }) {
+  const [current, statusPayload, decisionsPayload, prices, prediction, appliances] = await Promise.all([
+    api.current().catch(() => ({})), api.status().catch(() => ({})), api.decisions(2).catch(() => ({ decisions: [] })),
+    api.prices().catch(() => ({})), api.prediction().catch(() => ({})), api.appliances(1).catch(() => ({ cycles: [] })),
+  ]);
+  const summaryPayload = await api.summaries(1).catch(() => ({ days: [] }));
+  const sources = current.sources || {};
+  const readers = statusPayload.readers || {};
+  const controller = statusPayload.controller || decisionsPayload.state || {};
+  const goodwe = sources.goodwe || {};
+  const tng = sources.tng || {};
+  const sdg = sources.sdg || sources.sdg_history || {};
+  const shelly = Object.entries(sources).filter(([name]) => name.startsWith('shelly'));
+  const writer = statusPayload.goodwe_writer_diagnostics || {};
+  const tngReader = readers.tng;
+  const goodweReader = readers.goodwe;
+  const cards = [
+    `${renderControlPlanMode('entity.heating', tng.heating_on, tngReader)}<dl class="control-plan-metrics">${deviceMetric('entity.outside', controlPlanValue(tng.outside_temperature, (value) => `${num(value, 1)} ${t('unit.celsius')}`))}${deviceMetric('entity.room', controlPlanValue(tng.room_temperature, (value) => `${num(value, 1)} ${t('unit.celsius')}`))}</dl></article>`,
+    `${renderControlPlanMode('entity.dhw', tng.boiler_on, tngReader)}<dl class="control-plan-metrics">${deviceMetric('control_plan.current', controlPlanValue(tng.boiler_temperature, (value) => `${num(value, 1)} ${t('unit.celsius')}`))}${deviceMetric('control_plan.setpoint', controlPlanValue(tng.boiler_set_temperature, (value) => `${num(value, 1)} ${t('unit.celsius')}`))}</dl></article>`,
+    renderControlPlanDevice('entity.pv', 'goodwe', `${deviceMetric('entity.pv', controlPlanValue(goodwe.pv_w, (value) => power(value).value + ' ' + power(value).unit))}${deviceMetric('entity.house', controlPlanValue(goodwe.house_w, (value) => power(value).value + ' ' + power(value).unit))}${deviceMetric('entity.battery_soc', controlPlanValue(goodwe.battery_soc, (value) => `${num(value, 0)} ${t('unit.percent')}`))}`, goodweReader),
+    renderControlPlanDevice('entity.grid', 'goodwe', `${deviceMetric('entity.grid_import', controlPlanValue(goodwe.grid_import_w, (value) => power(value).value + ' ' + power(value).unit))}${deviceMetric('entity.grid_export', controlPlanValue(goodwe.grid_export_w, (value) => power(value).value + ' ' + power(value).unit))}${deviceMetric('entity.battery', controlPlanValue(goodwe.battery_charge_w ?? goodwe.battery_discharge_w, (value) => power(value).value + ' ' + power(value).unit))}`, goodweReader),
+  ];
+  const shellyCards = shelly.length ? shelly.map(([name, values]) => renderControlPlanDevice('entity.appliances', name, deviceMetric('entity.appliances', controlPlanValue(values.power_w, (value) => power(value).value + ' ' + power(value).unit)), readers[name])).join('') : `<p class="notice">${t('control_plan.no_appliances')}</p>`;
+  view.innerHTML = `<div class="control-plan-page">
+    <header class="control-plan-header"><div><span class="section-tab">${t('control_plan.title')}</span><p class="meta">${t('control_plan.subtitle')}</p></div><span id="control-plan-updated" class="meta">${t('app.updated', { time: time(new Date()) })}</span></header>
+    <section class="panel control-plan-status" aria-labelledby="control-plan-status-title"><h2 id="control-plan-status-title">${t('control_plan.automation')}</h2><div class="control-plan-status-grid">
+      <article><h3>${t('control_plan.planner')}</h3>${controlPlanPill('neutral', 'control_plan.not_exposed')}<p class="meta">${t('control_plan.planner_note')}</p></article>
+      <article><h3>${t('settings.controller')}</h3>${controller.enabled ? controlPlanPill('ok', 'status.controller_running', 'control_plan.help_controller_active') : controlPlanPill('neutral', 'status.controller_disabled', 'control_plan.help_controller_disabled')}${controller.safe_mode ? controlPlanPill('warning', 'status.safe_mode', 'control_plan.help_safe_mode') : ''}<p class="meta">${controller.last_run ? `${t('control_plan.last_run')}: ${dateTime(controller.last_run)}` : t('control_plan.no_run')}</p></article>
+      <article><h3>${t('control_plan.writers')}</h3>${writer.enabled ? controlPlanPill('warning', 'control_plan.available_disabled', 'control_plan.help_writer_available') : controlPlanPill('neutral', 'status.write_disabled', 'control_plan.help_writer_disabled')}<p class="meta">${t('control_plan.read_only')}</p></article>
+    </div></section>
+    <section class="panel control-plan-devices" aria-labelledby="control-plan-devices-title"><h2 id="control-plan-devices-title">${t('control_plan.devices')}</h2><div class="control-plan-device-grid">${cards.join('')}${shellyCards}</div></section>
+    <section class="panel control-plan-lower"><div><h2>${t('control_plan.today_activity')}</h2>${renderControlPlanActivity(decisionsPayload.decisions)}</div><div><h2>${t('control_plan.outlook')}</h2><div class="control-plan-outlook">${renderControlPlanOutlook(prices, prediction)}</div><p class="meta">${t('control_plan.appliance_cycles')}: ${num((appliances.cycles || []).length, 0)}</p></div></section>
+    <section class="panel control-plan-daily-panel">${renderControlPlanDailyEnergy(goodwe, sdg, summaryPayload.days?.at(-1))}</section>
+    ${(() => { const today = new Date().toLocaleDateString('en-CA'); const groups = groupControlPlanDecisions((decisionsPayload.decisions || []).filter((decision) => { const stamp = new Date(decision.timestamp); return !Number.isNaN(stamp.getTime()) && stamp.toLocaleDateString('en-CA') === today; }).slice(-12).reverse()); return groups.length ? renderControlPlanDecisionDialog(groups[0]) : ''; })()}
+  </div>`;
+  const activityGroups = groupControlPlanDecisions((decisionsPayload.decisions || []).filter((decision) => {
+    const stamp = new Date(decision.timestamp);
+    return !Number.isNaN(stamp.getTime()) && stamp.toLocaleDateString('en-CA') === new Date().toLocaleDateString('en-CA');
+  }).slice(-12).reverse());
+  const openers = [...view.querySelectorAll('[data-decision-group]')];
+  let lastOpener = null;
+  const closeDialog = () => { const activeDialog = view.querySelector('#control-plan-decision-dialog'); if (activeDialog?.open) activeDialog.close(); lastOpener?.focus(); };
+  openers.forEach((opener) => {
+    const open = () => {
+      const group = activityGroups[Number(opener.dataset.decisionGroup)];
+      const activeDialog = view.querySelector('#control-plan-decision-dialog');
+      if (!activeDialog || !group) return;
+      const replacement = new DOMParser().parseFromString(renderControlPlanDecisionDialog(group), 'text/html').body.firstElementChild;
+      activeDialog.replaceWith(replacement);
+      lastOpener = opener;
+      replacement.querySelectorAll('[data-control-plan-close]').forEach((button) => button.addEventListener('click', closeDialog));
+      replacement.addEventListener('close', () => lastOpener?.focus(), { once: true });
+      replacement.showModal();
+    };
+    opener.addEventListener('click', open);
+    opener.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
+  });
 }
 
 // --- Data (prohlížeč JSONL historie) -------------------------------------
@@ -873,6 +1532,7 @@ export const pages = {
   flow,
   finance,
   'finance/manual': financeManual,
+  'control-plan': controlPlan,
   status,
   logs: logsPage,
   settings,

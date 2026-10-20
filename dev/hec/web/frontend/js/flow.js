@@ -31,6 +31,12 @@ const APPLIANCES = [
 ];
 const APPLIANCE_WIDTH = 115;
 const APPLIANCE_HEIGHT = 64;
+const HEAT_PUMP_SERVICES = [
+  { x: 35, y: 445, key: 'entity.heating' },
+  { x: 105, y: 445, key: 'entity.boiler' },
+];
+const SERVICE_WIDTH = 62;
+const SERVICE_HEIGHT = 48;
 const BUS_Y = 245;
 
 function thickness(watts) {
@@ -43,6 +49,13 @@ function edge(from, to, watts, color, motion) {
   const [a, b] = watts >= 0 ? [from, to] : [to, from];
   const animated = motion === 'full' ? ' animated' : '';
   return `<line class="edge${animated}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"
+            stroke="${color}" stroke-width="${thickness(watts)}" marker-end="url(#arrow)"/>`;
+}
+
+function directedEdge(from, to, watts, color, motion) {
+  if (!Number.isFinite(Number(watts)) || Math.abs(watts) < 20) return '';
+  const animated = motion === 'full' ? ' animated' : '';
+  return `<line class="edge${animated}" x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}"
             stroke="${color}" stroke-width="${thickness(watts)}" marker-end="url(#arrow)"/>`;
 }
 
@@ -74,11 +87,19 @@ function applianceWiring() {
   // tam, kde je výkon skutečně změřen – viz applianceEdges() níže.
   const trunk = `<line class="wire" x1="${NODES.house.x}" y1="${NODES.house.y + NODE_HEIGHT / 2}" x2="${NODES.house.x}" y2="${BUS_Y}"/>`;
   const bus = `<line class="wire" x1="${Math.min(...APPLIANCE_COLUMNS)}" y1="${BUS_Y}" x2="${Math.max(...APPLIANCE_COLUMNS)}" y2="${BUS_Y}"/>`;
-  const branches = APPLIANCES.map((a) => {
+  const branches = APPLIANCES.filter((a) => a.type !== 'heatpump').map((a) => {
     const s = wireSegment(a);
     return `<line class="wire" x1="${s.x1}" y1="${s.y1}" x2="${s.x2}" y2="${s.y2}"/>`;
   }).join('');
   return trunk + bus + branches;
+}
+
+function heatPumpServiceWiring() {
+  return HEAT_PUMP_SERVICES.map((service) => {
+    const top = service.y - SERVICE_HEIGHT / 2;
+    return `<line class="wire" x1="${70}" y1="${325 + APPLIANCE_HEIGHT / 2}"
+      x2="${service.x}" y2="${top}"/>`;
+  }).join('');
 }
 
 /** Barevný animovaný přechod přesně nad vodičem každého změřeného spotřebiče. */
@@ -99,6 +120,15 @@ function applianceNode(appliance, watts, measured, t) {
     </g>`;
 }
 
+function heatPumpServiceNode(service, watts, measured, t) {
+  const { value, unit } = measured ? power(watts) : { value: '–', unit: t('unit.w') };
+  return `<g class="appliance-node appliance-node--service" transform="translate(${service.x} ${service.y})">
+      <rect class="node" x="${-SERVICE_WIDTH / 2}" y="${-SERVICE_HEIGHT / 2}" width="${SERVICE_WIDTH}" height="${SERVICE_HEIGHT}" rx="5"/>
+      <text text-anchor="middle" y="-4" font-size="8" fill="var(--ink-secondary)">${t(service.key)}</text>
+      <text text-anchor="middle" y="15" font-size="11" font-family="var(--font-value)" font-weight="650">${value}<tspan font-size="8" dx="1" fill="var(--ink-secondary)">${unit}</tspan></text>
+    </g>`;
+}
+
 export function renderFlow(container, values, t, motion = 'full') {
   // Chybějící zdroj (vypnutý reader) se nesmí vydávat za změřenou nulu –
   // "0 W" tvrdí, že se nic nevyrábí/nespotřebovává, zatímco pravda je
@@ -110,6 +140,11 @@ export function renderFlow(container, values, t, motion = 'full') {
   const charge = Number(values.battery_charge_w) || 0;
   const discharge = Number(values.battery_discharge_w) || 0;
   const heatpump = Number(values.heatpump_power_w) || 0;
+  const heatingOn = values.heating_on === true;
+  const boilerTemp = Number(values.boiler_temperature) || 0;
+  const waterTemp = Number(values.water_output_temperature) || 0;
+  const heatingPower = heatingOn ? Math.max(200, Math.min(heatpump * 2.8, 5000)) : 0;
+  const dhwPower = boilerTemp > 0 || waterTemp > 0 ? Math.max(150, Math.min(heatpump * 1.8, 3500)) : 0;
   const devices = values.devices || {};
 
   // Jeden průchod přes pojmenované spotřebiče: totéž pole se použije pro
@@ -140,6 +175,15 @@ export function renderFlow(container, values, t, motion = 'full') {
   };
   const applianceData = [...namedData, otherData];
 
+  const heatPumpServiceEdges = [
+    directedEdge({ x: 70, y: 325 + APPLIANCE_HEIGHT / 2 },
+      { x: HEAT_PUMP_SERVICES[0].x, y: HEAT_PUMP_SERVICES[0].y - SERVICE_HEIGHT / 2 },
+      heatingPower, 'var(--series-heatpump)', motion),
+    directedEdge({ x: 70, y: 325 + APPLIANCE_HEIGHT / 2 },
+      { x: HEAT_PUMP_SERVICES[1].x, y: HEAT_PUMP_SERVICES[1].y - SERVICE_HEIGHT / 2 },
+      dhwPower, 'var(--series-heatpump)', motion),
+  ].join('');
+
   const edges = [
     edge({ x: NODES.pv.x, y: NODES.pv.y + NODE_HEIGHT / 2 },
       { x: NODES.house.x, y: NODES.house.y - NODE_HEIGHT / 2 }, pv, 'var(--series-pv)', motion),
@@ -151,7 +195,10 @@ export function renderFlow(container, values, t, motion = 'full') {
       gridImport ? 'var(--series-grid-import)' : 'var(--series-grid-export)', motion),
     edge({ x: NODES.house.x, y: NODES.house.y + NODE_HEIGHT / 2 },
       { x: NODES.house.x, y: BUS_Y }, house, 'var(--series-house)', motion),
-    applianceEdges(applianceData.filter((d) => d.measured), motion),
+    directedEdge({ x: NODES.house.x, y: NODES.house.y + NODE_HEIGHT / 2 },
+      { x: 70, y: 325 - APPLIANCE_HEIGHT / 2 }, heatpump,
+      'var(--series-house)', motion),
+    applianceEdges(applianceData.filter((d) => d.measured && d.appliance.type !== 'heatpump'), motion),
   ].join('');
 
   const measured = {
@@ -174,10 +221,19 @@ export function renderFlow(container, values, t, motion = 'full') {
   const applianceLabels = applianceData
     .map(({ appliance, watts, measured: m }) => applianceNode(appliance, watts, m, t)).join('');
 
-    container.innerHTML = `<svg class="flow" viewBox="0 0 840 365" role="img" aria-label="${t('overview.flow')}">
+  const serviceLabels = HEAT_PUMP_SERVICES.map((service, index) => heatPumpServiceNode(
+    service,
+    index === 0 ? heatingPower : dhwPower,
+    index === 0 ? heatingPower > 0 : dhwPower > 0,
+    t,
+  )).join('');
+
+    container.innerHTML = `<svg class="flow" viewBox="0 0 840 500" role="img" aria-label="${t('overview.flow')}">
       <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
         <path d="M0 0 L10 5 L0 10 z" fill="context-stroke"/></marker></defs>
       ${applianceWiring()}
-      ${edges}${mainLabels}${applianceLabels}
+      ${heatPumpServiceWiring()}
+      ${edges}${heatPumpServiceEdges}${mainLabels}${applianceLabels}
+      ${serviceLabels}
     </svg>`;
 }

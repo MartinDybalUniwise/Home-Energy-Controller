@@ -53,6 +53,11 @@ export function num(value, digits = 1) {
   return new Intl.NumberFormat(locale(), { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(Number(value));
 }
 
+export function formatCurrency(value) {
+  if (value === null || value === undefined || Number.isNaN(Number(value))) return '–';
+  return `${num(value, 0)} Kč`;
+}
+
 export function power(watts, digits = 2) {
   if (watts === null || watts === undefined || Number.isNaN(Number(watts))) return { value: '–', unit: t('unit.kw') };
   const absolute = Math.abs(Number(watts));

@@ -33,6 +33,36 @@ class OtherReader(CountingReader):
     name = "weather"
 
 
+class CompletionTrackingReader:
+    name = "sdg_history"
+
+    def __init__(self, scheduler):
+        self.scheduler = scheduler
+        self.poll_finished_at = None
+        self.scheduled_at = None
+        self._next_at = 0.0
+
+    def poll(self):
+        self.poll_finished_at = time.monotonic()
+        return object()
+
+    def schedule_next(self, monotonic_now):
+        self.scheduled_at = monotonic_now
+        self.scheduler._stop.set()
+        self._next_at = monotonic_now + 60
+
+    def interval_seconds(self):
+        return 60
+
+
+class SlowReader(CountingReader):
+    name = "sdg_history"
+
+    def read(self):
+        time.sleep(0.25)
+        return super().read()
+
+
 def make_config(tmp_path):
     data = schema.defaults()
     data["goodwe"]["enabled"] = True
@@ -69,6 +99,28 @@ def test_scheduler_threads_start_and_stop(tmp_path):
     assert reader.count >= 1
 
 
+def test_scheduler_schedules_next_poll_after_poll_completion(tmp_path):
+    scheduler = Scheduler([])
+    reader = CompletionTrackingReader(scheduler)
+
+    scheduler._run_reader(reader)
+
+    assert reader.scheduled_at >= reader.poll_finished_at
+
+
+def test_slow_sdg_reader_does_not_block_healthy_reader(tmp_path):
+    config = make_config(tmp_path)
+    slow = SlowReader(config)
+    healthy = OtherReader(config)
+    scheduler = Scheduler([slow, healthy])
+
+    scheduler.start()
+    time.sleep(0.1)
+    scheduler.stop(timeout=1)
+
+    assert healthy.count >= 1
+
+
 def test_application_wires_readers_storage_and_snapshot(tmp_path, monkeypatch):
     config = make_config(tmp_path)
     monkeypatch.setattr("hec.core.app.build_readers",
@@ -81,6 +133,19 @@ def test_application_wires_readers_storage_and_snapshot(tmp_path, monkeypatch):
     assert current["sources"]["goodwe"]["pv_w"] == 100
     assert current["status"]["readers"]["goodwe"]["success_count"] == 1
     assert app.storage.latest("goodwe")["pv_w"] == 100
+
+
+def test_application_status_exposes_safe_runtime_context(tmp_path, monkeypatch):
+    config = make_config(tmp_path)
+    monkeypatch.setattr("hec.core.app.build_readers",
+                        lambda cfg, storage: [CountingReader(cfg, storage)])
+    app = Application(config)
+
+    runtime = app.status()["runtime"]
+
+    assert runtime["process_id"] > 0
+    assert runtime["config_path"] == str(config.path)
+    assert runtime["project_root"] == str(config.root)
 
 
 def test_application_restores_last_known_values_after_restart(tmp_path, monkeypatch):

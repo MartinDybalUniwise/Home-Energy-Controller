@@ -10,7 +10,9 @@ from hec.core import schema
 
 def test_defaults_cover_every_section():
     data = schema.defaults()
-    assert data["polling"]["goodwe_seconds"] == 10
+    assert data["goodwe"]["read_interval_seconds"] == 10
+    assert data["goodwe"]["timeout_seconds"] == 3
+    assert data["goodwe"]["retry_count"] == 3
     assert data["tng"]["minimum_change_interval_seconds"] == 900
     assert data["ui"]["languages"] == ["cs", "en"]
     assert data["goodwe"]["sdg"]["log_root_path"] == "\\\\192.168.2.115\\Promotic"
@@ -55,6 +57,16 @@ def test_change_gate_interval_cannot_be_lowered_below_the_safe_limit():
     data, errors = schema.validate({"tng": {"minimum_change_interval_seconds": 60}})
     assert data["tng"]["minimum_change_interval_seconds"] == 900
     assert errors
+
+
+def test_source_specific_data_age_limits_are_bounded():
+    data, errors = schema.validate({"controller": {
+        "max_data_age_by_source": {"ote": 7200, "goodwe": 30},
+    }})
+
+    assert data["controller"]["max_data_age_by_source"]["ote"] == 7200
+    assert data["controller"]["max_data_age_by_source"]["goodwe"] is None
+    assert any("controller.max_data_age_by_source.goodwe" in error for error in errors)
 
 
 def test_unknown_keys_are_preserved():

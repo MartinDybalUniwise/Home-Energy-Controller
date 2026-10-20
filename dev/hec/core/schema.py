@@ -102,7 +102,6 @@ SCHEMA: dict[str, Any] = {
         "backups": F("int", 5, minimum=1, maximum=50, restart=True),
     },
     "polling": {
-        "goodwe_seconds": F("int", 10, minimum=2, maximum=3600),
         "tng_seconds": F("int", 300, minimum=30, maximum=3600),
         "shelly_seconds": F("int", 10, minimum=2, maximum=3600),
         "weather_minutes": F("int", 15, minimum=5, maximum=180),
@@ -115,14 +114,19 @@ SCHEMA: dict[str, Any] = {
     },
     "goodwe": {
         "enabled": F("bool", False),
+        "writer_enabled": F("bool", False),
+        "verify_after_write": F("bool", True),
+        "control_state_read_enabled": F("bool", True),
+        "read_interval_seconds": F("int", 10, minimum=2, maximum=3600),
         "host": F("str", "${HEC_GOODWE_HOST}"),
         "family": F("enum", "ET", choices=("ET", "EH", "ES", "DT", "")),
-        "timeout": F("int", 2, minimum=1, maximum=30),
-        "retries": F("int", 3, minimum=0, maximum=10),
+        "timeout_seconds": F("int", 3, minimum=1, maximum=30),
+        "retry_count": F("int", 3, minimum=0, maximum=10),
         # Znaménko toků se mezi instalacemi liší, proto je směr konfigurovatelný.
         "grid_positive_is_import": F("bool", True),
         "battery_positive_is_charge": F("bool", True),
         "sdg": {
+            "enabled": F("bool", False),
             "log_root_path": F("str", "\\\\192.168.2.115\\Promotic", restart=True),
         },
     },
@@ -178,6 +182,11 @@ SCHEMA: dict[str, Any] = {
         "enabled": F("bool", False),
         # Nad tímto stářím kritických dat se optimalizace zastaví (safe mode).
         "max_data_age_seconds": F("int", 300, minimum=60, maximum=3600),
+        "max_data_age_by_source": {
+            "goodwe": F("int", None, minimum=60, maximum=86400),
+            "tng": F("int", None, minimum=60, maximum=86400),
+            "ote": F("int", None, minimum=60, maximum=86400),
+        },
         "decision_interval_seconds": F("int", 300, minimum=60, maximum=3600),
         "comfort": {
             "room_min_c": F("float", 20.0, minimum=10, maximum=30),
@@ -194,9 +203,24 @@ SCHEMA: dict[str, Any] = {
             "battery_soc_min_pct": F("float", 60.0, minimum=0, maximum=100),
             "cheap_price_percentile": F("float", 0.25, minimum=0, maximum=1),
             "expensive_price_percentile": F("float", 0.75, minimum=0, maximum=1),
+            "goodwe_control": {
+                "enabled": F("bool", False),
+                "export_limit_enabled": F("bool", False),
+                "export_limit_w": F("int", 0, minimum=0, maximum=100_000),
+                "on_grid_soc_limit_enabled": F("bool", False),
+                "on_grid_soc_limit_pct": F("int", 80, minimum=0, maximum=100),
+                "charge_power_pct": F("int", 50, minimum=1, maximum=100),
+                "discharge_power_pct": F("int", 30, minimum=1, maximum=100),
+                "charge_start_soc_pct": F("int", 20, minimum=0, maximum=100),
+                "charge_stop_soc_pct": F("int", 80, minimum=0, maximum=100),
+                "discharge_start_soc_pct": F("int", 80, minimum=0, maximum=100),
+                "discharge_stop_soc_pct": F("int", 20, minimum=0, maximum=100),
+            },
             "priorities": F("list", [
-                "house_load", "battery_charge", "dhw", "thermal_storage",
-                "flexible_loads", "sharing", "grid_export",
+                "goodwe_enable_export_limit", "goodwe_set_export_limit",
+                "goodwe_set_on_grid_soc_limit", "goodwe_charge_cheap",
+                "goodwe_discharge_expensive", "goodwe_stop_when_neutral",
+                "dhw_pv_surplus", "dhw_price_high", "heating_preheat_cheap",
             ]),
         },
     },
