@@ -1,7 +1,7 @@
 {
   "step": 28,
   "classification": "SMALL",
-  "status": "IN_PROGRESS",
+  "status": "DONE",
   "gate_a": {
     "status": "APPROVED",
     "approved_by": "repository owner; explicit approval of the narrow correction plan",
@@ -13,16 +13,16 @@
     "approved_at": "2026-10-20T20:03:39.616531+02:00"
   },
   "gate_c": {
-    "status": "PENDING",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "repository owner: explicit Schvaluji to merge and deployment",
+    "approved_at": "2026-10-20T20:45:22.890443+02:00"
   },
   "readiness": "YES",
   "requested_by": "repository owner / maintainer",
   "source": "Owner screenshot and explicit narrow-plan approval in chat",
   "branch": "claude/step28-tng-history-quality",
   "pr": "https://github.com/MartinDybalUniwise/Home-Energy-Controller/pull/42",
-  "notes": "Implementation and independent review PASS. Candidate 0.1.2 unreleased; owner Human Gate and deployment pending. Exact tested code/test head e784f6b.",
+  "notes": "Owner approval preceded deployment; recorded at completion. Release 0.1.2 deployed and verified, tag v0.1.2 at 98e9fa5. All gates PASS; original data/configuration/control paths preserved.",
   "requirements": [
     "REQ-028-001",
     "REQ-028-002",

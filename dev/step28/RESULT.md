@@ -1,6 +1,6 @@
 # Step28 result
 
-Implementation and independent review PASS; owner Human Gate and production deployment PENDING. Candidate 0.1.2 has no release timestamp. Production remains the deployed 0.1.1 at 0b36d3e; this step has made no production writes.
+DONE: implementation, full validation, independent review, owner Human Gate and production verification PASS. Version 0.1.2 released at 2026-10-20T20:37:10.993092+02:00, deployed commit `98e9fa5b5454bc1fd44bcdc07e86f6396c4f38bb`, tag `v0.1.2`. See [deployment result](DEPLOYMENT_RESULT.md).
 
 ## E-028-001 - Historical measurement quality
 
@@ -27,4 +27,4 @@ Local artifacts: `C:/TepelneCerpadlo/step28-evidence/tng-30d-mobile.png`, `tng-3
 - Independent `release_review`: no BLOCKER or IMPORTANT; 22 unit cases independently PASS; product scope, normalization, raw/current preservation, chart/mobile/touch and test timezone fixture reviewed. Gate B approved for the exact code/test head above.
 - Source logs and metadata: `C:/TepelneCerpadlo/step28-evidence/validation.log` and `validation.json`.
 
-[Draft PR #42](https://github.com/MartinDybalUniwise/Home-Energy-Controller/pull/42) targets the actual production integration branch. Its base includes only the already-completed Step26 documentation after 0.1.1; unrelated main divergence is excluded. Remaining step: owner Human Gate before merge/deployment/DONE. Release time must describe a real successful deployment, never preparation time.
+[Draft PR #42](https://github.com/MartinDybalUniwise/Home-Energy-Controller/pull/42) targets the actual production integration branch. Its base includes only the already-completed Step26 documentation after 0.1.1; unrelated main divergence is excluded. Owner explicitly approved merge and deployment. PR42 merged; production and actual release time verified. All gates PASS. See DEPLOYMENT_RESULT.md.
