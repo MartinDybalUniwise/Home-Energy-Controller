@@ -8,7 +8,7 @@
 const CACHE = 'hec-v15';
 const SHELL = ['/', '/index.html', '/css/tokens.css', '/css/app.css',
   '/js/app.js', '/js/api.js', '/js/i18n.js', '/js/chart.js', '/js/flow.js',
-  '/js/pages.js', '/js/advisor.js', '/js/icons.js', '/js/background.js', '/manifest.json', '/icon.svg'];
+  '/js/pages.js', '/js/advisor.js', '/js/icons.js', '/js/background.js', '/js/releases.js', '/manifest.json', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()));

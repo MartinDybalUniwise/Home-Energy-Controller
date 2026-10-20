@@ -3,15 +3,19 @@
 from __future__ import annotations
 
 import hashlib
-import json
+import re
 import struct
-from datetime import UTC, datetime
+import threading
+import time
+from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from ..core.timeutil import to_iso
 from ..readers.base import BaseReader
 from ..storage.base import atomic_write_json, read_json
+from ..storage.history import merge_history
 
 
 class SDGHistoryReader(BaseReader):
@@ -22,6 +26,18 @@ class SDGHistoryReader(BaseReader):
         self.log_root_path = str(config.get("goodwe.sdg.log_root_path", "") or "").strip()
         self.checkpoint_path = config.data_dir / "sdg_history_checkpoint.json"
         self._checkpoint = read_json(self.checkpoint_path, {}) or {}
+        if self._checkpoint.get('version') != 3:
+            self._checkpoint = {'version': 3, 'files': {}}
+        self._site_zone = ZoneInfo(config.get('system.timezone', 'Europe/Prague'))
+        # Promotic stores trend pm_time in standard (winter) time in this source.
+        year = datetime.now(UTC).year
+        self._standard_offset = min(datetime(year, month, 1, tzinfo=self._site_zone).utcoffset().total_seconds()
+                                    for month in (1, 7))
+        self._import_lock = threading.Lock()
+        self._path_cache: list[Path] = []
+        self._discovered_at = float('-inf')
+        self._audited: dict[str, float] = {}
+        self._failed_files: dict[str, tuple[list[int], float]] = {}
         self._last_import: dict[str, Any] = {}
         self._terminal_status("initialized")
 
@@ -33,7 +49,7 @@ class SDGHistoryReader(BaseReader):
 
     def _terminal_status(self, state: str, **details: Any) -> None:
         payload = " ".join(f"{key}={value}" for key, value in details.items())
-        print(f"[SDGHistoryReader] state={state} {payload}".rstrip(), flush=True)
+        self.log.debug('import_status | state=%s %s', state, payload)
 
     @classmethod
     def candidate_directories(cls, root: Path) -> list[Path]:
@@ -49,13 +65,18 @@ class SDGHistoryReader(BaseReader):
         ]
 
     def paths(self) -> list[Path]:
+        now = time.monotonic()
+        if now - self._discovered_at < 30:
+            return self._path_cache
         root = Path(self.log_root_path) if self.log_root_path else Path(".")
         files: list[Path] = []
         for candidate in self.candidate_directories(root):
             if candidate.is_dir():
                 files.extend(sorted(path for path in candidate.rglob("*")
                                     if path.is_file() and path.suffix.lower() == ".dbf"))
-        return sorted(set(files))
+        self._path_cache = sorted(set(files))
+        self._discovered_at = now
+        return self._path_cache
 
     @staticmethod
     def _decode(value: bytes, field_type: str, decimals: int) -> Any:
@@ -77,7 +98,7 @@ class SDGHistoryReader(BaseReader):
         return value.hex()
 
     @classmethod
-    def _read_dbf(cls, path: Path, start_offset: int = 0) -> tuple[list[dict[str, Any]], int, int]:
+    def _read_dbf(cls, path: Path, start_offset: int = 0, limit: int | None = None) -> tuple[list[dict[str, Any]], int, int]:
         with path.open("rb") as handle:
             header = handle.read(32)
             if len(header) < 32:
@@ -85,6 +106,8 @@ class SDGHistoryReader(BaseReader):
             record_count = struct.unpack_from("<I", header, 4)[0]
             header_length = struct.unpack_from("<H", header, 8)[0]
             record_length = struct.unpack_from("<H", header, 10)[0]
+            if header_length < 33 or record_length < 2:
+                raise ValueError('Invalid DBF layout')
             fields: list[tuple[str, str, int]] = []
             while handle.tell() < header_length - 1:
                 descriptor = handle.read(32)
@@ -97,7 +120,8 @@ class SDGHistoryReader(BaseReader):
             handle.seek(max(header_length, start_offset))
             offset = handle.tell()
             records: list[dict[str, Any]] = []
-            for _ in range(record_count):
+            remaining = max(0, record_count - (offset - header_length) // record_length)
+            for _ in range(min(remaining, limit) if limit is not None else remaining):
                 raw = handle.read(record_length)
                 if len(raw) < record_length:
                     break
@@ -116,12 +140,13 @@ class SDGHistoryReader(BaseReader):
             return records, offset, record_count
 
     @staticmethod
-    def _timestamp(row: dict[str, Any]) -> str | None:
+    def _timestamp(row: dict[str, Any], standard_offset: float | None = None) -> str | None:
         def parse_text(text: str) -> str | None:
-            normalized = text.strip().replace(".", "-").replace(" ", "T")
-            candidate = normalized if "+" in normalized else f"{normalized}+00:00"
+            normalized = re.sub(r'^(\d{4})\.(\d{2})\.(\d{2})', r'\1-\2-\3', text.strip()).replace(' ', 'T')
             try:
-                return to_iso(datetime.fromisoformat(candidate))
+                moment = datetime.fromisoformat(normalized.replace('Z', '+00:00'))
+                naive_zone = timezone(timedelta(seconds=standard_offset)) if standard_offset is not None else UTC
+                return to_iso(moment if moment.tzinfo else moment.replace(tzinfo=naive_zone))
             except ValueError:
                 return None
 
@@ -154,8 +179,8 @@ class SDGHistoryReader(BaseReader):
         return None
 
     @classmethod
-    def _normalize(cls, row: dict[str, Any], source_file: Path) -> dict[str, Any] | None:
-        timestamp = cls._timestamp(row)
+    def _normalize(cls, row: dict[str, Any], source_file: Path, standard_offset: float | None = None) -> dict[str, Any] | None:
+        timestamp = cls._timestamp(row, standard_offset if row.get('pm_time') is not None else None)
         if timestamp is None:
             return None
         values = {key: value for key, value in row.items() if not key.startswith("_")}
@@ -167,69 +192,122 @@ class SDGHistoryReader(BaseReader):
         }
 
     def import_history(self) -> dict[str, Any]:
-        checkpoint = dict(self._checkpoint)
-        if not checkpoint.get("records") and checkpoint.get("files"):
-            # A previous parser version could checkpoint files after rejecting
-            # every row. Re-read them after the normalizer is upgraded.
-            checkpoint["files"] = {}
-        imported = 0
-        skipped = 0
-        corrupt_files = 0
-        duplicates = 0
-        valid_rows = 0
-        seen = set(checkpoint.get("records", []))
-        file_state = checkpoint.setdefault("files", {})
-        for path in self.paths():
-            key = str(path.resolve())
-            stat = path.stat()
-            state = file_state.get(key, {})
-            offset = int(state.get("offset", 0)) if int(state.get("size", 0)) <= stat.st_size else 0
-            with path.open("rb") as source:
-                prefix = source.read(offset)
-                prefix_hash = hashlib.sha256(prefix).hexdigest()
-            if state.get("prefix_hash") and state.get("prefix_hash") != prefix_hash:
-                offset = 0
+        # The existing worker and any explicit retry must never import concurrently.
+        with self._import_lock:
+            return self._import_history()
+
+    def _import_history(self) -> dict[str, Any]:
+        paths = self.paths()
+        result = dict(discovered_files=len(paths), valid_rows=0, imported=0, skipped=0,
+                      duplicates=0, corrupt_files=0, source_bytes=0, checkpoint_writes=0)
+        processed = 0
+        now = time.monotonic()
+        # A bounded round-robin audit detects edits even with preserved size/mtime.
+        audit = min(paths, key=lambda p: self._audited.get(str(p), 0), default=None)
+        for path in paths:
+            key = str(path)
             try:
-                rows, end_offset, _ = self._read_dbf(path, offset)
-            except (OSError, ValueError, struct.error):
-                corrupt_files += 1
-                self._terminal_status("file_failed", file=path.name)
-                continue
-            records: list[dict[str, Any]] = []
-            file_valid_rows = 0
-            for row in rows:
-                normalized = self._normalize(row, path)
-                if normalized is None:
-                    skipped += 1
+                stat = path.stat()
+                state = self._checkpoint['files'].get(key, {})
+                metadata = [stat.st_size, stat.st_mtime_ns]
+                failure = self._failed_files.get(key)
+                if failure and failure[0] == metadata and now - failure[1] < 60:
                     continue
-                valid_rows += 1
-                file_valid_rows += 1
-                fingerprint = hashlib.sha256(json.dumps(normalized, sort_keys=True,
-                                                        ensure_ascii=False).encode("utf-8")).hexdigest()
-                if fingerprint in seen:
-                    duplicates += 1
+                verify = path == audit and now - self._audited.get(key, float('-inf')) >= 60
+                if state.get('metadata') == metadata and not verify:
                     continue
-                seen.add(fingerprint)
-                records.append(normalized)
-            if self.storage is not None and records:
-                imported += self.storage.append_many(self.name, records)
-            if file_valid_rows:
-                with path.open("rb") as source:
-                    end_prefix_hash = hashlib.sha256(source.read(end_offset)).hexdigest()
-                file_state[key] = {"size": stat.st_size, "mtime_ns": stat.st_mtime_ns,
-                                   "offset": end_offset, "prefix_hash": end_prefix_hash}
-        checkpoint["records"] = sorted(seen)
-        atomic_write_json(self.checkpoint_path, checkpoint)
-        self._checkpoint = checkpoint
-        self._last_import = {"discovered_files": len(self.paths()), "valid_rows": valid_rows,
-                     "imported": imported, "skipped": skipped,
-                     "duplicates": duplicates, "corrupt_files": corrupt_files}
-        self._terminal_status("import_ok", **self._last_import)
-        return dict(self._last_import)
+                if processed >= 4:
+                    continue
+                processed += 1
+                changed = self._import_file(path, state, result)
+                if [path.stat().st_size, path.stat().st_mtime_ns] != metadata:
+                    continue  # Source changed during read; safe to retry the committed rows.
+                next_state = {'metadata': metadata, 'blocks': changed}
+                if next_state != state and self.storage is not None:
+                    candidate = {'version': 3, 'files': {**self._checkpoint['files'], key: next_state}}
+                    atomic_write_json(self.checkpoint_path, candidate)
+                    self._checkpoint = candidate
+                    result['checkpoint_writes'] += 1
+                self._audited[key] = time.monotonic()
+                self._failed_files.pop(key, None)
+            except (OSError, ValueError, struct.error) as exc:
+                # A failed attempt also consumes its audit turn. Otherwise a
+                # permanently broken oldest file starves every metadata-stable
+                # file of content checks, even after its retry cooldown.
+                self._audited[key] = time.monotonic()
+                if path.exists():
+                    failed_stat = path.stat()
+                    self._failed_files[key] = ([failed_stat.st_size, failed_stat.st_mtime_ns], now)
+                result['corrupt_files'] += 1
+                self.log.warning('import_file_failed | file=%s error=%s', path.name, type(exc).__name__)
+        self._last_import = result
+        if result['imported'] or result['corrupt_files'] or result['checkpoint_writes']:
+            self.log.info('import_summary | imported=%s corrupt=%s', result['imported'], result['corrupt_files'])
+        return dict(result)
+
+    def _import_file(self, path: Path, state: dict, result: dict) -> dict:
+        blocks = {}
+        owners = {}
+        records = []
+        relative = path.relative_to(Path(self.log_root_path)).as_posix()
+        with path.open('rb') as handle:
+            header = handle.read(32)
+            result['source_bytes'] += len(header)
+            if len(header) != 32:
+                raise ValueError('Truncated DBF')
+            count = struct.unpack_from('<I', header, 4)[0]
+            start, width = struct.unpack_from('<HH', header, 8)
+            if start < 33 or width < 2:
+                raise ValueError('Invalid DBF layout')
+            handle.seek(0)
+            schema = handle.read(start)[32:]
+            layout = hashlib.sha256(schema).hexdigest()
+            result['source_bytes'] += start
+            for index in range((count + 1023) // 1024):
+                offset = start + index * 1024 * width
+                handle.seek(offset)
+                raw = handle.read(min(1024, count - index * 1024) * width)
+                result['source_bytes'] += len(raw)
+                if len(raw) % width or len(raw) != min(1024, count - index * 1024) * width:
+                    raise ValueError('Incomplete DBF records')
+                digest = hashlib.sha256(layout.encode() + raw).hexdigest()
+                old = state.get('blocks', {}).get(str(index), {})
+                if old.get('hash') == digest:
+                    blocks[str(index)] = old
+                    continue
+                rows, _, _ = self._read_dbf(path, offset, 1024)
+                result['source_bytes'] += len(raw) + start
+                owner = f'{relative}:{index}'
+                days = set()
+                owners[owner] = old.get('days', [])
+                for row in rows:
+                    normalized = self._normalize(row, path, self._standard_offset)
+                    if normalized is None:
+                        result['skipped'] += 1
+                        continue
+                    normalized['timestamp'] = datetime.fromisoformat(normalized['timestamp']).astimezone(self._site_zone).isoformat()
+                    normalized['sdg_record_id'] = f'{relative}:{row["_offset"]}'
+                    normalized['sdg_block'] = owner
+                    days.add(normalized['timestamp'][:10])
+                    result['valid_rows'] += 1
+                    records.append(normalized)
+                blocks[str(index)] = {'hash': digest, 'days': sorted(days)}
+            for index, old in state.get('blocks', {}).items():
+                if index not in blocks:
+                    owners[f'{relative}:{index}'] = old.get('days', [])
+        if self.storage is not None and owners:
+            unique_name = sum(p.name == path.name for p in self.paths()) == 1
+            result['imported'] += merge_history(self.storage, self.name, records, owners=owners,
+                                                legacy_files={path.name} if unique_name and not state.get('blocks') else set())
+        return blocks
 
     def read(self) -> dict[str, Any]:
         result = self.import_history()
         return {"online": True, "source": self.name, "files": len(self.paths()), **result}
+
+    def history_targets(self, values, sample):
+        # Import diagnostics are current status, never a historical measurement.
+        return []
 
     def status_snapshot(self) -> dict[str, Any]:
         return {

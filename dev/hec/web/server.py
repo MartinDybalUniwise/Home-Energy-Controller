@@ -18,6 +18,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
+from .. import RELEASES
 from ..core.logging_setup import get_logger
 from . import api
 
@@ -163,6 +164,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(401, {"error": "unauthorised"})
 
         routes = {
+            "/api/releases": lambda: (200, RELEASES),
             "/api/current": lambda: api.current(self.app, params),
             "/api/status": lambda: api.status(self.app),
             "/api/history": lambda: api.history(self.app, params),

@@ -3,6 +3,7 @@
 # jen to, co proveřeně obsluhuje HTTP relaci TNG a parsování stránek OTE.
 requests>=2.32.0
 beautifulsoup4>=4.12.0
+tzdata>=2025.1; sys_platform == "win32"
 
 # Runtime závislost GoodWe integrace (Step16). Aktivní FTEReader a
 # GoodWeManager používají knihovnu pro read/write komunikaci.

@@ -18,6 +18,7 @@ import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urljoin
+from zoneinfo import ZoneInfo
 
 import requests
 from bs4 import BeautifulSoup
@@ -27,6 +28,7 @@ from ..core.model import Sample
 from ..core.secrets import collect_secret_values, expand_tree
 from ..core.timeutil import in_window, now_local, parse_iso, to_iso
 from ..storage.base import atomic_write_json, read_json
+from ..storage.history import merge_history
 from .base import BaseReader
 
 SCALAR_RE = re.compile(
@@ -91,6 +93,7 @@ class TngReader(BaseReader):
         self.telemetry_state = {"last_sample_time": None}
         self.pending_sent: dict[str, str] = {}
         self._telemetry_records: list[dict] = []
+        self._pending_audit_day: str | None = None
         super().__init__(config, storage)
         self._load_state()
 
@@ -155,6 +158,7 @@ class TngReader(BaseReader):
                         self.change_gate[kind][key] = saved[kind][key]
         if isinstance(saved.get("telemetry"), dict):
             self.telemetry_state["last_sample_time"] = saved["telemetry"].get("last_sample_time")
+            self.telemetry_state['audit_day'] = saved['telemetry'].get('audit_day')
 
     def _save_state(self) -> None:
         atomic_write_json(self.state_path, {
@@ -287,7 +291,32 @@ class TngReader(BaseReader):
         out["settings"] = self._read_settings()
         out["heatpump"], samples = self._read_telemetry()
         self._telemetry_records = self._telemetry_history(samples, out["settings"])
+        self._audit_history()
         return out
+
+    def _audit_history(self) -> None:
+        """Revisit one historical day per existing poll to discover source corrections."""
+        if self.storage is None:
+            return
+        days = self.storage.days(self.name)
+        if not days:
+            return
+        day = self.telemetry_state.get('audit_day') or days[0]
+        start = datetime.fromisoformat(day).replace(tzinfo=ZoneInfo(self.config.get('system.timezone', 'Europe/Prague')))
+        end = start + timedelta(days=1)
+        today = now_local().date()
+        if start.date() >= today:
+            start = datetime.fromisoformat(days[0]).replace(tzinfo=start.tzinfo)
+            end = start + timedelta(days=1)
+        endpoint = self.tng['endpoints']['heatpump_data'].format(
+            heatpump_hash=self.tng.get('heatpump_hash', ''),
+            from_ms=int(start.timestamp() * 1000), to_ms=int(end.timestamp() * 1000))
+        try:
+            samples = self._get(urljoin(self.tng['base_url'], endpoint), accept='*/*').json().get('First') or []
+            self._telemetry_records.extend(self._telemetry_history(samples, {}))
+            self._pending_audit_day = end.date().isoformat()
+        except Exception as exc:  # noqa: BLE001 - a historical audit must not discard current telemetry
+            self.log.warning('history_audit_failed | day=%s error=%s', day, type(exc).__name__)
 
     def _read_settings(self) -> dict:
         endpoint = self.tng["endpoints"].get(
@@ -336,7 +365,7 @@ class TngReader(BaseReader):
             self.log.warning("telemetry_empty | from_ms=%s to_ms=%s", from_ms, now_ms)
             return {"sample_time": None}, []
 
-        last = samples[-1]
+        last = max(samples, key=lambda row: parse_iso(row.get('time')) or datetime.min.replace(tzinfo=UTC))
         return {
             "sample_time": last.get("time"),
             "outside_temperature": self._tenths(last, "t"),
@@ -352,42 +381,51 @@ class TngReader(BaseReader):
         return None if value is None else value / 10.0
 
     def _telemetry_history(self, samples: list[dict], settings: dict) -> list[dict]:
-        """Vzorky novější než kurzor. Překryv okna se tak nezapíše dvakrát."""
-        cursor_time = self.telemetry_state.get("last_sample_time")
-        cursor = parse_iso(cursor_time)
-        newest_time, newest = cursor_time, cursor
+        """Keep overlap for corrections; persistence owns dedup and the cursor."""
         records: list[dict] = []
 
         for sample in samples:
             stamp = parse_iso(sample.get("time"))
             if stamp is None:
                 continue
-            if cursor is not None and stamp <= cursor:
-                continue
             records.append({
-                "timestamp": to_iso(now_local()),
+                "timestamp": to_iso(stamp.astimezone(ZoneInfo(self.config.get('system.timezone', 'Europe/Prague')))),
                 "source": self.name,
                 "sample_time": sample.get("time"),
                 "outside_temperature": self._tenths(sample, "t"),
                 "water_output_temperature": self._tenths(sample, "tw"),
                 "boiler_temperature": self._tenths(sample, "tb"),
                 "room_temperature": self._tenths(sample, "tt"),
-                "boiler_on": settings.get("boiler_on"),
-                "boiler_set_temperature": settings.get("boiler_set_temperature"),
-                "boiler_sensor": settings.get("boiler_sensor"),
-                "boiler_boost": settings.get("boiler_boost"),
-                "heating_on": settings.get("heating_on"),
-                "heating_set_temperature": settings.get("heating_set_temperature"),
-                "heating_mode": settings.get("heating_mode"),
-                "equit_curve": settings.get("equit_curve"),
+                "boiler_on": None,
+                "boiler_set_temperature": None,
+                "boiler_sensor": None,
+                "boiler_boost": None,
+                "heating_on": None,
+                "heating_set_temperature": None,
+                "heating_mode": None,
+                "equit_curve": None,
             })
-            if newest is None or stamp > newest:
-                newest, newest_time = stamp, sample.get("time")
-
-        if newest_time and newest_time != cursor_time:
-            self.telemetry_state["last_sample_time"] = newest_time
-            self._save_state()
         return records
+
+    def _persist(self, values: dict, sample: Sample) -> None:
+        if self.storage is None:
+            return
+        self.storage.write_current(self.name, sample.to_dict())
+        merge_history(self.storage, self.name, self._telemetry_records)
+        before = dict(self.telemetry_state)
+        if self._telemetry_records:
+            newest = max(self._telemetry_records, key=lambda row: parse_iso(row['sample_time']))['sample_time']
+            previous = self.telemetry_state.get('last_sample_time')
+            if previous is None or parse_iso(newest) > parse_iso(previous):
+                self.telemetry_state['last_sample_time'] = newest
+        if self._pending_audit_day:
+            self.telemetry_state['audit_day'] = self._pending_audit_day
+        if before != self.telemetry_state:
+            try:
+                self._save_state()
+            except Exception:
+                self.telemetry_state = before
+                raise
 
     def history_targets(self, values: dict, sample: Sample) -> list[tuple[str, dict]]:
         return [(self.name, record) for record in self._telemetry_records]

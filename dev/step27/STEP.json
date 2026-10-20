@@ -1,0 +1,41 @@
+{
+  "step": 27,
+  "classification": "SMALL",
+  "status": "DONE",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner; explicit approval of preceding chat plan",
+    "approved_at": "2026-10-20T17:33:34.601390+02:00"
+  },
+  "gate_b": {
+    "status": "APPROVED",
+    "approved_by": "Independent reviewer /root/release_review; REVIEW.md; fa2fe02",
+    "approved_at": "2026-10-20T17:56:51.393197+02:00"
+  },
+  "gate_c": {
+    "status": "APPROVED",
+    "approved_by": "repository owner; explicit chat deployment approval",
+    "approved_at": "2026-10-20T17:56:51.393197+02:00"
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "Owner-approved separate correction of baseline validation blockers",
+  "branch": "claude/step27-validation-contracts",
+  "pr": "https://github.com/MartinDybalUniwise/Home-Energy-Controller/pull/41",
+  "notes": "Step27 complete; independent review PASS after Step26 audit fix. Owner approved deployment. No production deployment claimed here; release operations remain under Step26.",
+  "requirements": [
+    "REQ-027-001",
+    "REQ-027-002",
+    "REQ-027-003"
+  ],
+  "acceptance": [
+    "AC-027-001",
+    "AC-027-002",
+    "AC-027-003"
+  ],
+  "evidence": [
+    "E-027-001",
+    "E-027-002",
+    "E-027-003"
+  ]
+}

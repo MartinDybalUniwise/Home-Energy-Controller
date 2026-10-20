@@ -197,11 +197,13 @@ def test_tng_history_contains_one_record_per_telemetry_sample(tmp_path, tng_conn
 
 
 def test_tng_telemetry_cursor_prevents_duplicates(tmp_path, tng_connect):
-    reader, _, _ = build_tng(tmp_path, tng_connect)
-    reader.read()
-    reader.read()
+    reader, config, _ = build_tng(tmp_path, tng_connect)
+    from hec.storage.jsonl import JsonlStorage
+    reader.storage = JsonlStorage(config.data_dir, config.history_dir)
+    reader.poll()
+    reader.poll()
 
-    assert reader._telemetry_records == []
+    assert len(reader.storage.last('tng', 10)) == 1
     assert reader.telemetry_state["last_sample_time"] == "2026-08-19T10:51:23Z"
 
 
@@ -254,7 +256,8 @@ def test_tng_post_failure_does_not_discard_already_fetched_telemetry(tmp_path, t
         "Pages/Login": FakeResponse("<html></html>"),
         "api/HeatPumpInsertBasicSettings": FakeResponse("", status_code=500),
     })
-    reader = TngReader(config, session=session, connect=tng_connect)
+    from hec.storage.jsonl import JsonlStorage
+    reader = TngReader(config, storage=JsonlStorage(config.data_dir, config.history_dir), session=session, connect=tng_connect)
 
     sample = reader.poll()
 

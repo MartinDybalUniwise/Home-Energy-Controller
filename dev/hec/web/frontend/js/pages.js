@@ -938,13 +938,12 @@ export async function settings(view, { api, onUiChange }) {
       const field = fields.find((entry) => entry.path === input.dataset.path);
       setAt(payload, input.dataset.path, readInput(input, field));
     });
-    await onUiChange?.(uiUpdate);
     try {
       const result = await api.saveConfig(payload);
+      await onUiChange?.(uiUpdate);
       message.textContent = t('settings.saved')
         + (result.restart_required?.length ? ` · ${t('settings.restart_required')}` : '');
     } catch (error) {
-      await onUiChange?.(uiUpdate);
       message.innerHTML = `<span class="error">${(error.payload?.errors || [t('error.save_failed')]).map(escapeHtml).join('<br>')}</span>`;
     }
   });
@@ -1031,7 +1030,12 @@ function fieldRow(field, value) {
 
 function readInput(input, field) {
   if (input.type === 'checkbox') return input.checked;
-  if (field && (field.kind === 'int' || field.kind === 'float')) return Number(input.value);
+  if (field && (field.kind === 'int' || field.kind === 'float')) {
+    // Null means inherit the configured default, whereas zero is a value
+    // (and is invalid for e.g. per-source freshness overrides).
+    if (input.value.trim() === '' && field.default === null) return null;
+    return Number(input.value);
+  }
   if (field && field.kind === 'enum' && typeof field.default === 'number') return Number(input.value);
   return input.value;
 }
