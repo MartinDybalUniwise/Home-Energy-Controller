@@ -4,7 +4,7 @@
   "status": "IN_PROGRESS",
   "gate_a": {
     "status": "APPROVED",
-    "approved_by": "repository owner; souhlasÃ­m with preceding chat plan",
+    "approved_by": "repository owner; souhlasÃƒÂ­m with preceding chat plan",
     "approved_at": "2026-10-20T17:33:34.601390+02:00"
   },
   "gate_b": {
@@ -19,10 +19,10 @@
   },
   "readiness": "YES",
   "requested_by": "repository owner / maintainer",
-  "source": "Explicit owner approval in chat: souhlasÃ­m",
+  "source": "Explicit owner approval in chat: souhlasÃƒÂ­m",
   "branch": "claude/step27-validation-contracts",
-  "pr": null,
-  "notes": "Implementation and local full validation PASS (354 unit, 41 browser E2E). Independent review and Human Gate pending; no production deployment/restart.",
+  "pr": "https://github.com/MartinDybalUniwise/Home-Energy-Controller/pull/41",
+  "notes": "Implementation commit 3a0cb7825439ff0a7651cf3f205e7f219f61af60; draft PR #41 on Step26. Full local validation PASS; exact code CI Python 3.11/3.12 and SDD full browser validation PASS. Reviewer and Human Gate pending; production unchanged.",
   "requirements": [
     "REQ-027-001",
     "REQ-027-002",
