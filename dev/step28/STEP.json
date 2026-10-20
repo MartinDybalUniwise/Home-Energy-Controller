@@ -1,0 +1,41 @@
+{
+  "step": 28,
+  "classification": "SMALL",
+  "status": "IN_PROGRESS",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner; explicit approval of the narrow correction plan",
+    "approved_at": "2026-10-20T19:27:47.110737+02:00"
+  },
+  "gate_b": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "Owner screenshot and explicit narrow-plan approval in chat",
+  "branch": "claude/step28-tng-history-quality",
+  "pr": null,
+  "notes": "",
+  "requirements": [
+    "REQ-028-001",
+    "REQ-028-002",
+    "REQ-028-003"
+  ],
+  "acceptance": [
+    "AC-028-001",
+    "AC-028-002",
+    "AC-028-003"
+  ],
+  "evidence": [
+    "E-028-001",
+    "E-028-002",
+    "E-028-003"
+  ]
+}

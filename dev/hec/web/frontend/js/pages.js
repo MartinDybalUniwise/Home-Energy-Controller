@@ -1,6 +1,6 @@
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 
-import { renderChart, renderGoodWeHistoryChart, renderTable } from './chart.js?v=3';
+import { renderChart, renderGoodWeHistoryChart, renderTable } from './chart.js?v=4';
 import { renderForecastStory, renderToday } from './advisor.js?v=13';
 import { renderFlow } from './flow.js';
 import { availableLanguages, currentLanguage, dateTime, duration, num, power, t, time, weekday } from './i18n.js';
@@ -578,7 +578,9 @@ export async function history(view, { api, state }) {
       chart.innerHTML = '';
       renderTable(view.querySelector('#table'), payload.rows.map((row) => {
         const copy = { timestamp: row.timestamp };
-        series.forEach(({ field }) => { copy[field] = Number(row[field]) * (field === 'battery_soc' ? 1 : scale); });
+        series.forEach(({ field }) => {
+          copy[field] = row[field] == null ? null : Number(row[field]) * (field === 'battery_soc' ? 1 : scale);
+        });
         return copy;
       }), series.map((entry) => ({
         ...entry,
@@ -587,7 +589,10 @@ export async function history(view, { api, state }) {
     } else {
       view.querySelector('#table').innerHTML = '';
       chart.dataset.emptyText = t('app.no_data');
-      renderChart(chart, { rows: payload.rows, series, unit, scale });
+      renderChart(chart, {
+        rows: payload.rows, series, unit, scale,
+        responsive: state.historySource === 'tng', range: state.historyRange,
+      });
     }
   };
 

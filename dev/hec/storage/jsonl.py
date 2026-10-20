@@ -17,6 +17,7 @@ from pathlib import Path
 
 from ..core.timeutil import day_key, now_local, parse_iso
 from .base import atomic_write_json, read_json
+from .series import history_record
 
 
 class JsonlStorage:
@@ -110,7 +111,7 @@ class JsonlStorage:
                     continue
                 if to is not None and (stamp >= to if end_exclusive else stamp > to):
                     continue
-                out.append(record)
+                out.append(history_record(source, record))
         out.sort(key=lambda r: r.get("timestamp") or "")
         if limit is not None and len(out) > limit:
             out = out[-limit:]
@@ -124,4 +125,4 @@ class JsonlStorage:
             out = records + out
             if len(out) >= count:
                 break
-        return out[-count:]
+        return [history_record(source, record) for record in out[-count:]]

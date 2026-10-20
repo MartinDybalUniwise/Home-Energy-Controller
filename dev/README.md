@@ -60,6 +60,7 @@ Každý `stepNN/` obsahuje minimálně:
 | [`step25/`](step25/) | New step placeholder | 📝 plánováno <!-- status: PLANNED --> |
 | [`step26/`](step26/) | Historie, vykon a verze HEC | ✅ hotovo <!-- status: DONE --> |
 | [`step27/`](step27/) | Oprava vychozich testovych kontraktu | ✅ hotovo <!-- status: DONE --> |
+| [`step28/`](step28/) | TNG history quality and mobile chart correction | IN_PROGRESS <!-- status: IN_PROGRESS --> |
 
 ## Aktuálně připravovaný Step 16
 
