@@ -131,6 +131,25 @@ def test_corrupt_files_cannot_starve_remaining_history(tmp_path):
     assert len(storage.last('sdg_history', 10)) == 1
 
 
+def test_corrupt_file_cannot_starve_audit_of_old_correction(tmp_path):
+    reader, path, storage = sdg(tmp_path)
+    (path.parent / 'a.dbf').write_bytes(b'broken')
+    write_dbf(path, [('2026-10-18 00:00:00', 100, 'OK')])
+    with patch('hec.readers.sdg_history_reader.time.monotonic', return_value=100):
+        reader.import_history()
+    before = path.stat()
+    write_dbf(path, [('2026-10-18 00:00:00', 999, 'OK')])
+    os.utime(path, ns=(before.st_atime_ns, before.st_mtime_ns))
+    # The broken file remains broken through successive cooldowns. Content
+    # checks must still reach the unchanged-metadata file in bounded polls.
+    for clock in (161, 222):
+        with patch('hec.readers.sdg_history_reader.time.monotonic', return_value=clock):
+            reader.import_history()
+    rows = storage.last('sdg_history', 10)
+    assert len(rows) == 1
+    assert rows[0]['values']['power'] == 999
+
+
 def test_legacy_source_correction_is_adopted_without_duplicate(tmp_path):
     reader, path, storage = sdg(tmp_path)
     legacy = {'timestamp': '2026-10-18T00:00:00+00:00', 'source': 'sdg_history',
