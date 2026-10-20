@@ -1,6 +1,6 @@
 # Step26 – ověřený postup nasazení a návratu
 
-Stav: PŘIPRAVENO K DOPRACOVÁNÍ PO BRANÁCH; žádný produkční zásah neproveden.
+Historical initial state: PŘIPRAVENO K DOPRACOVÁNÍ PO BRANÁCH; žádný produkční zásah neproveden.
 
 ## Ověřené skutečnosti
 
@@ -65,3 +65,7 @@ potvrdit verzi 0.1.0, konfiguraci, enabled stavy a jednu instanci. Při druhém 
 neopakovat neřízené restarty; uchovat logy a zálohy pro dohledání příčiny.
 
 Tento dokument není důkaz provedeného nasazení, restartu, Human Gate ani úspěšného rollbacku.
+
+## Approved release execution update
+
+Review and owner deployment approval are recorded in STEP.json and ../step27/REVIEW.md. Step27 resolves the baseline test failures; combined CI is green. Release integration is PR41 -> PR40 -> existing production reconciliation branch, preserving the already deployed control code. Main synchronization remains separate. Actual storage paths were rechecked: production-root/data, history and logs; archive_path is empty. Production PID14532, baseline3f0d9c2, version0.1.0, controller.enabled=false and all config hashes recorded in deployment-preflight.json outside Git. No switch is changed during deployment. released_at remains null until a successful actual production deployment is recorded; the final metadata commit is then validated and tagged. A planned short metadata reload follows validation, after the initial import has completed, preserving all production state. This avoids labeling a preparation time as an actual release time.

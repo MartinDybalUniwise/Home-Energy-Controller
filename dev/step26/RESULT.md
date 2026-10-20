@@ -1,11 +1,12 @@
-# Result – Step26
+# Result - Step26
 
-## Stav
+## Current release readiness
 
-Gate A schválena vlastníkem 20. 10. 2026 16:24 Europe/Prague. Implementace je
-v izolovaném checkoutu C:/TepelneCerpadlo/step26-git. Produkce stále běží z
-C:/TepelneCerpadlo/Home-Energy-Controller na původním kódu 3f0d9c2, verzi 0.1.0.
-Step IN_PROGRESS; review ani Human Gate nejsou vydávány za splněné.
+Independent Gate B and explicit owner deployment approval (Gate C) are recorded at 2026-10-20T16:01:30+00:00. Review of fa2fe02 found no remaining BLOCKER/IMPORTANT after the audit starvation fix 79ac8f2 (21 focused history PASS). Step27 is DONE and merged by PR41 (08c0cc4). Combined CI has unit, Python 3.11/3.12 and real browser full-validation PASS. Candidate 0.1.1 remains explicitly unreleased until actual deployment. Final validation, merge PR40, tag and production deployment verification follow. Production still runs original 3f0d9c2 / 0.1.0.
+
+Integration decision: PR41 -> PR40 -> claude/reconcile-production-20261020. This keeps the production delta limited to the approved fixes. Existing older differences against main are not introduced by this release; main synchronization remains separate and is not claimed.
+
+The sections below retain the initial Step26 evidence before the separately approved Step27 resolved the baseline failures. Initial FAIL/PENDING/unreleased statements are historical, superseded by the current release record and final deployment evidence.
 
 ## Opravy
 

@@ -8,21 +8,21 @@
     "approved_at": "2026-10-20T16:24:14.9424728+02:00"
   },
   "gate_b": {
-    "status": "PENDING",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "Independent reviewer /root/release_review; dev/step27/REVIEW.md; fa2fe02",
+    "approved_at": "2026-10-20T16:01:30+00:00"
   },
   "gate_c": {
-    "status": "PENDING",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "repository owner; explicit chat approval: deployment approved",
+    "approved_at": "2026-10-20T16:01:30+00:00"
   },
   "readiness": "YES",
   "requested_by": "repository owner / maintainer",
   "source": "Owner request 2026-10-20; USER_REQUEST.txt",
   "branch": "claude/step26-history-performance-version",
   "pr": "https://github.com/MartinDybalUniwise/Home-Energy-Controller/pull/40",
-  "notes": "Gate A approved. Code committed/pushed with draft PR #40 against production integration branch. Offline repair, complete DBF replay and repeat verified. Required CI/full_validation FAIL on reproduced baseline unit defects; one baseline browser failure. Review/Human Gate, release/tag and production deployment remain pending.",
+  "notes": "Independent review and explicit owner deployment approval recorded. Step27 merged by PR41. Candidate 0.1.1 ready for final validation; released_at remains null until actual deployment. Release target is existing production reconciliation branch, main synchronization remains separate.",
   "requirements": [
     "REQ-026-001",
     "REQ-026-002",

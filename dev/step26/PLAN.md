@@ -8,13 +8,13 @@ Opravit existující historii a import, odstranit změřenou zbytečnou práci a
 
 | Step | Purpose | Status |
 |---|---|---|
-| S01 | Výchozí důkazy, časové kontrakty a měření | PLANNED |
-| S02 | Korektní TNG/SDG import a obnova po pádu | PLANNED |
-| S03 | Inkrementální I/O, paměť a logování | PLANNED |
-| S04 | Autoritativní verze a changelog | PLANNED |
-| S05 | Servisní oprava na kopii dat | PLANNED |
-| S06 | Regrese, browser E2E, výkon a review | PLANNED |
-| S07 | Human Gate, PR, release a produkce | PLANNED |
+| S01 | Výchozí důkazy, časové kontrakty a měření | PASS |
+| S02 | Korektní TNG/SDG import a obnova po pádu | PASS |
+| S03 | Inkrementální I/O, paměť a logování | PASS |
+| S04 | Autoritativní verze a changelog | PASS |
+| S05 | Servisní oprava na kopii dat | PASS |
+| S06 | Regrese, browser E2E, výkon a review | PASS |
+| S07 | Human Gate, PR, release a produkce | IN_PROGRESS |
 
 ## Detailed implementation strategy
 

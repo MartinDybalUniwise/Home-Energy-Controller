@@ -8,5 +8,5 @@
 | REQ-026-004 | AC-026-004; S05 S07 | Offline backup, apply, repeat, affected summaries | E-026-004: DATA_EVIDENCE.md; production pending | PARTIAL |
 | REQ-026-005 | AC-026-005; S01 S03 S06 | Comparable local measurement | E-026-005: PERFORMANCE.md | PASS |
 | REQ-026-006 | AC-026-006; S04 S06 S07 | Actual browser tests; unreleased manifest | E-026-006: RESULT.md; release pending | PARTIAL |
-| REQ-026-007 | AC-026-007; S06 S07 | Full validation FAIL, review and human pending | E-026-007: RESULT.md; OUT_OF_SCOPE.md | PARTIAL |
+| REQ-026-007 | AC-026-007; S06 S07 | Step27 full validation PASS; independent review and owner deployment approval recorded | E-026-007: RESULT.md; ../step27/REVIEW.md | PASS |
 | REQ-026-008 | AC-026-008; S07 | Git/PR, tag, deploy and rollback | E-026-008: DEPLOYMENT_RUNBOOK.md; draft PR #40; production pending | PARTIAL |
