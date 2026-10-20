@@ -17,3 +17,7 @@ Implementační commit: 3a0cb7825439ff0a7651cf3f205e7f219f61af60. Draft PR #41: 
 Produkční API po implementaci potvrzuje 0.1.0 a původní started_at 2026-10-20T11:58:52.561682+02:00. Gate B/C nejsou tímto CI ani tímto zápisem schváleny.
 
 Opakovaná lokální full_validation na implementačním commitu 3a0cb78 rovněž PASS: 354 unit (200.88 s), 41 browser E2E (85.92 s), Ruff/SDD/repo/runtime PASS. Evidence step27-evidence/validation-final.log a validation-final.json. Při závěrečné evidenci byly upraveny pouze dokumenty Step27; produktový kód od commitu zůstal stejný. Testovací mock procesy zastaveny a tracked mock config obnoven.
+
+## Gate closure
+
+Independent reviewer approved Gate B on combined fa2fe02; REVIEW.md contains the verdict and audit-fix verification. Owner explicitly approved deployment in chat, recorded as Gate C. Step27 is DONE. Earlier PENDING statements above describe the earlier validation stage. Production deployment belongs to Step26 and is not claimed by closing this test/settings correction.
