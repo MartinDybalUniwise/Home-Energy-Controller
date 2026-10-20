@@ -829,6 +829,7 @@
     "pending": "Unreleased",
     "history": "Correct measurement timestamps, history backfill and restart-safe imports.",
     "performance": "Incremental SDG import, compact checkpoints and fewer routine messages.",
-    "versioning": "Application version and changelog with fixed release times."
+    "versioning": "Application version and changelog with fixed release times.",
+    "settings": "Fix saving optional numeric settings and the interface language."
   }
 }

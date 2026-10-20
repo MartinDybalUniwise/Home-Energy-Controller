@@ -1,0 +1,41 @@
+{
+  "step": 27,
+  "classification": "SMALL",
+  "status": "IN_PROGRESS",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner; souhlasÃ­m with preceding chat plan",
+    "approved_at": "2026-10-20T17:33:34.601390+02:00"
+  },
+  "gate_b": {
+    "status": "PENDING",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "PENDING",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "Explicit owner approval in chat: souhlasÃ­m",
+  "branch": "claude/step27-validation-contracts",
+  "pr": null,
+  "notes": "Implementation and local full validation PASS (354 unit, 41 browser E2E). Independent review and Human Gate pending; no production deployment/restart.",
+  "requirements": [
+    "REQ-027-001",
+    "REQ-027-002",
+    "REQ-027-003"
+  ],
+  "acceptance": [
+    "AC-027-001",
+    "AC-027-002",
+    "AC-027-003"
+  ],
+  "evidence": [
+    "E-027-001",
+    "E-027-002",
+    "E-027-003"
+  ]
+}

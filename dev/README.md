@@ -59,6 +59,7 @@ Každý `stepNN/` obsahuje minimálně:
 | [`step25/`](step25/) | Oddělení readerů, telemetrie, analytiky, controllerů a HEC dashboardu – architektura a migrační plán | 📝 plánováno <!-- status: PLANNED --> |
 | [`step25/`](step25/) | New step placeholder | 📝 plánováno <!-- status: PLANNED --> |
 | [`step26/`](step26/) | Historie, výkon a verze HEC | 🚧 implementace, Gate A schválena <!-- status: IN_PROGRESS --> |
+| [`step27/`](step27/) | Oprava výchozích testových kontraktů | 🚧 probíhá <!-- status: IN_PROGRESS --> |
 
 ## Aktuálně připravovaný Step 16
 

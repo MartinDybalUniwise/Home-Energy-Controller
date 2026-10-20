@@ -20,7 +20,14 @@ def set_language_in_settings(page: Page, language: str) -> None:
     page.locator("#more-toggle").click()
     page.locator('#utility-nav a[data-page="settings"]').click()
     page.locator("#f_ui_language").select_option(language)
-    page.locator("#settings-form button[type='submit']").click()
+    # Reload/navigation must wait for persistence, including response errors.
+    with page.expect_response(
+        lambda response: response.url.endswith("/api/config")
+        and response.request.method == "PUT"
+    ) as saved:
+        page.locator("#settings-form button[type='submit']").click()
+    assert saved.value.ok, saved.value.text()
+    assert saved.value.json()["saved"] is True
 
 
 @pytest.mark.parametrize("viewport", [(1920, 1080), (1280, 800), (1024, 768), (390, 844)])
@@ -279,6 +286,7 @@ def test_control_plan_english_catalog(page: Page):
     set_language_in_settings(page, "en")
     expect(page.locator("html")).to_have_attribute("lang", "en")
     page.reload()
+    expect(page.locator("html")).to_have_attribute("lang", "en")
     page.goto("/#/control-plan")
     expect(page.locator(".control-plan-page")).to_contain_text("Control & Plan")
     expect(page.locator(".control-plan-page")).to_contain_text("Heating")
