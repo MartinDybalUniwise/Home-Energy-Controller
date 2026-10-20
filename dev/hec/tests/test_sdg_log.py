@@ -11,6 +11,7 @@ from hec.core.app import Application
 from hec.core.model import Sample
 from hec.core.timeutil import now_local
 from hec.readers.registry import build_readers
+from hec.readers.sdg_history_reader import SDGHistoryReader
 from hec.readers.sdg_log import SdgLogReader, normalize_record
 from hec.storage.jsonl import JsonlStorage
 
@@ -78,7 +79,11 @@ def test_registry_uses_goodwe_sdg_enabled_flag(tmp_path):
     config = make_config(tmp_path)
     readers = build_readers(config, None)
 
-    assert [reader.name for reader in readers] == ["sdg"]
+    assert [reader.name for reader in readers] == ["sdg_history"]
+    assert isinstance(readers[0], SDGHistoryReader)
+
+    config.data["goodwe"]["sdg"]["enabled"] = False
+    assert build_readers(config, None) == []
 
 
 def test_repeated_poll_and_restart_do_not_duplicate_history(tmp_path):
@@ -102,7 +107,7 @@ def test_repeated_poll_and_restart_do_not_duplicate_history(tmp_path):
     assert '"fingerprint"' in state and '"latest"' in state
 
 
-def test_application_prefers_sdg_over_older_fte_sample(tmp_path):
+def test_application_keeps_history_import_separate_from_live_goodwe(tmp_path):
     app = object.__new__(Application)
     app.snapshot = {}
     app._lock = threading.Lock()
@@ -110,20 +115,23 @@ def test_application_prefers_sdg_over_older_fte_sample(tmp_path):
     app.controller = None
     stamp = now_local().replace(microsecond=0)
 
-    app.accept(Sample("sdg", {"pv_w": 100}, stamp))
+    app.accept(Sample("sdg_history", {"imported": 100}, stamp))
     app.accept(Sample("goodwe", {"pv_w": 50}, stamp + timedelta(seconds=5)))
+    # Import completion must never replace the live telemetry used by control.
+    app.accept(Sample("sdg_history", {"imported": 200}, stamp + timedelta(seconds=10)))
 
-    assert app.snapshot["goodwe"]["pv_w"] == 100
-    assert app.snapshot["goodwe"]["telemetry_source"] == "sdg"
+    assert app.snapshot["goodwe"]["pv_w"] == 50
+    assert app.snapshot["sdg_history"]["imported"] == 200
+    assert app.snapshot["goodwe"]["timestamp"] == (stamp + timedelta(seconds=5)).isoformat()
 
 
-def test_application_marks_fte_as_backup_when_sdg_is_enabled(tmp_path):
+def test_application_preserves_goodwe_source_metadata_when_sdg_enabled(tmp_path):
     app = object.__new__(Application)
     app.snapshot = {}
     app._lock = threading.Lock()
     app.config = make_config(tmp_path)
     app.controller = None
-    app.accept(Sample("goodwe", {"pv_w": 50}, now_local()))
+    sample = Sample("goodwe", {"pv_w": 50, "telemetry_source": "fte"}, now_local())
+    app.accept(sample)
 
-    assert app.snapshot["goodwe"]["pv_w"] == 50
-    assert app.snapshot["goodwe"]["telemetry_source"] == "fte_backup"
+    assert app.snapshot["goodwe"] == sample.to_dict()

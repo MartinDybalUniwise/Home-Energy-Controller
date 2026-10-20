@@ -829,6 +829,7 @@
     "pending": "Připravované vydání",
     "history": "Opravy času měření, doplňování historie a bezpečného pokračování importu.",
     "performance": "Inkrementální import SDG, menší checkpoint a omezení zbytečných výpisů.",
-    "versioning": "Číslo verze a přehled změn s časem vydání."
+    "versioning": "Číslo verze a přehled změn s časem vydání.",
+    "settings": "Oprava ukládání volitelných číselných nastavení a jazyka rozhraní."
   }
 }
