@@ -8,12 +8,12 @@
     "approved_at": "2026-10-20T19:27:47.110737+02:00"
   },
   "gate_b": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "release_review; independent agent review",
+    "approved_at": "2026-10-20T20:03:39.616531+02:00"
   },
   "gate_c": {
-    "status": "NOT_REQUESTED",
+    "status": "PENDING",
     "approved_by": null,
     "approved_at": null
   },
@@ -21,8 +21,8 @@
   "requested_by": "repository owner / maintainer",
   "source": "Owner screenshot and explicit narrow-plan approval in chat",
   "branch": "claude/step28-tng-history-quality",
-  "pr": null,
-  "notes": "",
+  "pr": "https://github.com/MartinDybalUniwise/Home-Energy-Controller/pull/42",
+  "notes": "Implementation and independent review PASS. Candidate 0.1.2 unreleased; owner Human Gate and deployment pending. Exact tested code/test head e784f6b.",
   "requirements": [
     "REQ-028-001",
     "REQ-028-002",
