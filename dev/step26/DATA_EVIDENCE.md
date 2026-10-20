@@ -58,3 +58,5 @@ místo values a nejsou měřením. Nově se ukládají pouze do current, nikoli 
 
 Raw data, checkpointy, zálohy, síťové soubory a detailní reporty nejsou v Gitu.
 Před případným produkčním zásahem je nutná nová konzistentní záloha po zastavení HEC.
+
+Úplná zkouška všech 369 stabilně zkopírovaných DBF: 692 319 platných zdrojových měření, 434 nově doplněných, výsledných SDG 1 295 565. 123 řádků bez normalizovatelného času nebylo vloženo; žádné zástupné hodnoty. Celý opakovaný import od prázdného checkpointu v kopii vykázal nula změn měření, následný poll také nula zápisů checkpointu. Detailní CSV po dnech je C:/TepelneCerpadlo/step26-evidence/history-before-after-by-period.csv. Původní nedostupná historická měření mimo aktuální DBF zůstala zachována.

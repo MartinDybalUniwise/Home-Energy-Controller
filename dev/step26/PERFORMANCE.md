@@ -33,10 +33,10 @@ Poškozený nezměněný soubor má 60 s retry backoff, aby neblokoval další s
 
 Výchozí opakovaný běh s procesními I/O čítači: wall 108,90 s, CPU 106,94 s,
 Python peak 80,18 MB, read 34,84 MB, write 33,09 MB, 51 677 write operací.
-Finální nový kód: wall 84,21 s, CPU 82,09 s, Python peak 53,12 MB, read 36,58 MB, write 37,22 MB, 4430 write operací. Podrobnosti v RESULT.md.
+Finální nový kód: wall 72,31 s, CPU 71,56 s, Python peak 108,85 MB, read 60,23 MB, write 37,22 MB, 4430 write operací. Při počáteční migraci se čtou sousední partition, aby staré UTC denní soubory nezpůsobily duplicity přes místní půlnoc. Paměť i read objem tohoto jednorázového backfillu jsou vyšší než původní; nejde o plošné zlepšení. Běžný import po migraci sousední soubory navíc neprochází. Podrobnosti v RESULT.md.
 
 Zápis při větším doplnění nemusí být menší: stabilní identita záznamu/bloku přidává
-pole potřebná pro opravy a bezpečný retry. Dřívější naměřená implementace měla
+pole potřebná pro opravy a bezpečný retry. Finální naměřená implementace měla
 37,22 MB výstupu místo 33,09 MB, ale 4430 write operací místo 51 677. Netvrdí se
 plošné snížení všech I/O. Největší úspora je běžný stav bez přírůstku.
 

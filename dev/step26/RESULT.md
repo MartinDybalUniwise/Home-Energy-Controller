@@ -38,14 +38,13 @@ Druhé spuštění nad totožnými opravenými vstupy: changed_files=[], nula da
 změn času/nastavení/duplicit/souhrnů. Reálný TNG endpoint pro deset ověřených mezer
 >15 minut vrátil prázdné First, včetně odstávky 15.–18. 10.; doplnění není nyní
 z tohoto zdroje dostupné. Nedošlo k odhadům ani dosazení nuly/současných hodnot.
-Celkové přehrání 369 dostupných DBF do kopie a detailní přehled období se dokončují;
-jejich výsledek bude doplněn, než bude práce předána jako ověřený kandidát.
+Celkové přehrání všech 369 dostupných DBF zpracovalo 692 319 platných zdrojových měření a doplnilo 434 nových. SDG po doplnění: 1 295 565 měření. Další úplné přehrání od prázdného testovacího checkpointu a následné opakování: nula dalších změn a nula checkpoint zápisů. 123 zdrojových řádků nemělo normalizovatelný čas, proto nebyly vloženy. Dostupnost SDG nenahrazuje samostatnou GoodWe historii. Kompaktní checkpoint celé kopie: 250 390 B proti původním 94 147 898 B. Přehled podle zdroje a dne: C:/TepelneCerpadlo/step26-evidence/history-before-after-by-period.csv.
 
 ## Výkon
 
 Stejná sada 51 676 měření, dočasné měření mimo Git; podmínky a omezení PERFORMANCE.md.
 Původní instrumentovaný backfill wall 108,90 s / CPU 106,94 s / Python peak 80,18 MB;
-finální kód wall 84,21 s / CPU 82,09 s / peak 53,12 MB. Výstupní bajty při doplnění
+finální kód wall 72,31 s / CPU 71,56 s / peak 108,85 MB. Při počáteční migraci paměť vzrostla 80,18 -> 108,85 MB a čtení 34,84 -> 60,23 MB kvůli kontrole sousedních denních partition; jde o přiznaný jednorázový tradeoff, nikoli ověřené zlepšení paměti backfillu. Výstupní bajty při doplnění
 vzrostly 33,09 -> 37,22 MB kvůli identitám; write operace klesly 51 677 -> 4430.
 Není tvrzeno plošné zlepšení všech I/O ani produkční RSS.
 
@@ -56,8 +55,8 @@ neprovedeno, protože nasazení neproběhlo.
 
 ## Validace
 
-- Cílená historie/TNG/SDG sada: 74 PASS.
-- Celá unit sada finálního kódu: 350 PASS, 3 FAIL (původní test_sdg_log kontrakty),
+- Cílená historie/TNG/SDG sada: 75 PASS.
+- Celá unit sada finálního kódu: 351 PASS, 3 FAIL (původní test_sdg_log kontrakty),
   39 E2E deselected při tomto unit běhu. Tyto tři chyby reprodukovány na 3f0d9c2.
 - Skutečné browser E2E: 38 PASS, 1 FAIL (původní English Control & Plan), 0 skipped.
   Selhání reprodukováno na samostatném původním mock preview :8182.
@@ -71,7 +70,7 @@ neprovedeno, protože nasazení neproběhlo.
 
 ## Brány a produkce
 
-Žádný merge, release tag, skutečný čas vydání, nasazení ani restart zatím neprovedeny.
+Kód commitnut a pushnut: 126cd19c30c5189e407c70f9336b16c58189ebd8. Draft PR https://github.com/MartinDybalUniwise/Home-Energy-Controller/pull/40, základ claude/reconcile-production-20261020. CI na Python 3.11/3.12 a sdd-validation potvrzuje stejné tři původní unit chyby; žádné nové selhání. GitHub konektor tvorbu PR odmítl 403; po výslovném potvrzení přesného repozitáře vlastníkem byl push i draft PR proveden přes existující Git přihlášení. Žádný merge, release tag, skutečný čas vydání, nasazení ani restart zatím neprovedeny.
 Blokace: povinné původní testové chyby, předchozí integrační základ main, review a
 Human Gate. OUT_OF_SCOPE.md zaznamenává nesouvisející problémy bez jejich oprav.
 DEPLOYMENT_RUNBOOK.md obsahuje ověřené cesty, postup zálohy/restartu a návrat.
@@ -83,3 +82,5 @@ oba adresáře s ověřeným manifestem SHA256.
 Řídicí logika TČ/FVE, komfort, rozvrhy, konfigurace a aktivní enabled stavy nebyly
 změněny. Mimo verzi a changelog nepřibyla žádná nová uživatelská funkce. Žádné
 testovací fyzické zápisy do zařízení neproběhly.
+
+Závěrečná čtecí kontrola produkce 20. 10. 2026 17:20 Prague: verze 0.1.0, původní PID 14532, původní start 11:58:52, hlavní controller false, na :8080 jedna poslouchající instance. Živí readery dál sbírají data. Testovací baseline preview :8182 ukončeno; bezpečné mock preview kandidáta :8181 ponecháno k prohlédnutí.

@@ -21,8 +21,8 @@
   "requested_by": "repository owner / maintainer",
   "source": "Owner request 2026-10-20; USER_REQUEST.txt",
   "branch": "claude/step26-history-performance-version",
-  "pr": null,
-  "notes": "Gate A approved. Implementation and offline repair in isolated checkout; full_validation remains FAIL on three reproduced baseline unit defects, browser suite has one reproduced baseline failure. Review/Human Gate and production deployment not performed.",
+  "pr": "https://github.com/MartinDybalUniwise/Home-Energy-Controller/pull/40",
+  "notes": "Gate A approved. Code committed/pushed with draft PR #40 against production integration branch. Offline repair, complete DBF replay and repeat verified. Required CI/full_validation FAIL on reproduced baseline unit defects; one baseline browser failure. Review/Human Gate, release/tag and production deployment remain pending.",
   "requirements": [
     "REQ-026-001",
     "REQ-026-002",
