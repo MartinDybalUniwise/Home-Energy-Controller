@@ -15,6 +15,12 @@ ROWS = [
 ]
 
 
+@pytest.fixture
+def browser_context_args(browser_context_args):
+    # Fixture clock labels are Czech local times, independently of the CI host zone.
+    return {**browser_context_args, "timezone_id": "Europe/Prague"}
+
+
 @pytest.mark.parametrize("viewport", [(390, 844), (1280, 800)])
 @pytest.mark.parametrize("range_value", ["-24h", "-7d", "-30d"])
 def test_tng_history_mobile_dates_touch_gaps_and_table(page, viewport, range_value):
