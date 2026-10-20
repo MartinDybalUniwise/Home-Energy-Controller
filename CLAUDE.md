@@ -14,6 +14,14 @@ jazykové mutace CZ/EN, rozšiřitelnost o další zařízení, nasaditelnost u 
 Běží primárně na Raspberry Pi, vyvíjí se na Windows, ovládá se z prohlížeče
 (desktop, tablet, Android/PWA). Zadání: `HOME_ENERGY_CONTROLLER_DEVELOPMENT_PROMPT.md`.
 
+## Provozní kontext
+
+HEC je soukromý domácí systém jednoho důvěryhodného vlastníka/administrátora,
+ne veřejná/enterprise infrastruktura. Lokální administrátor je trusted;
+neřešíme ochranu proti jeho vědomému obejití aplikační logiky. Bezpečnostní
+pravidla v tomto souboru chrání proti reálným provozním chybám (poškození
+zařízení, ztráta dat, únik secrets), ne proti trusted adminovi.
+
 ## Struktura repozitáře
 
 ```text

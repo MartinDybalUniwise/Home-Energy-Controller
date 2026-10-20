@@ -30,3 +30,9 @@ Step13 is an in-progress LARGE change. The local SDD enforcement implementation 
 - TNG write enabled: false
 - Physical writes: blocked
 - LAN read-only preview: out of scope for Step13
+
+## Closure record
+
+Step13 is `CANCELLED` as a standalone open task and superseded by Step14.
+Step14 records the completed enforcement, security-owner decisions, branch
+protection, and final dogfood evidence without rewriting this historical step.

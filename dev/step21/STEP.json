@@ -1,0 +1,39 @@
+{
+  "step": 21,
+  "classification": "LARGE",
+  "status": "IN_PROGRESS",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner / maintainer",
+    "approved_at": "2026-09-14T19:36:10.6033553+02:00"
+  },
+  "gate_b": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "User request to plan reliable SDG history reading dated 2026-09-14",
+  "branch": null,
+  "pr": null,
+  "notes": "SDG parser/checkpoint implementation complete; History UI/API and read-only runtime validation remain open.",
+  "requirements": [
+    "REQ-021-001", "REQ-021-002", "REQ-021-003", "REQ-021-004",
+    "REQ-021-005", "REQ-021-006", "REQ-021-007"
+  ],
+  "acceptance": [
+    "AC-021-001", "AC-021-002", "AC-021-003", "AC-021-004",
+    "AC-021-005", "AC-021-006", "AC-021-007", "AC-021-008",
+    "AC-021-009", "AC-021-010"
+  ],
+  "evidence": [
+    "E-021-001", "E-021-002", "E-021-003", "E-021-004",
+    "E-021-005", "E-021-006", "E-021-007"
+  ]
+}

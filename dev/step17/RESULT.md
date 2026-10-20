@@ -2,9 +2,9 @@
 
 ## Status
 
-Step17 is `PLANNED` and `readiness=YES`. Gate A is approved because the user
-explicitly requested planning-file completion. This step is ready for future
-work, but it is **not** DONE.
+Step17 is `CANCELLED` as a standalone UI planning task. Its intended redesign
+scope was superseded by the completed Step18, Step19, and Step20 work and their
+human review evidence.
 
 ## Planning-only outcome
 
@@ -42,10 +42,10 @@ work, but it is **not** DONE.
 - `python3 dev/sdd/tools/validate_step.py --phase ready --step dev/step17`:
   PASS (`Validated 1 step directories successfully.`)
 
-## Not done yet
+## Closure record
 
-- Acceptance checkboxes remain unchecked while Step17 stays `PLANNED`.
-- No feature implementation, runtime preview evidence, or hardware evidence is
-  claimed.
-- Any future repo/process or application change still requires separate
-  approval.
+- Step17 planning is closed as superseded; no separate implementation remains.
+- Step18, Step19, and Step20 contain the implemented UI work and human review
+  evidence that replaced this planning-only package.
+- No additional runtime, hardware, or device-write action was performed for
+  this closure.

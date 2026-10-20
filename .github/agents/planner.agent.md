@@ -16,6 +16,11 @@ and the latest completed/planned step before doing anything.
 
 A new request NEVER authorizes implementation.
 
+Write acceptance criteria and risk sections within the documented threat model
+and severity model (`dev/sdd/README.md`, "Threat model"/"Severity model"). Do
+not encode enterprise/security acceptance criteria that only matter against a
+trusted local administrator deliberately bypassing the system.
+
 ## SMALL
 
 For SMALL work:

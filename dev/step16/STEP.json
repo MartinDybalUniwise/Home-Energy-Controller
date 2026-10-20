@@ -1,31 +1,31 @@
 {
   "step": 16,
   "classification": "LARGE",
-  "status": "PLANNED",
+  "status": "DONE",
   "gate_a": {
     "status": "APPROVED",
-    "approved_by": "repository owner",
-    "approved_at": "2026-09-09",
-    "reason": "Design and preparation are approved; implementation remains a future step."
+    "approved_by": "human",
+    "approved_at": "2026-09-13T00:00:00Z",
+    "reason": "Explicit human approval received for the Step16 implementation scope, including the terminal status-output requirement for all reader and writer controllers."
   },
   "gate_b": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null,
-    "reason": "Human preview is not applicable before implementation."
+    "status": "APPROVED",
+    "approved_by": "human",
+    "approved_at": "2026-09-13T23:32:19+02:00",
+    "reason": "Human-confirmed S07 hardware verification completed one supervised idempotent write with successful transaction read-back and gates-off close-down."
   },
   "gate_c": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null,
-    "reason": "Completion review is not applicable before implementation."
+    "status": "APPROVED",
+    "approved_by": "human",
+    "approved_at": "2026-09-13T23:32:19+02:00",
+    "reason": "Explicit completion request accepted the recorded S06/S07 evidence and current HEC threat model; no blocking findings remain."
   },
   "readiness": "YES",
   "requested_by": "repository owner / maintainer",
   "source": "APPROVED_STEP16_GOODWE_DESIGN",
-  "branch": null,
+  "branch": "sdd/step16-goodwe-implementation",
   "pr": null,
-  "notes": "Canonical design only. No GoodWeManager, FTEWriter, SDGHistoryReader, controller enablement, or physical-device writes are implemented or evidenced.",
+  "notes": "Gate A is approved. S01-S05 remain the frozen approved design; S06 implementation and S07 human/hardware verification are complete under the practical household HEC safety model. Cryptographic authorization evidence, production GoodWe optimization rules, and detailed DBF header hardening remain outside Step16.",
   "requirements": [
     "REQ-016-001",
     "REQ-016-002",
@@ -41,7 +41,12 @@
     "AC-016-005",
     "AC-016-006",
     "AC-016-007",
-    "AC-016-008"
+    "AC-016-008",
+    "AC-016-009"
   ],
-  "evidence": []
+  "evidence": [
+    "E-016-VALIDATION",
+    "E-016-SAFETY",
+    "E-016-S07-WRITE-AUDIT"
+  ]
 }

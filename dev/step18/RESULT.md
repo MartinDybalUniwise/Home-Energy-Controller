@@ -56,3 +56,9 @@ Gate A was `APPROVED` by the repository maintainer.
 - TNG writes enabled: false
 - Physical-device writes: blocked
 - Safe mode invariants: preserved
+
+## Completion record
+
+- Gate B: APPROVED by the repository owner / maintainer on 2026-09-14T21:29:43+02:00 after the human touchscreen review.
+- Gate C: APPROVED by the repository owner / maintainer on 2026-09-14T21:29:43+02:00 after review of the recorded evidence.
+- Final status: DONE.

@@ -35,9 +35,14 @@ def changed_steps(base: str, head: str) -> list[Path]:
 
 
 def validation_phase(step_dir: Path) -> str:
-    """Use DONE validation only after a step declares itself complete."""
+    """Validate changed steps at the strictest phase their lifecycle can satisfy."""
     manifest = json.loads((step_dir / "STEP.json").read_text(encoding="utf-8"))
-    return "done" if manifest.get("status") == "DONE" else "ready"
+    status = manifest.get("status")
+    if status == "DONE":
+        return "done"
+    if status == "CANCELLED":
+        return "structural"
+    return "ready"
 
 
 def validate_step(step_dir: Path) -> None:

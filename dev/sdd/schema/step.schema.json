@@ -8,7 +8,7 @@
   "properties": {
     "step": { "type": "integer", "minimum": 1 },
     "classification": { "type": "string", "enum": ["SMALL", "LARGE"] },
-    "status": { "type": "string", "enum": ["PLANNED", "IN_PROGRESS", "DONE", "BLOCKED"] },
+    "status": { "type": "string", "enum": ["PLANNED", "IN_PROGRESS", "DONE", "BLOCKED", "CANCELLED"] },
     "gate_a": { "$ref": "#/$defs/gate" },
     "gate_b": { "$ref": "#/$defs/gate" },
     "gate_c": { "$ref": "#/$defs/gate" },

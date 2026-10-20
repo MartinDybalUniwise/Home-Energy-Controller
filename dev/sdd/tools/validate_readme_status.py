@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 README = ROOT / "dev" / "README.md"
 ROW_PATTERN = re.compile(r"^\|.*\[`(step\d+)/`\].*$", re.MULTILINE)
-STATUS_PATTERN = re.compile(r"<!--\s*status:\s*(PLANNED|IN_PROGRESS|DONE|BLOCKED)\s*-->")
+STATUS_PATTERN = re.compile(r"<!--\s*status:\s*(PLANNED|IN_PROGRESS|DONE|BLOCKED|CANCELLED)\s*-->")
 
 
 def validate() -> list[str]:

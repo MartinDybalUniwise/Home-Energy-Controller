@@ -1,0 +1,67 @@
+{
+  "step": 24,
+  "classification": "LARGE",
+  "status": "DONE",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner / maintainer",
+    "approved_at": "2026-09-15T19:54:43.6684614+02:00"
+  },
+  "gate_b": {
+    "status": "APPROVED",
+    "approved_by": "GitHub Copilot reviewer",
+    "approved_at": "2026-09-15T20:45:00+02:00"
+  },
+  "gate_c": {
+    "status": "APPROVED",
+    "approved_by": "repository owner / maintainer",
+    "approved_at": "2026-09-15T20:45:00+02:00"
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "User request on 2026-09-15: simplify GoodWe authorization in Config UI with status, verify button, Autorizuji button, and remove HEC_GOODWE_PHYSICAL_IO from normal product flow.",
+  "branch": "step24-odstranění-kontrol",
+  "pr": null,
+  "notes": "Gate A approved by explicit user message 'schvaluji' on 2026-09-15. Step24 implementation and automated validation are complete. Reviewer Gate approved after safety review; Human Gate approved by owner after confirming the UI flow works. No runtime configuration, root prototype, or physical device state was changed.",
+  "requirements": [
+    "REQ-024-001",
+    "REQ-024-002",
+    "REQ-024-003",
+    "REQ-024-004",
+    "REQ-024-005",
+    "REQ-024-006",
+    "REQ-024-007",
+    "REQ-024-008",
+    "REQ-024-009",
+    "REQ-024-010"
+  ],
+  "acceptance": [
+    "AC-024-001",
+    "AC-024-002",
+    "AC-024-003",
+    "AC-024-004",
+    "AC-024-005",
+    "AC-024-006",
+    "AC-024-007",
+    "AC-024-008",
+    "AC-024-009",
+    "AC-024-010",
+    "AC-024-011",
+    "AC-024-012",
+    "AC-024-013",
+    "AC-024-014",
+    "AC-024-015"
+  ],
+  "evidence": [
+    "E-024-001",
+    "E-024-002",
+    "E-024-003",
+    "E-024-004",
+    "E-024-005",
+    "E-024-006",
+    "E-024-007",
+    "E-024-008",
+    "E-024-009",
+    "E-024-010"
+  ]
+}

@@ -21,25 +21,31 @@
     "backups": 5
   },
   "polling": {
-    "goodwe_seconds": 10,
     "tng_seconds": 300,
     "shelly_seconds": 10,
     "weather_minutes": 15,
     "ote_minutes": 240,
     "sharing_hours": 24,
-    "finance_document_reader_seconds": 3600
+    "finance_document_reader_seconds": 3600,
+    "goodwe_seconds": 10
   },
   "goodwe": {
     "enabled": false,
-    "host": "${HEC_GOODWE_HOST}",
+    "writer_enabled": false,
+    "verify_after_write": true,
+    "read_interval_seconds": 10,
+    "host": "192.168.2.116",
     "family": "ET",
-    "timeout": 2,
-    "retries": 3,
+    "timeout_seconds": 3,
+    "retry_count": 3,
     "grid_positive_is_import": true,
     "battery_positive_is_charge": true,
     "sdg": {
+      "enabled": false,
       "log_root_path": "\\\\192.168.2.115\\Promotic"
-    }
+    },
+    "timeout": 2,
+    "retries": 3
   },
   "tng": {
     "enabled": false,

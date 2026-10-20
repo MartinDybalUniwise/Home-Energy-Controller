@@ -41,7 +41,7 @@ def _validate_schema(manifest: object) -> list[str]:
         errors.append("STEP.json step must be a positive integer")
     if manifest.get("classification") not in {"SMALL", "LARGE"}:
         errors.append("STEP.json classification is invalid")
-    if manifest.get("status") not in {"PLANNED", "IN_PROGRESS", "DONE", "BLOCKED"}:
+    if manifest.get("status") not in {"PLANNED", "IN_PROGRESS", "DONE", "BLOCKED", "CANCELLED"}:
         errors.append("STEP.json status is invalid")
     if manifest.get("readiness") not in {"YES", "NO"}:
         errors.append("STEP.json readiness is invalid")
@@ -123,6 +123,9 @@ def _phase_errors(step_dir: Path, manifest: dict, phase: str) -> list[str]:
         errors.append("planning ID lists must not be empty")
     errors.extend(_traceability_errors(step_dir, phase=phase, manifest=manifest))
     if phase == "ready":
+        return errors
+    if manifest["status"] == "CANCELLED":
+        errors.append("status is CANCELLED and cannot validate as DONE")
         return errors
     if manifest["status"] != "DONE":
         errors.append("status is not DONE")

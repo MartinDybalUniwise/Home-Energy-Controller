@@ -2,7 +2,7 @@
 
 ## Status vocabulary
 
-`PLANNED`, `IN_PROGRESS`, `DONE`, `BLOCKED`.
+`PLANNED`, `IN_PROGRESS`, `DONE`, `BLOCKED`, `CANCELLED`.
 
 ## Goal
 
