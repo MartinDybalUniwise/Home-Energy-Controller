@@ -54,13 +54,14 @@ Každý `stepNN/` obsahuje minimálně:
 | [`step01/PROJECT_STRUCTURE.md`](step01/PROJECT_STRUCTURE.md) | Kompletní adresářová struktura se seznamem skriptů a % dokončení |
 | [`step01/UI_DESIGN.md`](step01/UI_DESIGN.md) | Vizuální jazyk webu podle televizní meteo grafiky, design tokeny, ověřená paleta grafů |
 | [`step01/I18N.md`](step01/I18N.md) | Jazykové mutace CZ/EN a postup přidání dalšího jazyka |
-| [`step23/`](step23/) | New step placeholder | 🚧 implementace probíhá <!-- status: IN_PROGRESS --> |
+| [`step23/`](step23/) | Truthful energy flow, meter quality and mobile readability | 🚧 implementace probíhá <!-- status: IN_PROGRESS --> |
 | [`step24/`](step24/) | GoodWe autorizace v Config UI a odstranění `HEC_GOODWE_PHYSICAL_IO` z běžného produktového flow | ✅ hotovo <!-- status: DONE --> |
 | [`step25/`](step25/) | Oddělení readerů, telemetrie, analytiky, controllerů a HEC dashboardu – architektura a migrační plán | 📝 plánováno <!-- status: PLANNED --> |
-| [`step25/`](step25/) | New step placeholder | 📝 plánováno <!-- status: PLANNED --> |
+| [`step25/`](step25/) | Truthful energy flow, meter quality and mobile readability | 📝 plánováno <!-- status: PLANNED --> |
 | [`step26/`](step26/) | Historie, vykon a verze HEC | ✅ hotovo <!-- status: DONE --> |
 | [`step27/`](step27/) | Oprava vychozich testovych kontraktu | ✅ hotovo <!-- status: DONE --> |
 | [`step28/`](step28/) | TNG history quality and mobile chart correction | DONE <!-- status: DONE --> |
+| [`step29/`](step29/) | Truthful energy flow, meter quality and mobile readability | 🔧 probíhá <!-- status: IN_PROGRESS --> |
 
 ## Aktuálně připravovaný Step 16
 

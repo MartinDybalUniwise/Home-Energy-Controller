@@ -8,7 +8,10 @@ from __future__ import annotations
 
 import requests
 
+from ..analysis.power_quality import meter_quality
 from ..core.model import Sample
+from ..core.timeutil import now_local, to_iso
+from ..storage.series import numeric
 from .base import BaseReader, slug
 
 
@@ -97,6 +100,7 @@ class ShellyReader(BaseReader):
     def read(self) -> dict:
         devices: dict[str, dict] = {}
         errors: dict[str, str] = {}
+        device_status = {}
         for device in self.devices():
             key = slug(device.get("name") or device.get("host"))
             try:
@@ -104,27 +108,41 @@ class ShellyReader(BaseReader):
             except Exception as exc:                          # noqa: BLE001
                 # Nedostupná zásuvka nesmí zneplatnit měření ostatních.
                 errors[key] = f"{type(exc).__name__}: {exc}"
+                device_status[key] = {"name": device.get("name", key),
+                                      "role": device.get("role", "appliance"),
+                                      "appliance_type": device.get("appliance_type", "other"),
+                                      "quality": "offline", "timestamp": to_iso(now_local())}
                 continue
             values["role"] = device.get("role", "appliance")
             values["appliance_type"] = device.get("appliance_type", "other")
             values["name"] = device.get("name", key)
+            values["measurement_quality"] = meter_quality(values)
+            device_status[key] = {"name": values["name"], "role": values["role"],
+                                  "appliance_type": values["appliance_type"],
+                                  "quality": values["measurement_quality"],
+                                  "timestamp": to_iso(now_local())}
             devices[key] = values
-
-        if not devices and errors:
-            raise RuntimeError("; ".join(f"{k}: {v}" for k, v in errors.items()))
 
         heatpump_devices = [v for v in devices.values() if v.get("role") == "heatpump_meter"]
         total = sum(float(v.get("power_w") or 0) for v in devices.values()
                     if v.get("role") != "heatpump_meter")
         # Bez nakonfigurovaného Pro 3EM na TČ je hodnota "neměřeno", ne "0 W" –
         # jinak by UI hlásilo naměřenou nulu u zařízení, které vůbec nesleduje.
-        heatpump = (sum(float(v.get("power_w") or 0) for v in heatpump_devices)
-                    if heatpump_devices else None)
+        heatpump_values = [numeric(v.get("power_w")) for v in heatpump_devices]
+        heatpump = (sum(heatpump_values) if heatpump_values
+                    and all(v is not None for v in heatpump_values) else None)
+        heatpump_states = [d["quality"] for d in device_status.values()
+                           if d["role"] == "heatpump_meter"]
+        heatpump_quality = next((s for s in heatpump_states if s != "valid"),
+                                "valid" if heatpump_states else "missing")
         return {
+            "online": bool(devices) if errors else True,
             "devices": devices,
+            "device_status": device_status,
             "errors": errors or None,
             "appliances_power_w": round(total, 1),
             "heatpump_power_w": round(heatpump, 1) if heatpump is not None else None,
+            "heatpump_quality": heatpump_quality,
         }
 
     def history_targets(self, values: dict, sample: Sample) -> list[tuple[str, dict]]:
@@ -135,6 +153,7 @@ class ShellyReader(BaseReader):
             "source": self.name,
             "appliances_power_w": values.get("appliances_power_w"),
             "heatpump_power_w": values.get("heatpump_power_w"),
+            "heatpump_quality": values.get("heatpump_quality"),
         })]
         for key, device in (values.get("devices") or {}).items():
             record = {"timestamp": stamp, "source": f"shelly_{key}"}

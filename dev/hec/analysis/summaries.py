@@ -12,6 +12,7 @@ from ..core.logging_setup import get_logger
 from ..core.timeutil import now_local, to_iso
 from ..storage.base import read_json
 from ..storage.series import downsample, integrate_kwh, numeric
+from .power_quality import consumption_report
 
 QUARTER = 900
 BASE_TEMPERATURE_C = 18.0     # referenční teplota pro denostupně
@@ -74,7 +75,11 @@ class Summaries:
         grid_export = integrate_kwh(goodwe, "grid_export_w")
         charge = integrate_kwh(goodwe, "battery_charge_w")
         discharge = integrate_kwh(goodwe, "battery_discharge_w")
-        heatpump = integrate_kwh(shelly, "heatpump_power_w")
+        heatpump_report = consumption_report(shelly, "heatpump_power_w", "heatpump_quality")
+        heatpump_report["coverage_pct"] = round(heatpump_report["covered_seconds"] / (end - start).total_seconds() * 100, 1)
+        if heatpump_report["quality"] == "valid" and heatpump_report["coverage_pct"] < 95:
+            heatpump_report["quality"] = "partial"
+        heatpump = heatpump_report["energy_kwh"]
         appliances = integrate_kwh(shelly, "appliances_power_w")
 
         # Venkovní teplota a denostupně: podklad pro odhad potřeby tepla.
@@ -101,6 +106,7 @@ class Summaries:
             "battery_charge_kwh": charge,
             "battery_discharge_kwh": discharge,
             "heatpump_kwh": heatpump,
+            "heatpump_quality": heatpump_report,
             "appliances_kwh": appliances,
             "mean_outside_c": mean_outside,
             "degree_days": degree_days,
@@ -139,5 +145,8 @@ class Summaries:
         by_date: dict[str, dict] = {}
         for entry in self.storage.query(self.source, start, now_local() + timedelta(days=1)):
             if entry.get("date"):
+                if numeric(entry.get("heatpump_kwh")) is not None and entry["heatpump_kwh"] < 0:
+                    entry = {**entry, "heatpump_kwh": None,
+                             "heatpump_quality": {"quality": "unavailable", "method": "legacy-invalid"}}
                 by_date[entry["date"]] = entry
         return [by_date[key] for key in sorted(by_date)]

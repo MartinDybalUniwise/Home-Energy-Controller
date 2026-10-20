@@ -211,7 +211,7 @@
   },
   "flow": {
     "eyebrow": "Live system",
-    "title": "Energy flow at home",
+    "title": "Energy flow",
     "grid_export": "The home is exporting energy to the grid.",
     "grid_import": "The home is importing energy from the grid.",
     "grid_balanced": "Grid flow is balanced right now.",
@@ -219,7 +219,26 @@
     "discharging": "The battery is covering part of the load.",
     "idle": "The battery has no material flow.",
     "heating_active": "Heating is active.",
-    "heating_idle": "Heating is currently off."
+    "heating_idle": "Heating is currently off.",
+    "running_estimate": "Power suggests operation · estimate",
+    "low_power": "Low electrical input · operation unconfirmed",
+    "heating_enabled": "Heating enabled in TNG",
+    "heating_disabled": "Heating disabled in TNG",
+    "reserve": "SOC reserve",
+    "inverter_mode": "Inverter mode",
+    "possible_reserve_charge": "Possible maintenance charging below the SOC reserve. The inverter has not confirmed the reason.",
+    "battery_reason_unknown": "The inverter does not report the reason for battery flow.",
+    "grid_unknown": "Grid flow is not measured.",
+    "to_house": "PV → house",
+    "consumption": "Electrical consumption",
+    "balanced_short": "No significant flow",
+    "forecast_table_note": "Forecast: irradiation and price at the shown time. A dash means missing input.",
+    "report_unavailable": "Report unavailable or measurement invalid.",
+    "report_coverage": "Measurement coverage",
+    "invalid_samples": "Invalid samples",
+    "summary_pending": "Daily summaries are not available yet. Recent days cannot be evaluated from this overview.",
+    "devices": "Appliances · electrical input",
+    "device_checked": "Checked: {time}"
   },
   "history": {
     "title": "History",
@@ -252,43 +271,152 @@
     "goodwe_unknown_explanation": "Technical GoodWe field “{field}”. The device provides no known metadata or physical unit; its value is shown unchanged.",
     "goodwe_chart_label": "GoodWe history with a shared time axis",
     "goodwe_metrics": {
-      "house_w": { "label": "House load", "explanation": "Instantaneous electrical demand of the home without appliance-level separation." },
-      "grid_import_w": { "label": "Grid import", "explanation": "Instantaneous power drawn from the distribution grid, always shown as a non-negative value." },
-      "grid_export_w": { "label": "Grid export", "explanation": "Instantaneous power delivered to the distribution grid, always shown as a non-negative value." },
-      "battery_soc": { "label": "Battery charge", "explanation": "Estimated battery state of charge as a percentage of usable capacity." },
-      "pv_w": { "label": "Total PV production", "explanation": "Combined instantaneous power from the inverter's photovoltaic inputs." },
-      "pv1_w": { "label": "PV input 1 production", "explanation": "Instantaneous power from the inverter's first photovoltaic input." },
-      "pv2_w": { "label": "PV input 2 production", "explanation": "Instantaneous power from the inverter's second photovoltaic input." },
-      "grid_w": { "label": "Signed grid power", "explanation": "Raw bidirectional meter power. The sign direction depends on the installation setting." },
-      "battery_w": { "label": "Signed battery power", "explanation": "Raw bidirectional battery power. The sign direction depends on the installation setting." },
-      "battery_charge_w": { "label": "Battery charging", "explanation": "Instantaneous power flowing into the battery, converted to a non-negative value." },
-      "battery_discharge_w": { "label": "Battery discharging", "explanation": "Instantaneous power flowing out of the battery, converted to a non-negative value." },
-      "l1_w": { "label": "L1 phase power", "explanation": "Instantaneous active power on the first grid phase." },
-      "l2_w": { "label": "L2 phase power", "explanation": "Instantaneous active power on the second grid phase." },
-      "l3_w": { "label": "L3 phase power", "explanation": "Instantaneous active power on the third grid phase." },
-      "phase_imbalance_w": { "label": "Phase imbalance", "explanation": "Difference between the highest and lowest instantaneous power across phases L1 to L3." },
-      "battery_soh": { "label": "Battery health", "explanation": "Estimated remaining battery capacity relative to its capacity when new." },
-      "battery_v": { "label": "Battery voltage", "explanation": "DC voltage of the battery pack measured by the inverter." },
-      "l1_v": { "label": "L1 phase voltage", "explanation": "RMS voltage of the first grid phase." },
-      "l2_v": { "label": "L2 phase voltage", "explanation": "RMS voltage of the second grid phase." },
-      "l3_v": { "label": "L3 phase voltage", "explanation": "RMS voltage of the third grid phase." },
-      "battery_a": { "label": "Battery current", "explanation": "Instantaneous DC battery current using the inverter's sign convention." },
-      "battery_charge_limit_a": { "label": "Charge current limit", "explanation": "Current maximum charging current allowed by the battery system." },
-      "battery_discharge_limit_a": { "label": "Discharge current limit", "explanation": "Current maximum discharging current allowed by the battery system." },
-      "charge_current_limit_a": { "label": "Charge current limit", "explanation": "Current maximum charging current reported by a compatible GoodWe source." },
-      "discharge_current_limit_a": { "label": "Discharge current limit", "explanation": "Current maximum discharging current reported by a compatible GoodWe source." },
-      "l1_a": { "label": "L1 phase current", "explanation": "RMS current of the first grid phase." },
-      "l2_a": { "label": "L2 phase current", "explanation": "RMS current of the second grid phase." },
-      "l3_a": { "label": "L3 phase current", "explanation": "RMS current of the third grid phase." },
-      "battery_temp_c": { "label": "Battery temperature", "explanation": "Battery-system temperature reported by the inverter." },
-      "temperature_c": { "label": "Inverter temperature", "explanation": "Inverter operating temperature reported by a compatible interface." },
-      "inverter_temp_c": { "label": "Inverter temperature", "explanation": "Internal operating temperature of the inverter power electronics." },
-      "e_day_kwh": { "label": "PV production today", "explanation": "Photovoltaic energy produced since the start of the current day." },
-      "e_load_day_kwh": { "label": "House consumption today", "explanation": "Energy consumed by the home since the start of the current day." },
-      "e_import_day_kwh": { "label": "Grid import today", "explanation": "Energy imported from the distribution grid since the start of the current day." },
-      "e_export_day_kwh": { "label": "Grid export today", "explanation": "Energy exported to the distribution grid since the start of the current day." },
-      "grid_frequency_hz": { "label": "Grid frequency", "explanation": "Instantaneous AC distribution-grid frequency measured by the inverter." }
-    }
+      "house_w": {
+        "label": "House load",
+        "explanation": "Instantaneous electrical demand of the home without appliance-level separation."
+      },
+      "grid_import_w": {
+        "label": "Grid import",
+        "explanation": "Instantaneous power drawn from the distribution grid, always shown as a non-negative value."
+      },
+      "grid_export_w": {
+        "label": "Grid export",
+        "explanation": "Instantaneous power delivered to the distribution grid, always shown as a non-negative value."
+      },
+      "battery_soc": {
+        "label": "Battery charge",
+        "explanation": "Estimated battery state of charge as a percentage of usable capacity."
+      },
+      "pv_w": {
+        "label": "Total PV production",
+        "explanation": "Combined instantaneous power from the inverter's photovoltaic inputs."
+      },
+      "pv1_w": {
+        "label": "PV input 1 production",
+        "explanation": "Instantaneous power from the inverter's first photovoltaic input."
+      },
+      "pv2_w": {
+        "label": "PV input 2 production",
+        "explanation": "Instantaneous power from the inverter's second photovoltaic input."
+      },
+      "grid_w": {
+        "label": "Signed grid power",
+        "explanation": "Raw bidirectional meter power. The sign direction depends on the installation setting."
+      },
+      "battery_w": {
+        "label": "Signed battery power",
+        "explanation": "Raw bidirectional battery power. The sign direction depends on the installation setting."
+      },
+      "battery_charge_w": {
+        "label": "Battery charging",
+        "explanation": "Instantaneous power flowing into the battery, converted to a non-negative value."
+      },
+      "battery_discharge_w": {
+        "label": "Battery discharging",
+        "explanation": "Instantaneous power flowing out of the battery, converted to a non-negative value."
+      },
+      "l1_w": {
+        "label": "L1 phase power",
+        "explanation": "Instantaneous active power on the first grid phase."
+      },
+      "l2_w": {
+        "label": "L2 phase power",
+        "explanation": "Instantaneous active power on the second grid phase."
+      },
+      "l3_w": {
+        "label": "L3 phase power",
+        "explanation": "Instantaneous active power on the third grid phase."
+      },
+      "phase_imbalance_w": {
+        "label": "Phase imbalance",
+        "explanation": "Difference between the highest and lowest instantaneous power across phases L1 to L3."
+      },
+      "battery_soh": {
+        "label": "Battery health",
+        "explanation": "Estimated remaining battery capacity relative to its capacity when new."
+      },
+      "battery_v": {
+        "label": "Battery voltage",
+        "explanation": "DC voltage of the battery pack measured by the inverter."
+      },
+      "l1_v": {
+        "label": "L1 phase voltage",
+        "explanation": "RMS voltage of the first grid phase."
+      },
+      "l2_v": {
+        "label": "L2 phase voltage",
+        "explanation": "RMS voltage of the second grid phase."
+      },
+      "l3_v": {
+        "label": "L3 phase voltage",
+        "explanation": "RMS voltage of the third grid phase."
+      },
+      "battery_a": {
+        "label": "Battery current",
+        "explanation": "Instantaneous DC battery current using the inverter's sign convention."
+      },
+      "battery_charge_limit_a": {
+        "label": "Charge current limit",
+        "explanation": "Current maximum charging current allowed by the battery system."
+      },
+      "battery_discharge_limit_a": {
+        "label": "Discharge current limit",
+        "explanation": "Current maximum discharging current allowed by the battery system."
+      },
+      "charge_current_limit_a": {
+        "label": "Charge current limit",
+        "explanation": "Current maximum charging current reported by a compatible GoodWe source."
+      },
+      "discharge_current_limit_a": {
+        "label": "Discharge current limit",
+        "explanation": "Current maximum discharging current reported by a compatible GoodWe source."
+      },
+      "l1_a": {
+        "label": "L1 phase current",
+        "explanation": "RMS current of the first grid phase."
+      },
+      "l2_a": {
+        "label": "L2 phase current",
+        "explanation": "RMS current of the second grid phase."
+      },
+      "l3_a": {
+        "label": "L3 phase current",
+        "explanation": "RMS current of the third grid phase."
+      },
+      "battery_temp_c": {
+        "label": "Battery temperature",
+        "explanation": "Battery-system temperature reported by the inverter."
+      },
+      "temperature_c": {
+        "label": "Inverter temperature",
+        "explanation": "Inverter operating temperature reported by a compatible interface."
+      },
+      "inverter_temp_c": {
+        "label": "Inverter temperature",
+        "explanation": "Internal operating temperature of the inverter power electronics."
+      },
+      "e_day_kwh": {
+        "label": "PV production today",
+        "explanation": "Photovoltaic energy produced since the start of the current day."
+      },
+      "e_load_day_kwh": {
+        "label": "House consumption today",
+        "explanation": "Energy consumed by the home since the start of the current day."
+      },
+      "e_import_day_kwh": {
+        "label": "Grid import today",
+        "explanation": "Energy imported from the distribution grid since the start of the current day."
+      },
+      "e_export_day_kwh": {
+        "label": "Grid export today",
+        "explanation": "Energy exported to the distribution grid since the start of the current day."
+      },
+      "grid_frequency_hz": {
+        "label": "Grid frequency",
+        "explanation": "Instantaneous AC distribution-grid frequency measured by the inverter."
+      }
+    },
+    "time": "Time"
   },
   "prediction": {
     "title": "Forecast",
@@ -675,7 +803,7 @@
     "unknown": "No data",
     "daily_energy": "Energy balance today",
     "source_label": "Source",
-      "historical": "Historical daily balance",
+    "historical": "Historical daily balance",
     "production": "Production",
     "house_load": "House load",
     "no_daily_energy": "Daily production, import, and export counters are unavailable",
@@ -783,7 +911,7 @@
     "recommendations": "Recommendations",
     "phases_unavailable": "The inverter does not expose per-phase values",
     "phase_imbalance": "Phase {high} peaks at {high_kw} kW while {low} stays at {low_kw} kW. Consider moving some circuits.",
-    "heatpump_energy": "Heat pump consumption",
+    "heatpump_energy": "Heat pump energy in covered intervals",
     "run_hours": "Run time",
     "kwh_per_degree_day": "Consumption per degree-day",
     "not_measured": "The heat pump is not metered separately yet"
@@ -832,5 +960,15 @@
     "performance": "Incremental SDG import, compact checkpoints and fewer routine messages.",
     "versioning": "Application version and changelog with fixed release times.",
     "settings": "Fix saving optional numeric settings and the interface language."
+  },
+  "meter": {
+    "valid": "Measured electrical input",
+    "negative": "Measurement issue: negative consumption",
+    "phase": "Phase measurement issue",
+    "missing": "Not measured",
+    "offline": "Device unavailable",
+    "residual": "Calculated remainder",
+    "incomplete": "Cannot calculate: incomplete measurements",
+    "stale": "Outdated measurement"
   }
 }

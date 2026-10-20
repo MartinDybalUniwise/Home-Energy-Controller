@@ -1,0 +1,47 @@
+{
+  "step": 29,
+  "classification": "LARGE",
+  "status": "IN_PROGRESS",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner: Schvaluji opravy after diagnostic plan and mobile layout proposal",
+    "approved_at": "2026-10-21T00:32:18.568108+02:00"
+  },
+  "gate_b": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "Owner midnight diagnostic report and mobile readability proposal; explicit Schvaluji opravy in chat",
+  "branch": "claude/step29-truthful-energy-flow",
+  "pr": null,
+  "notes": "Approval of concrete diagnostic plan preceded implementation. Recorded without requesting duplicate consent; production deployment is a later Human Gate.",
+  "requirements": [
+    "REQ-029-001",
+    "REQ-029-002",
+    "REQ-029-003",
+    "REQ-029-004",
+    "REQ-029-005"
+  ],
+  "acceptance": [
+    "AC-029-001",
+    "AC-029-002",
+    "AC-029-003",
+    "AC-029-004",
+    "AC-029-005"
+  ],
+  "evidence": [
+    "E-029-001",
+    "E-029-002",
+    "E-029-003",
+    "E-029-004",
+    "E-029-005"
+  ]
+}

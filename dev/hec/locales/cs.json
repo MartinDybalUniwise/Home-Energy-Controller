@@ -211,7 +211,7 @@
   },
   "flow": {
     "eyebrow": "Živý systém",
-    "title": "Tok energie v domě",
+    "title": "Tok energie",
     "grid_export": "Dům právě dodává energii do sítě.",
     "grid_import": "Dům právě odebírá energii ze sítě.",
     "grid_balanced": "Tok se sítí je nyní vyrovnaný.",
@@ -219,7 +219,26 @@
     "discharging": "Baterie pokrývá část spotřeby.",
     "idle": "Baterie je bez významného toku.",
     "heating_active": "Topení je aktivní.",
-    "heating_idle": "Topení je nyní vypnuté."
+    "heating_idle": "Topení je nyní vypnuté.",
+    "running_estimate": "Příkon odpovídá běhu · odhad",
+    "low_power": "Nízký příkon · běh nepotvrzen",
+    "heating_enabled": "Topení povoleno v TNG",
+    "heating_disabled": "Topení zakázáno v TNG",
+    "reserve": "Rezerva SOC",
+    "inverter_mode": "Režim měniče",
+    "possible_reserve_charge": "Možné udržovací nabíjení pod rezervou SOC. Důvod měnič nepotvrdil.",
+    "battery_reason_unknown": "Důvod toku baterie měnič neuvádí.",
+    "grid_unknown": "Tok sítě není změřen.",
+    "to_house": "FVE → dům",
+    "consumption": "Elektrická spotřeba",
+    "balanced_short": "Bez výrazného toku",
+    "forecast_table_note": "Předpověď: ozáření a cena pro uvedený čas. Pomlčka znamená chybějící podklad.",
+    "report_unavailable": "Report není dostupný nebo měření není platné.",
+    "report_coverage": "Pokrytí měřením",
+    "invalid_samples": "Neplatné vzorky",
+    "summary_pending": "Denní bilance zatím není k dispozici. Z tohoto přehledu nelze hodnotit poslední dny.",
+    "devices": "Spotřebiče · elektrický příkon",
+    "device_checked": "Kontrola: {time}"
   },
   "history": {
     "title": "Historie",
@@ -252,43 +271,152 @@
     "goodwe_unknown_explanation": "Technické pole GoodWe „{field}“. Zařízení neposkytuje známá metadata ani fyzickou jednotku; hodnota se zobrazuje beze změny.",
     "goodwe_chart_label": "Historie GoodWe se společnou časovou osou",
     "goodwe_metrics": {
-      "house_w": { "label": "Spotřeba domu", "explanation": "Okamžitý elektrický příkon domu bez rozlišení jednotlivých spotřebičů." },
-      "grid_import_w": { "label": "Odběr ze sítě", "explanation": "Okamžitý výkon odebíraný z distribuční sítě; vždy je zobrazen jako nezáporná hodnota." },
-      "grid_export_w": { "label": "Dodávka do sítě", "explanation": "Okamžitý výkon dodávaný do distribuční sítě; vždy je zobrazen jako nezáporná hodnota." },
-      "battery_soc": { "label": "Nabití baterie", "explanation": "Odhadovaný stav nabití baterie v procentech její využitelné kapacity." },
-      "pv_w": { "label": "Výroba FVE celkem", "explanation": "Celkový okamžitý výkon fotovoltaických vstupů měniče." },
-      "pv1_w": { "label": "Výroba FVE vstup 1", "explanation": "Okamžitý výkon prvního fotovoltaického vstupu měniče." },
-      "pv2_w": { "label": "Výroba FVE vstup 2", "explanation": "Okamžitý výkon druhého fotovoltaického vstupu měniče." },
-      "grid_w": { "label": "Výkon sítě se znaménkem", "explanation": "Surový obousměrný výkon elektroměru. Směr znaménka závisí na nastavení konkrétní instalace." },
-      "battery_w": { "label": "Výkon baterie se znaménkem", "explanation": "Surový obousměrný výkon baterie. Směr znaménka závisí na nastavení konkrétní instalace." },
-      "battery_charge_w": { "label": "Nabíjení baterie", "explanation": "Okamžitý výkon tekoucí do baterie, převedený na nezápornou hodnotu." },
-      "battery_discharge_w": { "label": "Vybíjení baterie", "explanation": "Okamžitý výkon tekoucí z baterie, převedený na nezápornou hodnotu." },
-      "l1_w": { "label": "Výkon fáze L1", "explanation": "Okamžitý činný výkon na první síťové fázi." },
-      "l2_w": { "label": "Výkon fáze L2", "explanation": "Okamžitý činný výkon na druhé síťové fázi." },
-      "l3_w": { "label": "Výkon fáze L3", "explanation": "Okamžitý činný výkon na třetí síťové fázi." },
-      "phase_imbalance_w": { "label": "Nesymetrie fází", "explanation": "Rozdíl mezi nejvyšším a nejnižším okamžitým výkonem fází L1 až L3." },
-      "battery_soh": { "label": "Kondice baterie", "explanation": "Odhad zbývající kapacity baterie vůči její kapacitě v novém stavu." },
-      "battery_v": { "label": "Napětí baterie", "explanation": "Stejnosměrné napětí bateriového bloku měřené měničem." },
-      "l1_v": { "label": "Napětí fáze L1", "explanation": "Efektivní napětí první síťové fáze." },
-      "l2_v": { "label": "Napětí fáze L2", "explanation": "Efektivní napětí druhé síťové fáze." },
-      "l3_v": { "label": "Napětí fáze L3", "explanation": "Efektivní napětí třetí síťové fáze." },
-      "battery_a": { "label": "Proud baterie", "explanation": "Okamžitý stejnosměrný proud baterie se znaménkem měniče." },
-      "battery_charge_limit_a": { "label": "Limit nabíjecího proudu", "explanation": "Aktuální maximální nabíjecí proud povolený bateriovým systémem." },
-      "battery_discharge_limit_a": { "label": "Limit vybíjecího proudu", "explanation": "Aktuální maximální vybíjecí proud povolený bateriovým systémem." },
-      "charge_current_limit_a": { "label": "Limit nabíjecího proudu", "explanation": "Aktuální maximální nabíjecí proud hlášený kompatibilním zdrojem GoodWe." },
-      "discharge_current_limit_a": { "label": "Limit vybíjecího proudu", "explanation": "Aktuální maximální vybíjecí proud hlášený kompatibilním zdrojem GoodWe." },
-      "l1_a": { "label": "Proud fáze L1", "explanation": "Efektivní proud první síťové fáze." },
-      "l2_a": { "label": "Proud fáze L2", "explanation": "Efektivní proud druhé síťové fáze." },
-      "l3_a": { "label": "Proud fáze L3", "explanation": "Efektivní proud třetí síťové fáze." },
-      "battery_temp_c": { "label": "Teplota baterie", "explanation": "Teplota bateriového systému hlášená měničem." },
-      "temperature_c": { "label": "Teplota měniče", "explanation": "Provozní teplota měniče hlášená kompatibilním rozhraním." },
-      "inverter_temp_c": { "label": "Teplota měniče", "explanation": "Vnitřní provozní teplota výkonové elektroniky měniče." },
-      "e_day_kwh": { "label": "Výroba FVE dnes", "explanation": "Energie vyrobená fotovoltaikou od začátku aktuálního dne." },
-      "e_load_day_kwh": { "label": "Spotřeba domu dnes", "explanation": "Energie spotřebovaná domem od začátku aktuálního dne." },
-      "e_import_day_kwh": { "label": "Odběr ze sítě dnes", "explanation": "Energie odebraná z distribuční sítě od začátku aktuálního dne." },
-      "e_export_day_kwh": { "label": "Dodávka do sítě dnes", "explanation": "Energie dodaná do distribuční sítě od začátku aktuálního dne." },
-      "grid_frequency_hz": { "label": "Frekvence sítě", "explanation": "Okamžitá frekvence střídavé distribuční sítě měřená měničem." }
-    }
+      "house_w": {
+        "label": "Spotřeba domu",
+        "explanation": "Okamžitý elektrický příkon domu bez rozlišení jednotlivých spotřebičů."
+      },
+      "grid_import_w": {
+        "label": "Odběr ze sítě",
+        "explanation": "Okamžitý výkon odebíraný z distribuční sítě; vždy je zobrazen jako nezáporná hodnota."
+      },
+      "grid_export_w": {
+        "label": "Dodávka do sítě",
+        "explanation": "Okamžitý výkon dodávaný do distribuční sítě; vždy je zobrazen jako nezáporná hodnota."
+      },
+      "battery_soc": {
+        "label": "Nabití baterie",
+        "explanation": "Odhadovaný stav nabití baterie v procentech její využitelné kapacity."
+      },
+      "pv_w": {
+        "label": "Výroba FVE celkem",
+        "explanation": "Celkový okamžitý výkon fotovoltaických vstupů měniče."
+      },
+      "pv1_w": {
+        "label": "Výroba FVE vstup 1",
+        "explanation": "Okamžitý výkon prvního fotovoltaického vstupu měniče."
+      },
+      "pv2_w": {
+        "label": "Výroba FVE vstup 2",
+        "explanation": "Okamžitý výkon druhého fotovoltaického vstupu měniče."
+      },
+      "grid_w": {
+        "label": "Výkon sítě se znaménkem",
+        "explanation": "Surový obousměrný výkon elektroměru. Směr znaménka závisí na nastavení konkrétní instalace."
+      },
+      "battery_w": {
+        "label": "Výkon baterie se znaménkem",
+        "explanation": "Surový obousměrný výkon baterie. Směr znaménka závisí na nastavení konkrétní instalace."
+      },
+      "battery_charge_w": {
+        "label": "Nabíjení baterie",
+        "explanation": "Okamžitý výkon tekoucí do baterie, převedený na nezápornou hodnotu."
+      },
+      "battery_discharge_w": {
+        "label": "Vybíjení baterie",
+        "explanation": "Okamžitý výkon tekoucí z baterie, převedený na nezápornou hodnotu."
+      },
+      "l1_w": {
+        "label": "Výkon fáze L1",
+        "explanation": "Okamžitý činný výkon na první síťové fázi."
+      },
+      "l2_w": {
+        "label": "Výkon fáze L2",
+        "explanation": "Okamžitý činný výkon na druhé síťové fázi."
+      },
+      "l3_w": {
+        "label": "Výkon fáze L3",
+        "explanation": "Okamžitý činný výkon na třetí síťové fázi."
+      },
+      "phase_imbalance_w": {
+        "label": "Nesymetrie fází",
+        "explanation": "Rozdíl mezi nejvyšším a nejnižším okamžitým výkonem fází L1 až L3."
+      },
+      "battery_soh": {
+        "label": "Kondice baterie",
+        "explanation": "Odhad zbývající kapacity baterie vůči její kapacitě v novém stavu."
+      },
+      "battery_v": {
+        "label": "Napětí baterie",
+        "explanation": "Stejnosměrné napětí bateriového bloku měřené měničem."
+      },
+      "l1_v": {
+        "label": "Napětí fáze L1",
+        "explanation": "Efektivní napětí první síťové fáze."
+      },
+      "l2_v": {
+        "label": "Napětí fáze L2",
+        "explanation": "Efektivní napětí druhé síťové fáze."
+      },
+      "l3_v": {
+        "label": "Napětí fáze L3",
+        "explanation": "Efektivní napětí třetí síťové fáze."
+      },
+      "battery_a": {
+        "label": "Proud baterie",
+        "explanation": "Okamžitý stejnosměrný proud baterie se znaménkem měniče."
+      },
+      "battery_charge_limit_a": {
+        "label": "Limit nabíjecího proudu",
+        "explanation": "Aktuální maximální nabíjecí proud povolený bateriovým systémem."
+      },
+      "battery_discharge_limit_a": {
+        "label": "Limit vybíjecího proudu",
+        "explanation": "Aktuální maximální vybíjecí proud povolený bateriovým systémem."
+      },
+      "charge_current_limit_a": {
+        "label": "Limit nabíjecího proudu",
+        "explanation": "Aktuální maximální nabíjecí proud hlášený kompatibilním zdrojem GoodWe."
+      },
+      "discharge_current_limit_a": {
+        "label": "Limit vybíjecího proudu",
+        "explanation": "Aktuální maximální vybíjecí proud hlášený kompatibilním zdrojem GoodWe."
+      },
+      "l1_a": {
+        "label": "Proud fáze L1",
+        "explanation": "Efektivní proud první síťové fáze."
+      },
+      "l2_a": {
+        "label": "Proud fáze L2",
+        "explanation": "Efektivní proud druhé síťové fáze."
+      },
+      "l3_a": {
+        "label": "Proud fáze L3",
+        "explanation": "Efektivní proud třetí síťové fáze."
+      },
+      "battery_temp_c": {
+        "label": "Teplota baterie",
+        "explanation": "Teplota bateriového systému hlášená měničem."
+      },
+      "temperature_c": {
+        "label": "Teplota měniče",
+        "explanation": "Provozní teplota měniče hlášená kompatibilním rozhraním."
+      },
+      "inverter_temp_c": {
+        "label": "Teplota měniče",
+        "explanation": "Vnitřní provozní teplota výkonové elektroniky měniče."
+      },
+      "e_day_kwh": {
+        "label": "Výroba FVE dnes",
+        "explanation": "Energie vyrobená fotovoltaikou od začátku aktuálního dne."
+      },
+      "e_load_day_kwh": {
+        "label": "Spotřeba domu dnes",
+        "explanation": "Energie spotřebovaná domem od začátku aktuálního dne."
+      },
+      "e_import_day_kwh": {
+        "label": "Odběr ze sítě dnes",
+        "explanation": "Energie odebraná z distribuční sítě od začátku aktuálního dne."
+      },
+      "e_export_day_kwh": {
+        "label": "Dodávka do sítě dnes",
+        "explanation": "Energie dodaná do distribuční sítě od začátku aktuálního dne."
+      },
+      "grid_frequency_hz": {
+        "label": "Frekvence sítě",
+        "explanation": "Okamžitá frekvence střídavé distribuční sítě měřená měničem."
+      }
+    },
+    "time": "Čas"
   },
   "prediction": {
     "title": "Predikce",
@@ -675,7 +803,7 @@
     "unknown": "Bez dat",
     "daily_energy": "Energetická bilance dnes",
     "source_label": "Zdroj",
-      "historical": "Historická denní bilance",
+    "historical": "Historická denní bilance",
     "production": "Výroba",
     "house_load": "Spotřeba domu",
     "no_daily_energy": "Denní čítače výroby, nákupu a prodeje nejsou k dispozici",
@@ -783,7 +911,7 @@
     "recommendations": "Doporučení",
     "phases_unavailable": "Měnič nevystavuje fázové hodnoty",
     "phase_imbalance": "Fáze {high} je zatížená až {high_kw} kW, zatímco {low} zůstává na {low_kw} kW. Zvažte přepojení některých okruhů.",
-    "heatpump_energy": "Spotřeba tepelného čerpadla",
+    "heatpump_energy": "Spotřeba TČ v pokrytých úsecích",
     "run_hours": "Doba běhu",
     "kwh_per_degree_day": "Spotřeba na denostupeň",
     "not_measured": "Tepelné čerpadlo se zatím samostatně neměří"
@@ -832,5 +960,15 @@
     "performance": "Inkrementální import SDG, menší checkpoint a omezení zbytečných výpisů.",
     "versioning": "Číslo verze a přehled změn s časem vydání.",
     "settings": "Oprava ukládání volitelných číselných nastavení a jazyka rozhraní."
+  },
+  "meter": {
+    "valid": "Měřený příkon",
+    "negative": "Chyba měření: záporný příkon",
+    "phase": "Chyba měření fáze",
+    "missing": "Nezměřeno",
+    "offline": "Zařízení nedostupné",
+    "residual": "Dopočtený zbytek",
+    "incomplete": "Nelze dopočítat: neúplné měření",
+    "stale": "Zastaralé měření"
   }
 }

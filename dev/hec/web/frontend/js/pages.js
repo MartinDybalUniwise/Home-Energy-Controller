@@ -1,8 +1,9 @@
+import { source, finite, heatpumpText, heatingPermission, batteryText, batteryReason } from './telemetry.js';
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 
 import { renderChart, renderGoodWeHistoryChart, renderTable } from './chart.js?v=4';
-import { renderForecastStory, renderToday } from './advisor.js?v=13';
-import { renderFlow } from './flow.js';
+import { renderForecastStory, renderToday } from './advisor.js?v=14';
+import { renderFlow } from './flow.js?v=2';
 import { availableLanguages, currentLanguage, dateTime, duration, num, power, t, time, weekday } from './i18n.js';
 import { weatherIcon } from './icons.js';
 
@@ -638,7 +639,8 @@ async function renderAnalysis(container, api) {
       + `<p class="meta">${t('analysis.run_hours')}: ${num(heatpump.run_hours, 1)} ${t('unit.hours')}<br>`
       + `${t('entity.outside')}: ${num(heatpump.mean_outside_c, 1)} °C<br>`
       + `${t('analysis.kwh_per_degree_day')}: ${num(heatpump.kwh_per_degree_day, 2)}</p>`
-    : `<p class="meta">${t('analysis.not_measured')}</p>`));
+    : `<p class="meta">${t('flow.report_unavailable')}</p>`));
+  if (heatpump.power_quality) parts.push(`<p class="notice">${t('flow.report_coverage')}: ${num(heatpump.power_quality.coverage_pct, 1)} % · ${t('flow.invalid_samples')}: ${num(heatpump.power_quality.invalid_samples, 0)}</p>`);
 
   const recent = (cycles.cycles || []).slice(-6).reverse();
   parts.push(card('history.appliance_cycles', recent.length
@@ -663,8 +665,8 @@ async function renderAnalysis(container, api) {
 
 async function renderSummaries(container, api) {
   const { days } = await api.summaries(7).catch(() => ({ days: [] }));
+  if (!days?.length) { container.innerHTML = `<p class="notice">${t('flow.summary_pending')}</p>`; return; }
   if (!container.isConnected) return;
-  if (!days.length) { container.innerHTML = `<p class="notice">${t('app.no_data')}</p>`; return; }
   container.innerHTML = days.slice(-7).reverse().map((day) => `
     <div class="card">
       <div class="card-header">${escapeHtml(day.date)}</div>
@@ -674,7 +676,7 @@ async function renderSummaries(container, api) {
         ${t('entity.grid_import')}: ${num(day.grid_import_kwh, 1)} ${t('unit.kwh')}<br>
         ${t('entity.grid_export')}: ${num(day.grid_export_kwh, 1)} ${t('unit.kwh')}<br>
         ${t('overview.self_consumption')}: ${num(day.self_consumption_pct, 0)} %<br>
-        ${t('overview.cost_today')}: ${num(day.cost_czk, 0)} Kč
+        ${t('overview.cost_today')}: ${day.priced ? num(day.cost_czk, 0) : '–'} Kč
       </p>
     </div>`).join('');
 }
@@ -700,12 +702,11 @@ function translatedText(key, params, fallback = '') {
 }
 
 function batteryStateText(goodwe) {
-  return Number(goodwe?.battery_charge_w) > 20 ? t('flow.charging')
-    : Number(goodwe?.battery_discharge_w) > 20 ? t('flow.discharging')
-      : t('flow.idle');
+  return batteryText(goodwe);
 }
 
 function controllerStateText(controller) {
+  if (!controller?.enabled) return t('status.controller_disabled');
   if (controller?.safe_mode) {
     return translatedText(controller.safe_mode_reason?.reason_key, controller.safe_mode_reason?.reason_params, t('status.safe_mode_active'));
   }
@@ -720,15 +721,14 @@ function lastDecisionText(controller) {
 
 export async function flow(view, { api, motion }) {
   const current = await api.current();
-  const sources = current.sources || {};
-  const goodwe = sources.goodwe || {};
-  const shelly = sources.shelly || {};
-  const tng = sources.tng || {};
+  const goodwe = source(current, 'goodwe');
+  const shelly = source(current, 'shelly');
+  const tng = source(current, 'tng');
   const controller = current?.status?.controller || {};
   const staleSources = current?.status?.stale_sources || [];
-  const grid = Number(goodwe.grid_import_w) > 20 ? 'import' : Number(goodwe.grid_export_w) > 20 ? 'export' : 'balanced';
-  const gridPower = Number(goodwe.grid_import_w) || Number(goodwe.grid_export_w);
-  const batteryPower = Number(goodwe.battery_charge_w) || Number(goodwe.battery_discharge_w);
+  const grid = finite(goodwe.grid_import_w) === null || finite(goodwe.grid_export_w) === null ? 'unknown' : Number(goodwe.grid_import_w) > 20 ? 'import' : Number(goodwe.grid_export_w) > 20 ? 'export' : 'balanced';
+  const gridPower = finite(goodwe.grid_import_w) === null || finite(goodwe.grid_export_w) === null ? null : Math.max(Number(goodwe.grid_import_w), Number(goodwe.grid_export_w));
+  const batteryPower = finite(goodwe.battery_charge_w) === null || finite(goodwe.battery_discharge_w) === null ? null : Math.max(Number(goodwe.battery_charge_w), Number(goodwe.battery_discharge_w));
   const lastMeasurement = current?.last_measurement_at ? dateTime(current.last_measurement_at) : '–';
   const controllerBadges = [
     controller.enabled
@@ -746,48 +746,27 @@ export async function flow(view, { api, motion }) {
           <h2>${t('flow.title')}</h2>
           <p class="story-hero__summary">${t(`flow.grid_${grid}`)}</p>
         </div>
-        <div class="story-hero__aside">
-          <dl class="story-hero__stats">
-            <div><dt>${t('entity.pv')}</dt><dd>${power(goodwe.pv_w).value}<small>${power(goodwe.pv_w).unit}</small></dd></div>
-            <div><dt>${t('entity.house')}</dt><dd>${power(goodwe.house_w).value}<small>${power(goodwe.house_w).unit}</small></dd></div>
-            <div><dt>${t('entity.grid')}</dt><dd>${power(gridPower).value}<small>${power(gridPower).unit}</small></dd></div>
-            <div><dt>${t('entity.battery_soc')}</dt><dd>${num(goodwe.battery_soc, 0)}<small>${t('unit.percent')}</small></dd></div>
-          </dl>
-        </div>
       </section>
       <section class="story-surface story-surface--flow flow-stage">
         <header class="story-surface__header">
           <div>
             <p>${t('overview.flow')}</p>
-            <h3>${t(`flow.grid_${grid}`)}</h3>
+
           </div>
           <span class="story-surface__meta">${lastMeasurement}</span>
         </header>
         <div class="story-flow-stage">
           <div id="live-flow"></div>
           <div class="story-flow-summary">
-            <p>${batteryStateText(goodwe)}</p>
-            <p>${tng.heating_on === true ? t('flow.heating_active') : t('flow.heating_idle')}</p>
+            <p>${batteryStateText(goodwe)} · ${t('entity.battery_soc')}: ${num(goodwe.battery_soc, 0)} %</p>
+            <p>${t('flow.reserve')}: ${num(goodwe.on_grid_soc_limit_pct, 0)} % · ${t('flow.inverter_mode')}: ${escapeHtml(goodwe.operation_mode || '–')}</p>
+            <p>${batteryReason(goodwe)}</p>
+            <p>${heatpumpText(shelly)} · ${heatingPermission(tng)}</p>
             <p>${controllerStateText(controller)}</p>
           </div>
         </div>
       </section>
       <section class="story-card-grid story-card-grid--flow-support flow-details">
-        <article class="story-card story-card--soft">
-          <p class="story-card__eyebrow">${t('entity.grid')}</p>
-          <strong class="story-card__value">${bigValue(gridPower)}</strong>
-          <p class="story-card__meta">${t(`flow.grid_${grid}`)}</p>
-        </article>
-        <article class="story-card story-card--soft">
-          <p class="story-card__eyebrow">${t('entity.battery')}</p>
-          <strong class="story-card__value">${bigValue(batteryPower)}</strong>
-          <p class="story-card__meta">${batteryStateText(goodwe)}</p>
-        </article>
-        <article class="story-card story-card--soft">
-          <p class="story-card__eyebrow">${t('entity.heatpump')}</p>
-          <strong class="story-card__value">${bigValue(shelly.heatpump_power_w)}</strong>
-          <p class="story-card__meta">${tng.heating_on === true ? t('flow.heating_active') : t('flow.heating_idle')}</p>
-        </article>
         <article class="story-card story-card--soft">
           <div class="story-card__header-row">
             <p class="story-card__eyebrow">${t('settings.controller')}</p>
@@ -805,6 +784,8 @@ export async function flow(view, { api, motion }) {
     boiler_temperature: tng.boiler_temperature,
     water_output_temperature: tng.water_output_temperature,
     devices: shelly.devices,
+    device_status: shelly.device_status,
+    heatpump_quality: shelly.heatpump_quality,
   }, t, motion);
 }
 

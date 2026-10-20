@@ -18,6 +18,7 @@ from ..controller.controller import Controller
 from ..controller.metrics import Metrics
 from ..controller.predictor import Predictor
 from ..finance.service import FinanceService
+from ..readers.price_snapshot import cached_price_snapshot
 from ..readers.registry import build_readers
 from ..storage.jsonl import JsonlStorage
 from ..writers.fte_writer import FTEWriter
@@ -85,6 +86,8 @@ class Application:
     def current(self, include_status: bool = True) -> dict[str, Any]:
         with self._lock:
             data = dict(self.snapshot)
+        if "ote" in data:
+            data["ote"] = cached_price_snapshot(self.config, data["ote"])
         last_measurement = None
         for sample in data.values():
             stamp = parse_iso(sample.get("timestamp"))

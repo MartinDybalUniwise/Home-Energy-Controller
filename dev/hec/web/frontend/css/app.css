@@ -1079,3 +1079,47 @@ dialog button { min-height: 48px; color: #06243b; border-radius: 8px; background
 #release-dialog { max-width: min(36rem, 92vw); max-height: 85vh; overflow: auto; }
 #release-dialog .dialog-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
 #release-dialog .dialog-close { background: transparent; color: inherit; padding: 0.3rem 0.7rem; font-size: 1.4rem; }
+
+/* Step29: readable flow values never scale with the SVG. */
+.story-page--flow .story-hero { min-height: 0; padding: 18px 22px; }
+.story-page--flow .story-hero h2 { font-size: clamp(1.5rem, 4vw, 2rem); }
+.story-page--flow .story-hero__summary { font-size: 1rem; letter-spacing: normal; text-transform: none; }
+.story-page--flow .story-flow-stage { grid-template-columns: minmax(0, 1fr); }
+.story-page--flow #live-flow { width: 100%; max-width: none; }
+.story-page--flow .flow-desktop { width: 100%; max-width: 960px; min-width: 0; }
+.flow-main-readings { display: none; }
+.flow-device-list { margin: 0; display: grid; gap: 0; }
+.flow-device-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: start; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--divider); font-size: 1rem; }
+.flow-device-row dt, .flow-device-row dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.flow-device-row dd { text-align: right; }
+.flow-device-row strong { display: block; color: var(--ink-primary); font-size: 1.25rem; }
+.flow-device-row span { display: block; color: var(--ink-secondary); font-size: 1rem; line-height: 1.45; }
+.story-page--flow .story-flow-summary { padding: 16px; background: var(--panel-solid); }
+.story-page--flow .story-flow-summary p { color: var(--ink-primary); font-size: 1rem; overflow-wrap: anywhere; }
+.forecast-observed-table { overflow-x: auto; }
+.forecast-observed-table th, .forecast-observed-table td { padding: 8px; text-align: left; }
+.rhythm-seg--unknown { background: var(--panel-border); }
+@media (max-width: 767px) {
+  .story-page--flow .flow-desktop { display: none; }
+  .flow-main-readings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .flow-reading { min-width: 0; padding: 12px; background: var(--panel-solid); border: 1px solid var(--panel-border); border-radius: 12px; }
+  .flow-reading span { display: block; font-size: 1rem; line-height: 1.4; color: var(--ink-secondary); overflow-wrap: anywhere; }
+  .flow-reading strong { display: block; margin: 8px 0; font-family: var(--font-value); font-size: 1.75rem; color: var(--ink-primary); overflow-wrap: anywhere; }
+  .story-page--flow .flow-stage { min-height: 0; padding: 16px; }
+  .story-page--flow .story-card__meta { font-size: 1rem; }
+  .story-page--flow .story-card-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (min-width: 1100px) {
+  .forecast-observed-table { max-height: 170px; overflow: auto; }
+  .forecast-chart-card > p { margin: 4px 0 8px; font-size: .85rem; }
+}
+.today-screen .btn--touch { min-height: 44px; }
+
+.flow-device-list { gap: 6px; }
+.flow-device-row { padding: 12px; border: 1px solid var(--panel-border); border-radius: 10px; background: var(--panel-solid); }
+.flow-device-row dt { color: var(--ink-primary); }
+@media (min-width: 1100px) and (max-height: 850px) {
+  .today-recommendation-panel { height: 100px; }
+  .today-screen { gap: 3px; }
+}

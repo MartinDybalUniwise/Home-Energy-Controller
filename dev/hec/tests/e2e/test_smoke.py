@@ -530,12 +530,16 @@ def test_energy_flow_screen_rendering(page: Page, viewport: tuple[int, int]):
     expect(page.locator(".flow-hero")).to_be_visible()
     expect(page.locator(".flow-stage")).to_be_visible()
     expect(page.locator(".flow .main-node")).to_have_count(4)
-    expect(page.locator(".flow .appliance-node")).to_have_count(8)
-    expect(page.locator(".flow .appliance-node__icon")).to_have_count(6)
-    expect(page.locator(".flow .appliance-node--service")).to_have_count(2)
-    expect(page.locator(".flow .appliance-node--service").nth(0)).to_contain_text("Topení")
-    expect(page.locator(".flow .appliance-node--service").nth(1)).to_contain_text("Bojler")
-    expect(page.locator(".flow .wire")).to_have_count(9)
+    # Approved redesign uses unscaled HTML appliance readings and no fabricated heat outputs.
+    expect(page.locator(".flow-main-readings .flow-reading")).to_have_count(4)
+    expect(page.locator(".flow-device-row")).to_have_count(6)
+    expect(page.locator(".flow-device-row[data-device='heatpump']")).to_have_count(1)
+    expect(page.locator(".flow .appliance-node--service")).to_have_count(0)
+    if viewport[0] < 768:
+        expect(page.locator(".flow-main-readings")).to_be_visible()
+        expect(page.locator(".flow-desktop")).to_be_hidden()
+    else:
+        expect(page.locator(".flow-desktop")).to_be_visible()
     expect(page.locator(".flow-details")).to_be_visible()
     expect(page.locator(".notice.error")).to_have_count(0)
 
