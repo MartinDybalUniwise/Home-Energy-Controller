@@ -13,9 +13,9 @@
     "approved_at": "2026-10-21T08:18:12.079618+02:00"
   },
   "gate_c": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "repository owner: Schvaluji nasazeni; confirm no repeated 1 GB backup; combined Step29 + Step30",
+    "approved_at": "2026-10-21T11:10:20.340013+02:00"
   },
   "readiness": "YES",
   "requested_by": "repository owner / maintainer",
