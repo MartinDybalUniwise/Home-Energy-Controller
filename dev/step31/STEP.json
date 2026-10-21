@@ -1,11 +1,11 @@
 {
   "step": 31,
   "classification": "LARGE",
-  "status": "PLANNED",
+  "status": "IN_PROGRESS",
   "gate_a": {
-    "status": "PENDING",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "repository owner: Schvaluji after concrete Step31 plan",
+    "approved_at": "2026-10-21T13:34:55.036004+02:00"
   },
   "gate_b": {
     "status": "NOT_REQUESTED",

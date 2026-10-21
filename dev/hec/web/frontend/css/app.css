@@ -328,8 +328,8 @@ table.data th:first-child, table.data td:first-child { text-align: left; }
    i bez dat. Barevná animovaná šipka (.edge) se kreslí navrch jen tam, kde
    je výkon skutečně změřen; .wire samo o sobě tok energie neznázorňuje. */
 .flow .wire { stroke: var(--panel-border); stroke-width: 1.5; }
-.flow .edge { fill: none; stroke-linecap: round; opacity: .9; }
-.flow .edge.animated { stroke-dasharray: 6 10; animation: flow 1.2s linear infinite; }
+.flow .edge, .flow-mobile-link .edge { fill: none; stroke-linecap: round; opacity: .9; }
+.flow .edge.animated, .flow-mobile-link .edge.animated { stroke-dasharray: 6 10; animation: flow 1.2s linear infinite; }
 @keyframes flow { to { stroke-dashoffset: -16; } }
 [data-motion="off"] .flow .edge.animated, [data-motion="reduced"] .flow .edge.animated { animation: none; }
 @media (prefers-reduced-motion: reduce) { .flow .edge.animated { animation: none; } }
@@ -1123,3 +1123,55 @@ dialog button { min-height: 48px; color: #06243b; border-radius: 8px; background
   .today-recommendation-panel { height: 100px; }
   .today-screen { gap: 3px; }
 }
+
+
+/* Step31: constrain the actual grid children, including long unavailable text. */
+.today-screen > *, .hero-primary-card > *, .hero-card-footer > *,
+.recommendation-statuses > *, .story-page--flow #live-flow { min-width: 0; }
+.today-screen .today-recommendation-panel { height: auto; }
+.today-screen .hero-main-window { min-width: 0; max-width: 100%; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
+.today-screen .hero-main-window--unavailable { font-size: 1.125rem; font-family: var(--font-ui); color: var(--ink-secondary); }
+.today-screen .hero-card-heading, .today-screen .recommendation-status strong { overflow-wrap: anywhere; }
+.today-screen .hero-card-footer button { max-width: 100%; white-space: normal; }
+.story-page--flow .flow-device-list { grid-template-columns: minmax(0, 1fr); }
+.story-page--flow .flow-device-row { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: baseline; }
+.story-page--flow .flow-device-row dd { display: contents; }
+.story-page--flow .flow-device-row strong { text-align: right; }
+.flow-device-details { grid-column: 1 / -1; min-width: 0; text-align: left; }
+.flow-mobile-link { display: none; }
+@media (max-width: 1099px) {
+  .today-screen .hero-primary-card { grid-template-columns: minmax(0, 1fr); align-items: start; gap: 10px; }
+  .today-screen .hero-card-footer { grid-template-columns: minmax(0, 1fr); }
+  .today-screen .today-recommendation-panel { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 767px) {
+  .story-page--flow .flow-main-readings { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "pv pv" "pv-link pv-link" "house house" "battery-link grid-link" "battery grid"; column-gap: 12px; row-gap: 0; align-items: stretch; }
+  .flow-reading--pv { grid-area: pv; }
+  .flow-reading--house { grid-area: house; }
+  .flow-reading--battery { grid-area: battery; }
+  .flow-reading--grid { grid-area: grid; }
+  .flow-reading--pv, .flow-reading--house { width: min(100%, 240px); justify-self: center; box-sizing: border-box; }
+  .flow-mobile-link { display: block; width: 100%; height: 48px; overflow: visible; }
+  .flow-mobile-link--pv { grid-area: pv-link; }
+  .flow-mobile-link--battery { grid-area: battery-link; }
+  .flow-mobile-link--grid { grid-area: grid-link; }
+  .flow-link-idle { stroke-dasharray: 3 5; opacity: .35; }
+  .story-page--flow .flow-reading strong { font-size: 1.5rem; }
+  .story-page--flow .flow-reading { padding: 12px; }
+  .story-page--flow .flow-devices-heading { margin: 20px 0 10px; font-size: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow-mobile-link .edge { animation: none !important; }
+}
+
+@media (min-width: 1100px) {
+  .today-screen .hero-primary-card { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .today-screen .hero-card-kicker, .today-screen .hero-card-heading { grid-column: 1 / -1; }
+}
+
+.today-screen .weather-station-widget { min-width: 0; max-width: 100%; flex-wrap: wrap; }
+.today-screen .weather-details { min-width: 0; max-width: 100%; box-sizing: border-box; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.today-screen .weather-detail-item { min-width: 0; overflow-wrap: anywhere; }
+
+.today-screen .kpi-trend { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; font-size: 1rem; line-height: 1.35; }
+.today-screen .kpi-body { min-width: 0; }

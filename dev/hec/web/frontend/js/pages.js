@@ -2,8 +2,8 @@ import { source, finite, heatpumpText, heatingPermission, batteryText, batteryRe
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 
 import { renderChart, renderGoodWeHistoryChart, renderTable } from './chart.js?v=4';
-import { renderForecastStory, renderToday } from './advisor.js?v=14';
-import { renderFlow } from './flow.js?v=2';
+import { renderForecastStory, renderToday } from './advisor.js?v=15';
+import { renderFlow } from './flow.js?v=3';
 import { availableLanguages, currentLanguage, dateTime, duration, num, power, t, time, weekday } from './i18n.js';
 import { weatherIcon } from './icons.js';
 

@@ -63,7 +63,7 @@ Každý `stepNN/` obsahuje minimálně:
 | [`step28/`](step28/) | TNG history quality and mobile chart correction | DONE <!-- status: DONE --> |
 | [`step29/`](step29/) | Truthful energy flow, meter quality and mobile readability | ✅ hotovo <!-- status: DONE --> |
 | [`step30/`](step30/) | Incremental release backups without repeated history scans | ✅ hotovo <!-- status: DONE --> |
-| [`step31/`](step31/) | Mobile layout, graphical flows and touch navigation fixes | 📝 plánováno <!-- status: PLANNED --> |
+| [`step31/`](step31/) | Mobile layout, graphical flows and touch navigation fixes | 🔧 probíhá <!-- status: IN_PROGRESS --> |
 
 ## Aktuálně připravovaný Step 16
 

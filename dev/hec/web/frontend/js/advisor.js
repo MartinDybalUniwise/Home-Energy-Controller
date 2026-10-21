@@ -220,7 +220,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
       <div class="hero-primary-card">
         <div class="hero-card-kicker">${t('advisor.best_action')}</div>
         <h3 id="hero-rec-title" class="hero-card-heading">${t('advisor.best_time_consumption')}</h3>
-        <div class="hero-main-window">${advice.best}</div>
+        <div class="hero-main-window${advice.day?.best_appliance_window ? '' : ' hero-main-window--unavailable'}">${advice.best}</div>
         <div class="hero-card-footer">
           <span class="hero-check-badge">${t('prediction.confidence')}: ${advice.day ? t(`prediction.confidence_${advice.day.confidence || 'low'}`) : '–'}</span>
           <button type="button" class="btn btn--secondary btn--touch" id="btn-why-now">${t('advisor.why_now_btn')}</button>
