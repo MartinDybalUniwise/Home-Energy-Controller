@@ -14,6 +14,7 @@ from pathlib import Path
 
 from ..core.logging_setup import event, get_logger, warn_event
 from ..core.timeutil import now_local
+from .backup_tracking import HistoryChanges
 
 
 def sha256(data: bytes) -> str:
@@ -71,6 +72,7 @@ class Archiver:
             warn_event(self.log, "archive_failed", file=path.name, error=type(exc).__name__)
             return False
 
+        HistoryChanges(self.storage.history_dir).mark(path, deleted=True)
         path.unlink()
         event(self.log, "archived", file=path.name, source=path.parent.name,
               bytes=len(source_bytes))

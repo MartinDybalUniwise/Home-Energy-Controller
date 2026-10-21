@@ -9,6 +9,7 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from ..core.timeutil import parse_iso
+from .backup_tracking import HistoryChanges
 
 
 def fingerprint(value) -> bytes:
@@ -80,6 +81,7 @@ def merge_history(storage, source: str, records: list[dict], *, owners: dict[str
                 result.extend(current.values())
             result.sort(key=lambda row: (parse_iso(row['timestamp']).timestamp(), row.get('sdg_record_id', '')))
             if old != result:
+                HistoryChanges(storage.history_dir).mark(path)
                 write_jsonl(path, result)
                 prior = {fingerprint(row) for row in old}
                 changed += sum(fingerprint(row) not in prior for row in current.values())

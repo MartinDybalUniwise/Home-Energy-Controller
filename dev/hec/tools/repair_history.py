@@ -17,6 +17,7 @@ from zoneinfo import ZoneInfo
 
 from ..analysis.summaries import BASE_TEMPERATURE_C
 from ..readers.sdg_history_reader import SDGHistoryReader
+from ..storage.backup_tracking import HistoryChanges
 from ..storage.history import write_jsonl
 
 SETTINGS = ('boiler_on', 'boiler_set_temperature', 'boiler_sensor', 'boiler_boost',
@@ -154,6 +155,10 @@ def _repair(root: Path, *, apply: bool, backup: Path | None, timezone: str, stag
     changed_paths = sorted(set(plans) | set(sdg_changed))
     result['changed_files'] = [str(path.relative_to(root)) for path in changed_paths]
     if apply and changed_paths:
+        # Offline repairs also participate in release backup tracking. Mark all
+        # affected days before changing any of them, including timestamp moves.
+        for path in changed_paths:
+            HistoryChanges(history).mark(path)
         if backup is None or backup.resolve().is_relative_to(root.resolve()):
             raise ValueError('A new backup directory outside the repaired root is required')
         backup.mkdir(parents=True, exist_ok=False)

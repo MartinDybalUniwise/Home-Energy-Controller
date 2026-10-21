@@ -1,0 +1,50 @@
+{
+  "step": 30,
+  "classification": "LARGE",
+  "status": "IN_PROGRESS",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner: Udelej to after incremental backup proposal",
+    "approved_at": "2026-10-21T07:27:33.743800+02:00"
+  },
+  "gate_b": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "Owner approved incremental backups in chat: Udelej to",
+  "branch": "claude/step30-incremental-backups",
+  "pr": null,
+  "notes": "Gate A approved by the explicit user instruction following the concrete proposal; do not repeat approval request. Production activation remains a later Human Gate.",
+  "requirements": [
+    "REQ-030-001",
+    "REQ-030-002",
+    "REQ-030-003",
+    "REQ-030-004",
+    "REQ-030-005",
+    "REQ-030-006"
+  ],
+  "acceptance": [
+    "AC-030-001",
+    "AC-030-002",
+    "AC-030-003",
+    "AC-030-004",
+    "AC-030-005",
+    "AC-030-006"
+  ],
+  "evidence": [
+    "E-030-001",
+    "E-030-002",
+    "E-030-003",
+    "E-030-004",
+    "E-030-005",
+    "E-030-006"
+  ]
+}

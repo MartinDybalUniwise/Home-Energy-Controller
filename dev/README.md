@@ -62,6 +62,7 @@ Každý `stepNN/` obsahuje minimálně:
 | [`step27/`](step27/) | Oprava vychozich testovych kontraktu | ✅ hotovo <!-- status: DONE --> |
 | [`step28/`](step28/) | TNG history quality and mobile chart correction | DONE <!-- status: DONE --> |
 | [`step29/`](step29/) | Truthful energy flow, meter quality and mobile readability | 🔧 probíhá <!-- status: IN_PROGRESS --> |
+| [`step30/`](step30/) | Incremental release backups without repeated history scans | IN_PROGRESS <!-- status: IN_PROGRESS --> |
 
 ## Aktuálně připravovaný Step 16
 

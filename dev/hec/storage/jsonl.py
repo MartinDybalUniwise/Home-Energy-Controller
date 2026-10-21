@@ -16,6 +16,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from ..core.timeutil import day_key, now_local, parse_iso
+from .backup_tracking import HistoryChanges
 from .base import atomic_write_json, read_json
 from .series import history_record
 
@@ -24,6 +25,7 @@ class JsonlStorage:
     def __init__(self, data_dir: str | Path, history_dir: str | Path):
         self.data_dir = Path(data_dir)
         self.history_dir = Path(history_dir)
+        self.history_changes = HistoryChanges(self.history_dir)
         self._history_lock = threading.RLock()
 
     # --- zápis -------------------------------------------------------------
@@ -35,8 +37,10 @@ class JsonlStorage:
         when = parse_iso(record.get("timestamp")) or now_local()
         path = self._day_file(source, when)
         path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("a", encoding="utf-8") as handle:
-            handle.write(json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n")
+        with self._history_lock:
+            self.history_changes.mark(path)
+            with path.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(record, ensure_ascii=False, separators=(",", ":")) + "\n")
         return path
 
     def append_many(self, source: str, records: Iterable[dict]) -> int:

@@ -76,9 +76,17 @@ doplní z výchozích hodnot, neznámá pole zůstanou zachována.
 
 ## Zálohy
 
-Zálohovat stačí `dev/hec/config/config.json`, `.env` a adresář `history/`.
-Historii starší než 30 dní si systém archivuje sám na cestu `storage.archive_path`
-(NAS, externí disk); dokud tam kopii neověří, lokální soubor nesmaže.
+Release používá nástroj `python dev/release_backup.py`, nikoli plošné `copytree(history)`
+a opakované hashování celé historie. Podrobný postup je v [RELEASE_BACKUPS.md](RELEASE_BACKUPS.md).
+Existující ověřená plná záloha se registruje jednou. První přechod má výslovný,
+jednorázový audit při zastavených writerech; kopírují se jen rozdíly. Další release
+čte pouze označené změněné denní soubory, aktuální data/konfiguraci a kód.
+Neměnná historie se neprochází, nečte, nehashuje a nekopíruje znovu.
+
+Složka `odlozene-logy` je na pokyn vlastníka vyloučena před vstupem do adresáře.
+Diagnostické logy jsou zahrnuté nejvýše za posledních 7 dní. Historie zůstává
+na svém místě dostupná aplikaci. `storage.archive_path` musí pro tento zálohovací
+postup zůstat prázdné; externí archivace vyžaduje samostatně podporovaný postup.
 
 ## Obnova po výpadku
 
