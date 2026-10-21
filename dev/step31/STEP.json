@@ -8,9 +8,9 @@
     "approved_at": "2026-10-21T13:34:55.036004+02:00"
   },
   "gate_b": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "independent agent /root/release_review; exact code 09b75c0684dfa535fad41b332b28d6b02522e1e1; 77 real E2E PASS",
+    "approved_at": "2026-10-21T14:30:48.514720+02:00"
   },
   "gate_c": {
     "status": "NOT_REQUESTED",
@@ -22,7 +22,7 @@
   "source": "Owner screenshots 54278/54277 and explicit mobile UI fix request; concrete plan awaiting Gate A",
   "branch": "claude/step31-mobile-layout-flow",
   "pr": null,
-  "notes": "",
+  "notes": "Gate A approved by owner after concrete plan; implementation and all77 browser regressions complete; independent Gate B approved. Human Gate and production deployment remain pending.",
   "requirements": [
     "REQ-031-001",
     "REQ-031-002",

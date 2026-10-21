@@ -12,7 +12,7 @@ Classification: LARGE. Gate A APPROVED by owner reply Schvaluji after the concre
 | S02 | Correct card/grid sizing, typography, wrapping, margins and missing-state presentation | PASS |
 | S03 | Restore a readable compact mobile flow diagram, correct arrows, direct values and reduced-motion behavior | PASS |
 | S04 | Remove global swipe route changes; preserve inner scrolling and explicit navigation | PASS |
-| S05 | Real browser geometry, touch/zoom/data-quality regressions, affected checks and independent review | IN_PROGRESS |
+| S05 | Real browser geometry, touch/zoom/data-quality regressions, affected checks and independent review | PASS |
 | S06 | Owner Human Gate and separately authorized incremental-backup deployment | PLANNED |
 
 Diagram: fit the mobile viewport with readable HTML labels and SVG/CSS connectors, rather than shrinking a desktop canvas or replacing all connections with cards. Reuse the entity palette, directional arrows and animation preferences from dev/step01/UI_DESIGN.md, sections 4.3 and 6. Arrow thickness may encode magnitude within the established 2-8 px range. Do not imply independently measured allocation between sources where only net powers are known. Missing or invalid meter values remain explicit; no invented heating/DHW output or measured-zero fallback.
