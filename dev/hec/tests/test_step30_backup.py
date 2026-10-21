@@ -334,3 +334,35 @@ def test_current_data_walk_prunes_frozen_folder_before_entry(backed_up, monkeypa
     monkeypatch.setattr(os, 'scandir', guard)
     backups.capture(bootstrap=True)
     assert not any('odlozene-logy' in name for name in backups._snapshot()['files'])
+
+
+def test_offline_check_accepts_real_closed_loopback_port(tmp_path, monkeypatch):
+    import socket
+
+    source = tmp_path / 'source'
+    config = source / 'dev/hec/config/config.json'
+    config.parent.mkdir(parents=True)
+    monkeypatch.setattr(module, 'process_running', lambda _: False)
+    # Reserve the port without listening: no other test can become its owner.
+    with socket.socket() as reserved:
+        reserved.bind(('127.0.0.1', 0))
+        config.write_text(json.dumps({'web': {'port': reserved.getsockname()[1]}}))
+        ReleaseBackups(source, tmp_path / 'vault').require_offline(1234)
+
+
+@pytest.mark.parametrize('reason', [TimeoutError('ambiguous timeout'), OSError('ambiguous failure')])
+def test_offline_check_keeps_rejecting_inconclusive_connection_failures(tmp_path, monkeypatch, reason):
+    from urllib.error import URLError
+
+    source = tmp_path / 'source'
+    config = source / 'dev/hec/config/config.json'
+    config.parent.mkdir(parents=True)
+    config.write_text(json.dumps({'web': {'port': 8080}}))
+    monkeypatch.setattr(module, 'process_running', lambda _: False)
+
+    def inconclusive(*_args, **_kwargs):
+        raise URLError(reason)
+
+    monkeypatch.setattr(module, 'urlopen', inconclusive)
+    with pytest.raises(ValueError, match='Cannot establish'):
+        ReleaseBackups(source, tmp_path / 'vault').require_offline(1234)

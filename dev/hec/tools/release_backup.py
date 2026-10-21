@@ -125,7 +125,9 @@ class ReleaseBackups:
         config = load_json(self.source / 'dev/hec/config/config.json')
         port = int(config.get('web', {}).get('port', 8080))
         try:
-            with urlopen(f'http://127.0.0.1:{port}/api/status', timeout=2):
+            # Windows may take over two seconds to report a refused loopback connection.
+            # A timeout remains inconclusive; never treat it as proof of an offline API.
+            with urlopen(f'http://127.0.0.1:{port}/api/status', timeout=8):
                 pass
         except HTTPError as exc:
             raise ValueError('Configured API port still responds; writers are not proven stopped') from exc
