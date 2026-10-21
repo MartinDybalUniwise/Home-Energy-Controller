@@ -8,9 +8,9 @@
     "approved_at": "2026-10-21T07:27:33.743800+02:00"
   },
   "gate_b": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "independent agent /root/release_review; implementation 048ce35f1a13a0f8fa19890216514d54dfefe899",
+    "approved_at": "2026-10-21T08:18:12.079618+02:00"
   },
   "gate_c": {
     "status": "NOT_REQUESTED",
