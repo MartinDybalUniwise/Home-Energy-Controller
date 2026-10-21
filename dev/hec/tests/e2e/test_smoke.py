@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -192,48 +193,56 @@ def test_prediction_renders_forecast_without_application_error(page: Page):
     assert not any("formatCurrency" in error for error in errors)
 
 
-def test_prediction_renders_when_status_is_slow(page: Page):
-    import time
+def delay_status_without_blocking_other_requests(page: Page):
+    # Sleeping in a sync route handler freezes dispatch of unrelated requests too.
+    # Isolate this latency regression from unrelated loopback/API variance.
+    # Real backend integration remains covered by the other browser tests.
+    catalog = json.loads((Path(__file__).parents[2] / "locales" / "cs.json").read_text(encoding="utf-8"))
+    page.add_init_script("""(() => {
+      const originalFetch = window.fetch.bind(window);
+      const fastResponses = {
+        '/api/session': {required: false, authorised: true},
+        '/api/i18n/cs': {lang: 'cs', available: ['cs', 'en'], catalog: __CS_CATALOG__},
+        '/api/current': {sources: {}, readers: {}},
+        '/api/weather': {},
+        '/api/prices': {},
+        '/api/prediction': {
+          available: true, generated_at: '2026-09-15T18:37:40+02:00',
+          days: [{date: '2026-09-16', pv_kwh: 99.7, pv_kwh_low: 79.8,
+            pv_kwh_high: 119.6, irradiation_kwh_m2: 4.257,
+            confidence: 'medium', consumption_kwh: 16.87, cost_czk: 120}]
+        }
+      };
+      const response = payload => new Response(JSON.stringify(payload),
+        {status: 200, headers: {'Content-Type': 'application/json'}});
+      window.fetch = (input, options) => {
+        const target = input instanceof Request ? input.url : String(input);
+        const url = new URL(target, window.location.href);
+        if (url.origin === window.location.origin && url.pathname === '/api/status') {
+          return new Promise(resolve => setTimeout(() => resolve(response(
+            {ui: {language: 'cs', animations: 'reduced', theme: 'dark'}}
+          )), 2000));
+        }
+        if (url.origin === window.location.origin && url.pathname in fastResponses) {
+          return Promise.resolve(response(fastResponses[url.pathname]));
+        }
+        return originalFetch(input, options);
+      };
+    })();""".replace("__CS_CATALOG__", json.dumps(catalog)))
 
+
+def test_prediction_renders_when_status_is_slow(page: Page):
     from playwright.sync_api import expect
 
-    def route_api(route):
-        if route.request.url.endswith("/api/status"):
-            time.sleep(2)
-            route.fulfill(status=200, content_type="application/json", body=(
-                '{"ui":{"language":"cs","animations":"reduced","theme":"dark"}}'
-            ))
-            return
-        if route.request.url.endswith("/api/prediction"):
-            route.fulfill(status=200, content_type="application/json", body=(
-                '{"available":true,"generated_at":"2026-09-15T18:37:40+02:00",'
-                '"days":[{"date":"2026-09-16","pv_kwh":99.7,"pv_kwh_low":79.8,'
-                '"pv_kwh_high":119.6,"irradiation_kwh_m2":4.257,"confidence":"medium",'
-                '"consumption_kwh":16.87,"cost_czk":120}]}'
-            ))
-            return
-        route.continue_()
-
-    page.route("**/api/**", route_api)
+    delay_status_without_blocking_other_requests(page)
     page.goto("/#/prediction")
     expect(page.locator(".forecast-day-card").first).to_be_visible()
 
 
 def test_today_renders_when_status_is_slow(page: Page):
-    import time
-
     from playwright.sync_api import expect
 
-    def route_api(route):
-        if route.request.url.endswith("/api/status"):
-            time.sleep(2)
-            route.fulfill(status=200, content_type="application/json", body=(
-                '{"ui":{"language":"cs","animations":"reduced","theme":"dark"}}'
-            ))
-            return
-        route.continue_()
-
-    page.route("**/api/**", route_api)
+    delay_status_without_blocking_other_requests(page)
     page.goto("/")
     expect(page.locator(".today-screen")).to_be_visible()
 
@@ -428,6 +437,8 @@ def test_today_desktop_panels_use_full_content_width(page: Page, viewport: tuple
 
         page.set_viewport_size({"width": viewport[0], "height": viewport[1]})
         page.goto("/")
+        # Geometry is measured after data rendering; startup latency has separate tests.
+        page.locator(".today-screen").wait_for()
         expect(page.locator(".today-recommendation-panel")).to_be_visible()
 
         widths = page.evaluate("""() => {

@@ -22,6 +22,21 @@ config C:/TepelneCerpadlo/step29-isolated-preview/preview.json,
 with separate mock data/history/log/archive paths and all physical I/O disabled.
 Observed backend PID8508. Final browser result pending.
 
+The first complete run against this verified backend passed 55/56 cases,
+including all 9 Step29 cases, all mobile/desktop layout checks and 200% text zoom.
+Only the pre-existing slow-status latency fixture failed. Its synchronous Python
+sleep blocked dispatch of unrelated browser requests. Replacing it with a browser
+Promise correctly isolates status latency, but a targeted repeat exposed remaining
+loopback variability in the other live endpoints (one pass, one fail). An exact
+request-timing diagnostic then rendered successfully without a JavaScript error;
+that successful run does not by itself prove the intermittent failure's cause.
+
+The final two latency regressions therefore use deterministic responses for their
+current/weather/prices/prediction dependencies and delay only status by 2 seconds,
+preserving its JSON, HTTP status and original 5-second visibility assertion.
+Other E2E scenarios still exercise the real isolated backend. Final full-suite
+evidence must be from this corrected fixture; no earlier failures are reported as PASS.
+
 ## Review and practical limits
 
 Independent reviewer found three IMPORTANT issues in the first implementation:
