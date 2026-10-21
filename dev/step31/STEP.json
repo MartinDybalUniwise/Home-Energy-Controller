@@ -1,7 +1,7 @@
 {
   "step": 31,
   "classification": "LARGE",
-  "status": "IN_PROGRESS",
+  "status": "DONE",
   "gate_a": {
     "status": "APPROVED",
     "approved_by": "repository owner: Schvaluji after concrete Step31 plan",
@@ -22,7 +22,7 @@
   "source": "Owner screenshots 54278/54277; plan and deployment explicitly approved",
   "branch": "claude/step31-mobile-layout-flow",
   "pr": null,
-  "notes": "All 77 browser regressions and independent review passed. Owner Human Gate APPROVED; deployment verification in progress.",
+  "notes": "All 77 E2E PASS, independent review and owner Human Gate approved. Production 0.1.4, real browser and actual release timestamp verified. Evidence: C:/TepelneCerpadlo/step31-release-evidence.",
   "requirements": [
     "REQ-031-001",
     "REQ-031-002",

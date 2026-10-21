@@ -1,3 +1,15 @@
+# Deployment result - 0.1.4
+
+Owner Human Gate APPROVED: Schvaluji nasazení. Candidate d5e89a210645ad307ee70e206013c75e32a2943c verified at 2026-10-21T14:48:18.701059+02:00.
+Final production revision f744bec700a97c20887586ede1b60ec3a5301501, PID 8000; release metadata reloaded and verified at 2026-10-21T14:55:32.888874+02:00.
+All six sources fresh, controller disabled, native TNG gate preserved, private configuration hashes unchanged. Backend product code unchanged.
+Real production API (no mocked data), Chromium 360/390/430/1280px PASS: diagram visible on mobile, no horizontal page overflow, recommendation text fits, no page errors. Actual touch scrolling at390px preserves route, horizontal/vertical scrolling and explicit menu navigation work. Real release dialog shows the actual verified timestamp.
+Routine backups only, initial_audit=false: first attempt 34511902 B; retry 18949173 B; cumulative new payload 53461075 B. Final snapshot 6bb3c8b1cd644bdd98cdbf310418d877, logical restore references 1491332212 B. Each capture read11 marked changed history files; no unchanged history traversal, no bootstrap, frozen logs untouched. Final metadata reload copied0 backup bytes.
+First attempt deliberately rolled back to tracked0.1.3 after short startup wait expired; SDG subsequently recovered on original version. Original verification failure retained in attempt1-failure.json. Operator waiting budget increased, all six fresh-source requirements retained; no product workaround or configuration change. Initial production browser attempt during rollback and a second attempt with a five-second menu-render wait were non-green and are not counted as passing evidence. The final run used consistent operational waits for real network data; all layout, touch and no-error assertions retained. Cumulative backup cap includes both attempts.
+Evidence directory C:/TepelneCerpadlo/step31-release-evidence: attempt1-backup.json, attempt1-failure.json, backup.json, deployed.json, deployed-final.json, final-status.json, browser-smoke.json, final-release-browser.json, production-flow-390.png and production-overview-390.png.
+
+## Historical implementation and pre-deployment record
+
 # Result
 
 Implementation and automated validation complete. Independent Gate B APPROVED for code 09b75c0684dfa535fad41b332b28d6b02522e1e1 by /root/release_review; no unresolved BLOCKER or IMPORTANT. Owner Human Gate and production deployment remain pending; production remains unchanged at 0.1.3.
