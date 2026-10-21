@@ -239,6 +239,8 @@ class ReleaseBackups:
             temporary = target.with_name(digest + '.' + uuid.uuid4().hex + '.part')
             try:
                 shutil.copyfile(path, temporary)
+                if history:
+                    report['history_bytes_read'] += size  # Copy reads the changed source a second time.
                 if file_digest(temporary) != (digest, size):
                     raise ValueError('Copied payload verification failed')
                 with temporary.open('r+b') as handle:

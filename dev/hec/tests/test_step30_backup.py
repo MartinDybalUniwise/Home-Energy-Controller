@@ -112,6 +112,9 @@ def test_old_day_correction_new_day_and_full_restore(backed_up, tmp_path):
     storage.append('tng', {'timestamp': '2026-10-21T10:00:00+02:00', 'value': 9})
     result = backups.capture()
     assert result['history_files_read'] == 2
+    expected_bytes = sum((storage.history_dir / 'tng' / (day + '.jsonl')).stat().st_size
+                         for day in ('2026-08-01', '2026-10-21'))
+    assert result['history_bytes_read'] == 2 * expected_bytes
     target = tmp_path / 'restored'
     backups.restore(target)
     assert (target / 'app.py').read_text() == 'print("fixture")\n'

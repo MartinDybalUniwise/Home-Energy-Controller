@@ -1,4 +1,25 @@
 # Result
 
-Implementation and validation pending. Production remains unchanged.
-Human Gate remains pending; existing full baseline and frozen logs are untouched.
+Implementation is complete; independent final review and Human Gate remain pending.
+
+## Validation
+
+- Candidate d614580: 418 unit/integration tests passed, 56 E2E tests deselected, 751.39 seconds. Evidence: C:/TepelneCerpadlo/step30-unit-final.log. Step30 changes no frontend; this is not a claim of a new E2E run.
+- Final accounting-only change counts the second source read performed when copying changed history. Both targeted tests passed (2 passed, 23 deselected, 70.51 seconds): C:/TepelneCerpadlo/step30-accounting-final.log. They verify no unchanged-history reads/enumeration, changed old-day capture and full staging restore.
+- Earlier focused validation: 63 storage/history/backup tests passed and 25 backup/recovery tests passed. Logs: C:/TepelneCerpadlo/step30-targeted-final.log and C:/TepelneCerpadlo/step30-backup-final.log.
+- Ruff, whitespace, SDD structure/readiness and repository hygiene checks passed before final evidence updates; repeat the applicable checks after review.
+
+## Requirement evidence
+
+- E-030-001: Existing verified baseline registered as snapshot 787def35548f4745aec8b6d3a45db2be, 1043 history references, zero copied payload bytes and zero history bytes read. Report: C:/TepelneCerpadlo/step30-register-baseline.json. Manifest metadata was written; these counters do not mean zero total disk writes.
+- E-030-002: Persistent dirty paths precede append, merge, repair and deletion. Regression tests cover failure before write, late corrections, tracking gaps, unsafe archive configuration and crash/retry cases.
+- E-030-003: Immutable payloads and complete reference manifests publish HEAD before marker acknowledgement. Routine captures visit only dirty history paths and recent diagnostic logs; unchanged code archives/Git bundles are reused. Source-read accounting includes hashing and copying changed files.
+- E-030-004: Real Git bundle/code/data restore is tested into empty staging, including corrupt or missing dependencies and staging relocation/rebinding. Referenced baseline and immutable objects must be retained.
+- E-030-005: Frozen logs are rejected lexically and pruned before traversal, covered by a scanner guard test. No frozen payload was accessed. Actual live production PID was refused before capture; evidence: C:/TepelneCerpadlo/step30-live-refusal.log. No production restart or configuration/control change occurred.
+- E-030-006: Full suite and two final targeted tests passed. Independent final review and owner Human Gate are recorded separately in STEP.json; no deployment success is claimed here.
+
+## Activation and limits
+
+Production remains on its original version. Only metadata registration has run against the existing full backup; no production bootstrap or staging restore has run. The new writer tracking must be deployed before incremental coverage exists. During the separately approved deployment, stop and verify all writers, then perform one explicit bootstrap audit against the baseline to capture changes since that backup. Subsequent routine captures must not enumerate unchanged history. Untracked tooling/rollback requires explicit invalidation and another approved audit; no automatic full-scan fallback exists.
+
+The existing full baseline and all referenced objects remain required restore dependencies. Old historical helpers are not the new release procedure. See dev/hec/docs/RELEASE_BACKUPS.md and C:/TepelneCerpadlo/HEC_RELEASE_BACKUP_POLICY.txt. Human Gate remains pending; Step30 must not be marked DONE or represented as active in production.

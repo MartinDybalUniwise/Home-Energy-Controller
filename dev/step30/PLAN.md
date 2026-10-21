@@ -10,9 +10,9 @@ Implementation choices below make that approved scope reliable, without seeking 
 | Step | Work | Status |
 | --- | --- | --- |
 | S01 | Register approved scope and review backup/write paths | PASS |
-| S02 | Add persistent write-ahead dirty paths to all history mutation paths | PENDING |
-| S03 | Baseline registration, immutable payloads and atomic incremental reference snapshots | PENDING |
-| S04 | Explicit staging restore and release/rollback documentation | PENDING |
+| S02 | Add persistent write-ahead dirty paths to all history mutation paths | PASS |
+| S03 | Baseline registration, immutable payloads and atomic incremental reference snapshots | PASS |
+| S04 | Explicit staging restore and release/rollback documentation | PASS |
 | S05 | Meaningful tests, lint, SDD validation and independent review | PENDING |
 | S06 | Owner Human Gate and separately approved production activation | PENDING |
 
