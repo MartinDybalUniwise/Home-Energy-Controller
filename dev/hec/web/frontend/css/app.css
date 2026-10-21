@@ -1182,3 +1182,5 @@ dialog button { min-height: 48px; color: #06243b; border-radius: 8px; background
 @media (max-width: 1099px) {
   .today-screen .kpi-trend { font-size: 1rem; }
 }
+
+.flow-mobile-link .edge.flow-edge-reverse { animation-direction: reverse; }

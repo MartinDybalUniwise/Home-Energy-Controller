@@ -17,12 +17,9 @@ SAMPLE = {'timestamp': '2026-10-21T13:03:00+02:00', 'last_measurement_at': '2026
 
 
 def fixtures(page, lang='cs', sample=None, motion='off'):
-    def status(route):
-        response = route.fetch()
-        data = response.json()
-        data['ui'] = {**data.get('ui', {}), 'language': lang, 'animations': motion}
-        route.fulfill(response=response, json=data)
-    page.route('**/api/status', status)
+    page.route('**/api/status', lambda r: r.fulfill(json={
+        'ui': {'language': lang, 'animations': motion}, 'controller': {'enabled': False},
+        'readers': {}, 'stale_sources': []}))
     page.route('**/api/current*', lambda r: r.fulfill(json=sample or SAMPLE))
     page.route('**/api/prediction*', lambda r: r.fulfill(json={'days': []}))
     page.route('**/api/weather*', lambda r: r.fulfill(json={}))
@@ -157,3 +154,33 @@ def test_mobile_connector_respects_motion_preferences(page, motion, reduced):
     expect(edge).to_be_visible()
     animation = edge.evaluate('el=>getComputedStyle(el).animationName')
     assert (animation != 'none') == (motion == 'full' and not reduced)
+
+
+@pytest.mark.parametrize('discharging', [False, True])
+def test_moving_dashes_follow_the_visible_flow_direction(page, discharging):
+    data = deepcopy(SAMPLE)
+    data['sources']['goodwe'].update(
+        battery_charge_w=0 if discharging else 600,
+        battery_discharge_w=600 if discharging else 0,
+        grid_import_w=800 if discharging else 0,
+        grid_export_w=0 if discharging else 800)
+    fixtures(page, sample=data, motion='full')
+    page.emulate_media(reduced_motion='no-preference')
+    page.set_viewport_size({'width': 390, 'height': 844})
+    page.goto('/#/flow')
+    for name in ['pv', 'battery', 'grid']:
+        edge = page.locator(f'.flow-mobile-link--{name} > path')
+        expect(page.locator(f'.flow-mobile-link--{name}')).to_be_visible()
+        assert float(edge.get_attribute('stroke-width')) > 0
+        reverse = discharging and name in ['battery', 'grid']
+        offsets = edge.evaluate("""el => {
+            const animation = el.getAnimations()[0];
+            animation.pause();
+            animation.currentTime = 250;
+            const before = parseFloat(getComputedStyle(el).strokeDashoffset);
+            animation.currentTime = 500;
+            return {before, after:parseFloat(getComputedStyle(el).strokeDashoffset),
+                    direction:getComputedStyle(el).animationDirection};
+        }""")
+        assert offsets['direction'] == ('reverse' if reverse else 'normal')
+        assert (offsets['after'] > offsets['before']) if reverse else (offsets['after'] < offsets['before'])
