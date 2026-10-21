@@ -8,9 +8,9 @@
     "approved_at": "2026-10-21T00:32:18.568108+02:00"
   },
   "gate_b": {
-    "status": "NOT_REQUESTED",
-    "approved_by": null,
-    "approved_at": null
+    "status": "APPROVED",
+    "approved_by": "independent review agent /root/release_review; code 135b70c3f4cbc1bd5ccd0f672a40d555f2d077b6; 56 E2E PASS and external I/O disabled",
+    "approved_at": "2026-10-21T02:31:10.947665+02:00"
   },
   "gate_c": {
     "status": "NOT_REQUESTED",

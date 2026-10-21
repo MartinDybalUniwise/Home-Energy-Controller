@@ -1,56 +1,54 @@
 # Result
 
-Implementation complete; validation/review in progress. Human Gate remains pending.
-No production deployment, physical setting change, history rewrite or meter sign correction.
+Implementation and automated validation complete. Independent Gate B approved
+code revision 135b70c3f4cbc1bd5ccd0f672a40d555f2d077b6. Owner Human Gate remains
+pending; Step29 stays IN_PROGRESS. No production deployment or physical setting
+change, meter sign correction or historical data rewrite was performed.
 
 ## Confirmed validation
 
-- Complete unit/integration suite: 393 PASS, 56 browser tests deselected as intended (744.58s).
+- Full unit/integration suite: 393 PASS (744.58s); browser tests deliberately excluded from this command.
 - Affected/controller/predictor/SDD regressions: 81 PASS (199.31s).
-- Ruff, repo hygiene, all 18 manifest-bearing steps structural and Step29 ready: PASS.
-- Runtime safe flags: controller enabled=false, write_enabled=false; TNG writer=false and GoodWe=false.
+- Full real Chromium suite: 56 PASS (488.34s), no skips, against isolated preview at8183.
+- Includes mobile 360/390/430px, desktop 1280px, 200% text zoom, factual zero/unknown/offline/error states and stale sources.
+- Ruff, repository hygiene, all 18 manifest-bearing steps structural and Step29 ready: PASS.
+- Runtime smoke after E2E: PASS. All five external readers (GoodWe/TNG/Shelly/OTE/weather), controller and TNG writes disabled.
 
-## Browser provenance
+Logs: C:/TepelneCerpadlo/step29-unit-final.log,
+step29-final-targeted.log, step29-e2e-approved.log and step29-runtime-final.log.
+The final two status-latency regressions isolate all other API dependencies,
+using the real Czech catalog. Only status is delayed 2s; original 5s assertions
+remain. The geometry test waits for page readiness before unchanged dimensional
+assertions. These fixtures do not claim real-backend startup timing.
 
-Earlier browser runs served current frontend files from an old preview backend
-PID15420 (started2026-10-20 19:38, runtime0.1.1). They are diagnostic only,
-not final E2E evidence. The preview helper healthcheck had accepted the occupied
-port8181 while its newly started child exited. Production8080 was unaffected.
-Final full browser validation uses the independently launched preview8183,
-runtime0.1.2, project root C:/TepelneCerpadlo/step26-git,
-config C:/TepelneCerpadlo/step29-isolated-preview/preview.json,
-with separate mock data/history/log/archive paths and all physical I/O disabled.
-Observed backend PID8508. Final browser result pending.
+## Provenance and safety
 
-The first complete run against this verified backend passed 55/56 cases,
-including all 9 Step29 cases, all mobile/desktop layout checks and 200% text zoom.
-Only the pre-existing slow-status latency fixture failed. Its synchronous Python
-sleep blocked dispatch of unrelated browser requests. Replacing it with a browser
-Promise correctly isolates status latency, but a targeted repeat exposed remaining
-loopback variability in the other live endpoints (one pass, one fail). An exact
-request-timing diagnostic then rendered successfully without a JavaScript error;
-that successful run does not by itself prove the intermittent failure's cause.
+Final E2E used PID8508 on127.0.0.1:8183, runtime 0.1.2, project root
+C:/TepelneCerpadlo/step26-git and config
+C:/TepelneCerpadlo/step29-isolated-preview/preview.json, with separate
+data/history/log/archive paths. Post-test TCP ownership still confirmed PID8508.
+Proof: step29-evidence/isolated-runtime.json and final-runtime.json.
+Earlier runs on8181 used an old 0.1.1 backend and are diagnostic only. Their
+results were not used as final evidence. Other failed/intermediate logs remain
+diagnostic. Production8080/HEAD98e9fa5 remained unchanged.
 
-The final two latency regressions therefore use deterministic responses for their
-current/weather/prices/prediction dependencies and delay only status by 2 seconds,
-preserving its JSON, HTTP status and original 5-second visibility assertion.
-Other E2E scenarios still exercise the real isolated backend. Final full-suite
-evidence must be from this corrected fixture; no earlier failures are reported as PASS.
+## Independent review and practical limits
 
-## Review and practical limits
+The reviewer found three IMPORTANT issues in the first candidate: Forecast
+undefined variable, Today unknown/balanced grid label and stale Shelly readings
+after read failures. All were fixed and covered by regressions. Final review
+found no remaining BLOCKER/IMPORTANT after 56 PASS and complete runtime proof.
+Physical CT/phase wiring remains unverified; signed raw readings are preserved
+and errors explicit. Native battery reserve charging is labelled a possible
+explanation, not a confirmed cause. No physical control algorithm was changed.
 
-Independent reviewer found three IMPORTANT issues in the first implementation:
-Forecast undefined variable, Today unknown/balanced grid label, and stale values
-after all Shelly reads fail. All three were corrected and regressions added.
-Final exact-commit review remains pending complete valid browser evidence.
-Physical phase/CT wiring remains unverified; UI reports invalid readings explicitly.
-Native battery charging reason is an explicitly labelled hypothesis, not a command.
+## Traceable evidence
 
-## Evidence
+- E-029-001: truthfulness unit/browser regressions and owner-shaped midnight fixture.
+- E-029-002: real Chromium screenshots flow-360/390/430/1280.png and 200% text zoom checks in C:/TepelneCerpadlo/step29-evidence.
+- E-029-003: quality/adjacent-interval/nullable metrics regressions and API.md contract.
+- E-029-004: current-quarter/midnight/zero/negative-price cache and snapshot preservation tests.
+- E-029-005: complete test logs, post-test runtime proof and independent review recorded in STEP.json.
 
-E-029-001: truthfulness unit/browser regressions and owner-shaped midnight fixture.
-E-029-002: real Chromium360/390/430/1280 screenshots and text zoom checks.
-E-029-003: quality/interval/nullable metrics regressions and API contract notes.
-E-029-004: zero/negative-price quarter/midnight cache and snapshot preservation tests.
-E-029-005: full test logs, safety/provenance and independent review (pending final result).
-Local artifacts: C:/TepelneCerpadlo/step29-evidence and step29-*.log alongside it.
+AC-029-001 through AC-029-004 PASS. Automated checks/review for AC-029-005 PASS;
+its owner Human Gate remains pending before DONE and deployment.
