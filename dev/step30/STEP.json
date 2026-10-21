@@ -1,7 +1,7 @@
 {
   "step": 30,
   "classification": "LARGE",
-  "status": "IN_PROGRESS",
+  "status": "DONE",
   "gate_a": {
     "status": "APPROVED",
     "approved_by": "repository owner: Udelej to after incremental backup proposal",
@@ -22,7 +22,7 @@
   "source": "Owner approved incremental backups in chat: Udelej to",
   "branch": "claude/step30-incremental-backups",
   "pr": null,
-  "notes": "Gate A approved by the explicit user instruction following the concrete proposal; do not repeat approval request. Production activation remains a later Human Gate.",
+  "notes": "Gate A approved by the explicit user instruction following the concrete proposal; do not repeat approval request. Production activation remains a later Human Gate. Owner approved combined deployment; production 0.1.3 and final release metadata verified; evidence in step30-release-evidence.",
   "requirements": [
     "REQ-030-001",
     "REQ-030-002",

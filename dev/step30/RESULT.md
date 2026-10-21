@@ -1,3 +1,19 @@
+# Deployment result - 0.1.3
+
+Owner Human Gate APPROVED in chat. Combined Step29 + Step30 candidate verified at 2026-10-21T11:38:34.484968+02:00.
+Candidate revision: 3b721e12cd10afb476a802e720809e6192d1c04e. Final production revision: 5bf1d35e06e720ae4afa1252b58212be9f26f699; PID: 13656.
+Final metadata reload verified at 2026-10-21T11:43:36.869626+02:00; real browser confirms the actual release timestamp in the release dialog.
+All six readers fresh, controller remains disabled, native TNG gate unchanged, private configuration hashes unchanged.
+Real read-only production browser smoke PASS at 390 and 1280 CSS px, no page errors, no horizontal overflow and labels at least 16 px.
+History tracker is valid and active with durable dirty markers and the production writer PID.
+New backup payload: 52694727 bytes, 49 files. Logical restore references 1487560984 bytes.
+Initial stopped-writer audit source reads: 1494333581 bytes; this is not new copied backup volume. The existing baseline is reused and frozen logs untouched.
+Snapshot: 8e409525c9704a9ea087418474c68cf9. Final metadata reload copied zero backup bytes and performed no second bootstrap/capture.
+Evidence: C:/TepelneCerpadlo/step30-release-evidence/backup.json, deployed.json, deployed-final.json, final-status.json, browser-smoke.json, final-release-browser.json and production-flow-390.png / production-flow-1280.png.
+Physical meter wiring remains unverified. This release labels bad measurements; no control algorithm tuning was performed.
+
+## Earlier validation and pre-deployment record (historical)
+
 # Result
 
 Implementation and independent review are complete. Gate B APPROVED for 048ce35f1a13a0f8fa19890216514d54dfefe899 by /root/release_review, with no unresolved BLOCKER or IMPORTANT. Human Gate remains pending.
