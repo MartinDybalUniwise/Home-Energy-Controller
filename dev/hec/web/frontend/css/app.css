@@ -1165,13 +1165,20 @@ dialog button { min-height: 48px; color: #06243b; border-radius: 8px; background
 }
 
 @media (min-width: 1100px) {
-  .today-screen .hero-primary-card { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .today-screen .hero-card-kicker, .today-screen .hero-card-heading { grid-column: 1 / -1; }
+  .today-screen .hero-primary-card { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr); gap: 6px 10px; }
+  .today-screen .hero-card-kicker { grid-column: 1 / 3; grid-row: 1; }
+  .today-screen .hero-card-heading { grid-column: 1; grid-row: 2; }
+  .today-screen .hero-main-window { grid-column: 2; grid-row: 2; }
+  .today-screen .hero-card-footer { grid-column: 3; grid-row: 1 / 3; }
 }
 
 .today-screen .weather-station-widget { min-width: 0; max-width: 100%; flex-wrap: wrap; }
 .today-screen .weather-details { min-width: 0; max-width: 100%; box-sizing: border-box; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .today-screen .weather-detail-item { min-width: 0; overflow-wrap: anywhere; }
 
-.today-screen .kpi-trend { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; font-size: 1rem; line-height: 1.35; }
+.today-screen .kpi-trend { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; line-height: 1.35; }
 .today-screen .kpi-body { min-width: 0; }
+
+@media (max-width: 1099px) {
+  .today-screen .kpi-trend { font-size: 1rem; }
+}
