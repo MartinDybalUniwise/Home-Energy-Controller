@@ -1,0 +1,44 @@
+{
+  "step": 31,
+  "classification": "LARGE",
+  "status": "PLANNED",
+  "gate_a": {
+    "status": "PENDING",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_b": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "Owner screenshots 54278/54277 and explicit mobile UI fix request; concrete plan awaiting Gate A",
+  "branch": "claude/step31-mobile-layout-flow",
+  "pr": null,
+  "notes": "",
+  "requirements": [
+    "REQ-031-001",
+    "REQ-031-002",
+    "REQ-031-003",
+    "REQ-031-004"
+  ],
+  "acceptance": [
+    "AC-031-001",
+    "AC-031-002",
+    "AC-031-003",
+    "AC-031-004"
+  ],
+  "evidence": [
+    "E-031-001",
+    "E-031-002",
+    "E-031-003",
+    "E-031-004"
+  ]
+}
