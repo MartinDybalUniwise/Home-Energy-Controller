@@ -954,6 +954,8 @@
   },
   "release": {
     "truthful_flow": "Pravdivé stavy baterie a tepelného čerpadla, kontrola kvality měření, přesnější reporty a čitelný tok energie na mobilu.",
+    "mobile_flow": "Čitelné grafické toky energie na mobilu, zarovnané hodnoty a úplné texty doporučení.",
+    "touch_navigation": "Posun obsahu již nepřepíná stránku; navigace zůstává v nabídce.",
     "incremental_backups": "Přírůstkové zálohy ukládají jen nové a změněné soubory a opakovaně nekopírují starou historii.",
     "tng_history": "Neplatné teploty v historii jako chybějící měření a čitelnější graf TNG na mobilu.",
     "title": "Verze a změny",
