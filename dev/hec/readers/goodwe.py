@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 
+from ..core.goodwe_energy import energy_values
 from .base import BaseReader
 
 # cílový název -> kandidáti na klíč v datech knihovny goodwe
@@ -28,8 +29,6 @@ FIELD_MAP: dict[str, tuple[str, ...]] = {
     "battery_discharge_limit_a": ("battery_discharge_limit",),
     "e_day_kwh": ("e_day",),
     "e_load_day_kwh": ("e_load_day",),
-    "e_import_day_kwh": ("e_day_imp",),
-    "e_export_day_kwh": ("e_day_exp",),
     "l1_w": ("active_power_l1", "pgrid", "meter_active_power1"),
     "l2_w": ("active_power_l2", "pgrid2", "meter_active_power2"),
     "l3_w": ("active_power_l3", "pgrid3", "meter_active_power3"),
@@ -87,6 +86,7 @@ class GoodWeReader(BaseReader):
                     values[target] = raw[key]
                     break
 
+        values.update(energy_values(raw))
         grid = values.get("grid_w")
         if isinstance(grid, (int, float)):
             # Znaménko se u instalací liší, proto je směr konfigurovatelný.

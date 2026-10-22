@@ -1,0 +1,41 @@
+{
+  "step": 32,
+  "classification": "SMALL",
+  "status": "IN_PROGRESS",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner: Dohledej a oprav to, schvaluji",
+    "approved_at": "2026-10-22T09:03:30.220276+02:00"
+  },
+  "gate_b": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "gate_c": {
+    "status": "NOT_REQUESTED",
+    "approved_by": null,
+    "approved_at": null
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "Explicit owner approval: Dohledej a oprav to, schvaluji",
+  "branch": "claude/step32-goodwe-grid-energy",
+  "pr": null,
+  "notes": "",
+  "requirements": [
+    "REQ-032-001",
+    "REQ-032-002",
+    "REQ-032-003"
+  ],
+  "acceptance": [
+    "AC-032-001",
+    "AC-032-002",
+    "AC-032-003"
+  ],
+  "evidence": [
+    "E-032-001",
+    "E-032-002",
+    "E-032-003"
+  ]
+}

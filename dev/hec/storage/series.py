@@ -10,6 +10,7 @@ from math import isfinite
 from statistics import mean
 from typing import Any
 
+from ..core.goodwe_energy import project_energy
 from ..core.timeutil import floor_to, parse_iso, to_iso
 
 AGGREGATIONS: dict[str, Callable[[list[float]], float]] = {
@@ -27,12 +28,14 @@ TNG_TEMPERATURE_FIELDS = (
 
 
 def history_record(source: str, record: dict) -> dict:
-    """Expose impossible TNG temperatures as unknown, without altering raw/current data.
+    """Project legacy energy semantics and impossible TNG temperatures on read.
 
     No vendor flag decoding is assumed. Below absolute zero and non-finite
     inputs cannot be Celsius measurements; valid negative and zero values stay.
     Apply before aggregation so an invalid input cannot contaminate a mean.
     """
+    if source == "goodwe":
+        return project_energy(record)
     if source != "tng":
         return record
     values = record_values(record)

@@ -64,6 +64,7 @@ Každý `stepNN/` obsahuje minimálně:
 | [`step29/`](step29/) | Truthful energy flow, meter quality and mobile readability | ✅ hotovo <!-- status: DONE --> |
 | [`step30/`](step30/) | Incremental release backups without repeated history scans | ✅ hotovo <!-- status: DONE --> |
 | [`step31/`](step31/) | Mobile layout, graphical flows and touch navigation fixes | ✅ hotovo <!-- status: DONE --> |
+| [`step32/`](step32/) | GoodWe AC/grid energy counter correction | 🔧 probíhá <!-- status: IN_PROGRESS --> |
 
 ## Aktuálně připravovaný Step 16
 

@@ -23,6 +23,7 @@ from ..readers.registry import build_readers
 from ..storage.jsonl import JsonlStorage
 from ..writers.fte_writer import FTEWriter
 from . import config as config_mod
+from .goodwe_energy import project_energy
 from .goodwe_hardware_authorization import load as load_goodwe_authorization
 from .logging_setup import configure, event, get_logger, register_secrets
 from .maintenance import Maintenance
@@ -86,6 +87,8 @@ class Application:
     def current(self, include_status: bool = True) -> dict[str, Any]:
         with self._lock:
             data = dict(self.snapshot)
+        if "goodwe" in data:
+            data['goodwe'] = project_energy(data['goodwe'])
         if "ote" in data:
             data["ote"] = cached_price_snapshot(self.config, data["ote"])
         last_measurement = None

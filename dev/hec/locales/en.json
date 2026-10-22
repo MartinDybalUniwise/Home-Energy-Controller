@@ -411,6 +411,10 @@
         "label": "Grid export today",
         "explanation": "Energy exported to the distribution grid since the start of the current day."
       },
+      "inverter_ac_import_day_kwh": {"label": "Inverter AC input today", "explanation": "Energy received at the inverter AC terminals; not distribution-grid import."},
+      "inverter_ac_export_day_kwh": {"label": "Inverter AC output today", "explanation": "Energy delivered at the inverter AC terminals, including battery energy supplied to the house; not grid export."},
+      "grid_import_total_kwh": {"label": "Grid import meter total", "explanation": "Lifetime grid-meter import counter; not energy for a single day."},
+      "grid_export_total_kwh": {"label": "Grid export meter total", "explanation": "Lifetime grid-meter export counter; not energy for a single day."},
       "grid_frequency_hz": {
         "label": "Grid frequency",
         "explanation": "Instantaneous AC distribution-grid frequency measured by the inverter."

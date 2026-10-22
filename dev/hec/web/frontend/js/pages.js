@@ -97,6 +97,10 @@ const GOODWE_HISTORY_METADATA = {
   e_load_day_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-house)' },
   e_import_day_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-grid-import)' },
   e_export_day_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-grid-export)' },
+  inverter_ac_import_day_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-grid-import)' },
+  inverter_ac_export_day_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-grid-export)' },
+  grid_import_total_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-grid-import)' },
+  grid_export_total_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-grid-export)' },
   grid_frequency_hz: { group: 'frequency', unitKey: 'unit.hz', scale: 1, axis: 'left', color: '#78899a' },
 };
 
@@ -1208,11 +1212,15 @@ function renderControlPlanMode(titleKey, enabled, reader) {
 
 function renderControlPlanDailyEnergy(goodwe, sdg, summary) {
   const values = sdg?.values || sdg || {};
+  // ET e_day_imp/exp are inverter AC energy, never grid import/export.
+  const currentValues = [values.e_day_kwh, values.e_day, values.e_load_day_kwh, values.e_load_day]
+    .some(value => value !== null && value !== undefined) ? values : goodwe;
+  const hasGridSemantics = currentValues.energy_counter_semantics === 'ac-grid-separated-v1';
   const currentDaily = {
-    production: values.e_day_kwh ?? values.e_day,
-    load: values.e_load_day_kwh ?? values.e_load_day,
-    import: values.e_import_day_kwh ?? values.e_day_imp,
-    export: values.e_export_day_kwh ?? values.e_day_exp,
+    production: currentValues.e_day_kwh ?? currentValues.e_day,
+    load: currentValues.e_load_day_kwh ?? currentValues.e_load_day,
+    import: hasGridSemantics ? currentValues.e_import_day_kwh : null,
+    export: hasGridSemantics ? currentValues.e_export_day_kwh : null,
   };
   const historicalDaily = {
     production: summary?.pv_kwh,
@@ -1222,13 +1230,13 @@ function renderControlPlanDailyEnergy(goodwe, sdg, summary) {
   };
   const hasCurrentDaily = Object.values(currentDaily).some((value) => value !== null && value !== undefined);
   const daily = hasCurrentDaily ? currentDaily : {
-    production: historicalDaily.production ?? goodwe.e_day_kwh,
-    load: historicalDaily.load ?? goodwe.e_load_day_kwh,
-    import: historicalDaily.import ?? goodwe.e_import_day_kwh,
-    export: historicalDaily.export ?? goodwe.e_export_day_kwh,
+    production: historicalDaily.production,
+    load: historicalDaily.load,
+    import: historicalDaily.import,
+    export: historicalDaily.export,
   };
-  const source = hasCurrentDaily ? (Object.keys(values).length ? 'SDG' : 'GoodWe') : t('control_plan.historical');
-  const metric = (labelKey, value, tone) => `<div class="control-plan-energy-metric" data-tone="${tone}"><span>${t(labelKey)}</span><strong>${controlPlanValue(value, (item) => `${num(item, 1)} ${t('unit.kwh')}`)}</strong></div>`;
+  const source = hasCurrentDaily ? (currentValues === values ? 'SDG' : 'GoodWe') : t('control_plan.historical');
+  const metric = (labelKey, value, tone) => `<div class="control-plan-energy-metric" data-tone="${tone}"><span>${t(labelKey)}</span><strong>${controlPlanValue(value, (item) => `${num(item, ['import', 'export'].includes(tone) ? 2 : 1)} ${t('unit.kwh')}`)}</strong></div>`;
   const hasData = Object.values(daily).some((value) => value !== null && value !== undefined);
   return `<article class="control-plan-daily-energy"><header><h3>${t('control_plan.daily_energy')}</h3><span class="meta">${t('control_plan.source_label')}: ${source}</span></header>
     <div class="control-plan-energy-grid">${hasData ? [

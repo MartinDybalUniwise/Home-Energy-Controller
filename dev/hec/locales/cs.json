@@ -411,6 +411,10 @@
         "label": "Dodávka do sítě dnes",
         "explanation": "Energie dodaná do distribuční sítě od začátku aktuálního dne."
       },
+      "inverter_ac_import_day_kwh": {"label": "AC vstup měniče dnes", "explanation": "Energie přijatá na AC svorkách měniče; nejde o odběr ze sítě."},
+      "inverter_ac_export_day_kwh": {"label": "AC výstup měniče dnes", "explanation": "Energie dodaná z AC svorek měniče, včetně napájení domu z baterie; nejde o přetok do sítě."},
+      "grid_import_total_kwh": {"label": "Celkový odběr síťového měřidla", "explanation": "Celoživotní čítač odběru síťového měřidla; nejde o denní energii."},
+      "grid_export_total_kwh": {"label": "Celková dodávka síťového měřidla", "explanation": "Celoživotní čítač dodávky síťového měřidla; nejde o denní energii."},
       "grid_frequency_hz": {
         "label": "Frekvence sítě",
         "explanation": "Okamžitá frekvence střídavé distribuční sítě měřená měničem."

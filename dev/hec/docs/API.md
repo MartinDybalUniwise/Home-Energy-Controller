@@ -88,3 +88,24 @@ unknown and expose `heatpump_reported_days`. No bulk history rewrite occurs.
 without fetching or mutating the controller snapshot. `period_end`,
 `price_valid_at` and `price_valid` describe validity; a missing cache/quarter
 produces null prices. `timestamp` still denotes the original reader observation.
+
+
+### GoodWe energy domains (Step32)
+
+ET library sensors `e_day_imp`/`e_day_exp` describe inverter AC energy, not
+grid exchange. Both adapters expose them as additive
+`inverter_ac_import_day_kwh`/`inverter_ac_export_day_kwh`. Meter GRID sensors
+`meter_e_total_imp`/`meter_e_total_exp` become `grid_import_total_kwh` /
+`grid_export_total_kwh` (cumulative kWh). Missing, invalid or disconnected
+meter counters remain null; measured zero remains zero.
+
+`e_import_day_kwh`/`e_export_day_kwh` are retained but null: this ET runtime
+response has no daily GRID sensors and no verified midnight meter baseline.
+Do not substitute AC energy, lifetime totals, or an unlabelled partial
+integration. `energy_counter_semantics=ac-grid-separated-v1` identifies the
+corrected contract. Legacy current/history fields from the earlier AC mapping
+are masked on read, with their original valid AC value exposed under the
+explicit name. Original records and controller input are not rewritten.
+The control-plan page does not use SDG `e_day_imp/exp` as grid energy.
+Existing power-based daily summaries remain independently calculated; their
+historical source is labelled and small grid energies show two decimals.
