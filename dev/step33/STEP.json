@@ -1,7 +1,7 @@
 {
   "step": 33,
   "classification": "LARGE",
-  "status": "IN_PROGRESS",
+  "status": "DONE",
   "gate_a": {
     "status": "APPROVED",
     "approved_by": "repository owner: Udělej to celé",
@@ -22,7 +22,7 @@
   "source": "Owner screenshots; whole Step33 plan approved, deployment explicitly approved 2026-10-22",
   "branch": "claude/step33-overview-accuracy-plan",
   "pr": "https://github.com/MartinDybalUniwise/Home-Energy-Controller/pull/44",
-  "notes": "Implementation and validation PASS; plan, independent review and owner deployment gate APPROVED. Production deployment verification remains pending.",
+  "notes": "HEC0.1.6 deployed and verified in production on desktop/mobile; six sources fresh, config unchanged, controller disabled. Complete source CI437unit/111Chromium PASS; local66Edge/25targeted PASS; independent review and owner Human Gate APPROVED. Incremental copy33379961B; metadata reload copied0B.",
   "requirements": [
     "REQ-033-001",
     "REQ-033-002",

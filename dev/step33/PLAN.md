@@ -4,7 +4,7 @@
 
 Obnovit čitelnou hlavní stránku a graf podle referencí při zachování doložených hodnot, jednotek a dat.
 
-Plán a nasazení vlastník výslovně schválil. Implementace dokončena v pracovním checkoutu; závěrečné testy a review probíhají. Produkce zatím beze změny.
+Plán a nasazení vlastník výslovně schválil. Implementace, testy, review i produkční ověření dokončené. Nasazena verze0.1.6; důkazy v RESULT.md.
 
 ## Doložená zjištění
 
@@ -23,7 +23,7 @@ Plán a nasazení vlastník výslovně schválil. Implementace dokončena v prac
 | S03 | Obnovit rozložení podle zářijových referencí | DONE |
 | S04 | Vrátit graf skutečné historie a doložené předpovědi | DONE |
 | S05 | Cílené datové a prohlížečové ověření | DONE |
-| S06 | Review, PR a samostatné schválení nasazení | IN_PROGRESS |
+| S06 | Review, PR a samostatné schválení nasazení | DONE |
 
 ## S01 — audit měření
 
@@ -59,7 +59,7 @@ Den / 2 dny / 7 dní nabídnou dostupnou historii a skutečný horizont budoucno
 
 ## S06 — review a předání
 
-Po testech nezávislé review a konkrétní výsledky s důkazy. Následně PR podle schváleného rozsahu a nový Human Gate pro nasazení. Případná záloha pouze změněného rozsahu schváleným inkrementálním postupem, bez nové kopie 1 GB dat. Nyní žádná záloha ani nasazení.
+Po testech nezávislé review a konkrétní výsledky s důkazy. Následně PR podle schváleného rozsahu a nový Human Gate pro nasazení. Případná záloha pouze změněného rozsahu schváleným inkrementálním postupem, bez nové kopie 1 GB dat. V původní plánovací fázi se žádná záloha ani nasazení neprováděly; schválený release nyní dokládá RESULT.md.
 
 ## Omezení a rizika
 
