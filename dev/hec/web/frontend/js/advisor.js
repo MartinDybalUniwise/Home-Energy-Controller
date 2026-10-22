@@ -1,9 +1,10 @@
-import { source, finite, batteryText, heatpumpText, heatingPermission } from './telemetry.js';
+import { siteDate, siteClock, siteMoment, siteTime, siteDateTime, uniqueSiteMoment, priceInterval } from './today-chart.js';
+import { source, finite, energySnapshot, heatpumpPower, batteryText, heatpumpText, heatingPermission } from './telemetry.js';
 // Rozhodovací vrstva pro domovskou stránku (Step 18 Touchscreen Redesign).
 // Pracuje výhradně s daty, která rozhraní dostává z API: cenou, předpovědí počasí,
 // predikcí výroby a okamžitým stavem.
 
-import { dateTime, formatCurrency, num, power, t, time, weekday } from './i18n.js';
+import { formatCurrency, num, power, t, time, weekday } from './i18n.js';
 import { applianceIcon, weatherIcon } from './icons.js';
 
 const HTML_ESCAPES = {
@@ -28,10 +29,9 @@ function translatedText(key, params, fallback = '') {
   return text === key ? escapeHtml(fallback) : text;
 }
 
-const dateKey = (value) => {
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+const dateKey = value => {
+  const date = siteTime(value);
+  return Number.isNaN(date.getTime()) ? '' : siteDate(date);
 };
 
 const values = (items, key) => items.map(item => finite(item?.[key])).filter(value => value !== null);
@@ -56,8 +56,10 @@ function dayFor(date, prices) {
 
 function priceAt(stamp, priceDay) {
   if (!priceDay?.periods?.length) return null;
-  const clock = `${String(stamp.getHours()).padStart(2, '0')}:${String(stamp.getMinutes()).padStart(2, '0')}`;
-  return priceDay.periods.find((period) => period.start <= clock && period.end > clock) || null;
+  return priceDay.periods.find(period => {
+    const interval = priceInterval(priceDay.date, period);
+    return interval && +stamp >= +interval.start && +stamp < +interval.end;
+  }) || null;
 }
 
 function rangeFor(periods, predicate) {
@@ -94,9 +96,9 @@ function timelineFor(date, weather, prices) {
   const thresholds = { priceLow: percentile(priceValues, 0.3) ?? 2.5, priceHigh: percentile(priceValues, 0.75) ?? 4.2 };
   const starts = [0, 3, 6, 9, 12, 15, 18, 21];
   return starts.map((start) => {
-    const rows = hourly.filter((hour) => new Date(hour.time).getHours() >= start && new Date(hour.time).getHours() < start + 3);
+    const rows = hourly.filter((hour) => Number(siteClock(siteTime(hour.time)).slice(0,2)) >= start && Number(siteClock(siteTime(hour.time)).slice(0,2)) < start + 3);
     const hour = rows[Math.floor(rows.length / 2)] || null;
-    const stamp = hour ? new Date(hour.time) : new Date(`${date}T${String(start).padStart(2, '0')}:00`);
+    const stamp = hour ? siteTime(hour.time) : siteMoment(date,`${String(start).padStart(2,'0')}:00`);
     const period = priceAt(stamp, priceDay);
     const rainProb = num(hour?.precipitation_probability, 0);
     return {
@@ -110,16 +112,24 @@ function timelineFor(date, weather, prices) {
   });
 }
 
-function bestAdvice(prediction, prices) {
-  const day = prediction?.days?.find((item) => item.best_appliance_window) || prediction?.days?.[0] || null;
-  const priceDay = dayFor(day?.date, prices);
-  const priceValues = values(priceDay?.periods || [], 'price_total_czk_kwh');
-  const high = percentile(priceValues, 0.8);
-  return {
-    day,
-    best: day?.best_appliance_window || t('advisor.window_unavailable'),
-    avoid: high === null ? '–' : (rangeFor(priceDay.periods, (p) => Number(p.price_total_czk_kwh) >= high) || '–'),
+export function bestAdvice(prediction, prices, now = new Date()) {
+  const today = siteDate(now), clock = siteClock(now);
+  const remaining = (window, day) => {
+    const match = String(window || '').match(/^(\d{2}:\d{2})\s*[–—-]\s*(\d{2}:\d{2})$/);
+    if (!match || day < today || (day === today && match[2] <= clock)) return null;
+    if (!uniqueSiteMoment(day,match[1]) || (match[2] !== '24:00' && !uniqueSiteMoment(day,match[2]))) return null;
+    return `${day === today && match[1] < clock ? clock : match[1]} – ${match[2]}`;
   };
+  const candidates = (prediction?.days || []).filter(day => day.date >= today).sort((a,b)=>a.date.localeCompare(b.date));
+  const day = candidates.find(day => remaining(day.best_appliance_window,day.date)) || null;
+  const priceDay = dayFor(today, prices);
+  const periods = (priceDay?.periods || []).filter(period=>period.end > clock && priceInterval(today,period));
+  const high = percentile(values(periods,'price_total_czk_kwh'), .8);
+  const avoid = high === null ? null : rangeFor(periods.map(p=>({...p,start:p.start < clock ? clock : p.start})),
+    p=>finite(p.price_total_czk_kwh) !== null && Number(p.price_total_czk_kwh)>=high);
+  return {day, today: candidates.find(day=>day.date===today) || null,
+    best: day ? `${dayLabel(day.date)} · ${remaining(day.best_appliance_window,day.date)}` : t('advisor.window_unavailable'),
+    avoid: avoid || '–'};
 }
 
 function energyState(goodwe) {
@@ -129,30 +139,27 @@ function energyState(goodwe) {
 }
 
 function getGreeting(now) {
-  const h = now.getHours();
+  const h = Number(siteClock(now).slice(0,2));
   if (h < 10) return t('advisor.greeting_morning');
   if (h < 18) return t('advisor.greeting_day');
   return t('advisor.greeting_evening');
 }
 
 function formatDateFull(now) {
-  const monthsCs = ['ledna', 'února', 'března', 'dubna', 'května', 'června', 'července', 'srpna', 'září', 'října', 'listopadu', 'prosince'];
-  const monthsEn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-  const isEn = document.documentElement.lang === 'en';
-  const month = isEn ? monthsEn[now.getMonth()] : monthsCs[now.getMonth()];
-  const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  return isEn ? `${month} ${now.getDate()}, ${now.getFullYear()} • ${timeStr}` : `${now.getDate()}. ${month} ${now.getFullYear()} • ${timeStr}`;
+  return new Intl.DateTimeFormat(document.documentElement.lang === 'en' ? 'en-GB' : 'cs-CZ', {
+    timeZone:'Europe/Prague', day:'numeric', month:'long', year:'numeric',hour:'2-digit',minute:'2-digit',
+  }).format(now);
 }
 
 export function renderToday(view, { current, weather, prices, prediction }) {
-  const goodwe = source(current, 'goodwe');
+  const goodwe = energySnapshot(current);
   const tng = source(current, 'tng');
   const controller = current?.status?.controller || {};
   const advice = bestAdvice(prediction, prices);
   const now = new Date();
   const todayDate = dateKey(now);
   const timeline = timelineFor(todayDate, weather, prices);
-  const daily = (weather?.forecast_daily || []).find((d) => d.date === todayDate) || weather?.forecast_daily?.[0] || {};
+  const daily = (weather?.forecast_daily || []).find((d) => d.date === todayDate) || {};
 
   const pvW = finite(goodwe.pv_w);
   const houseW = finite(goodwe.house_w);
@@ -170,12 +177,12 @@ export function renderToday(view, { current, weather, prices, prediction }) {
   const condition = weather?.current?.condition || 'unknown';
   const tempMax = num(daily.temp_max_c, 0);
   const tempMin = num(daily.temp_min_c, 0);
-  const sunrise = daily.sunrise ? time(new Date(daily.sunrise)) : '–';
-  const sunset = daily.sunset ? time(new Date(daily.sunset)) : '–';
+  const sunrise = daily.sunrise ? time(siteTime(daily.sunrise), {timeZone:'Europe/Prague',hour:'2-digit',minute:'2-digit'}) : '–';
+  const sunset = daily.sunset ? time(siteTime(daily.sunset), {timeZone:'Europe/Prague',hour:'2-digit',minute:'2-digit'}) : '–';
   const rainProb = num(weather?.current?.precipitation_probability, 0);
-  const windSpeed = num(weather?.current?.wind_speed_kmh, 0);
+  const windSpeed = num(weather?.current?.wind_kmh ?? weather?.current?.wind_speed_kmh, 0);
 
-  const currentHour = now.getHours() + now.getMinutes() / 60;
+  const currentHour = Number(siteClock(now).slice(0,2)) + Number(siteClock(now).slice(3))/60;
   const nowPercent = Math.min(100, Math.max(0, (currentHour / 24) * 100));
 
   view.innerHTML = `
@@ -188,7 +195,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
           <h2>${getGreeting(now)}</h2>
         </div>
         <p class="greeting-date">${formatDateFull(now)}</p>
-        <p class="greeting-sub">${t('overview.last_data_update')}: ${current.last_measurement_at ? dateTime(current.last_measurement_at) : '–'}</p>
+        <p class="greeting-sub">${t('overview.last_data_update')}: ${current.last_measurement_at ? siteDateTime(current.last_measurement_at) : '–'}</p>
       </div>
 
       <div class="weather-station-widget">
@@ -229,13 +236,13 @@ export function renderToday(view, { current, weather, prices, prediction }) {
 
       <div class="recommendation-statuses">
         <div class="recommendation-status recommendation-status--now">
-          <span>${t('advisor.now_is')}</span><strong>${t('advisor.' + (timeline.find(slot => now.getHours() >= slot.start && now.getHours() < slot.start + 3)?.level || 'unknown'))}</strong>
+          <span>${t('advisor.now_is')}</span><strong>${t('advisor.' + (timeline.find(slot => currentHour >= slot.start && currentHour < slot.start + 3)?.level || 'unknown'))}</strong>
         </div>
         <div class="recommendation-status recommendation-status--avoid">
           <span>${t('advisor.avoid_label')}</span><strong>⚠ ${advice.avoid}</strong>
         </div>
         <div class="recommendation-status recommendation-status--solar">
-          <span>${t('advisor.expected_label')}</span><strong>${formatRange(advice.day?.pv_kwh_low, advice.day?.pv_kwh_high, 1, 'unit.kwh')}</strong>
+          <span>${t('advisor.expected_label')}</span><strong>${formatRange(advice.today?.pv_kwh_low, advice.today?.pv_kwh_high, 1, 'unit.kwh')}</strong>
         </div>
       </div>
     </section>
@@ -247,7 +254,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         <div class="kpi-body">
           <span class="kpi-label">${t('entity.pv')}</span>
           <div class="kpi-value">${pvPower.value} <span class="kpi-unit">${pvPower.unit}</span></div>
-          <span class="kpi-trend kpi-trend--up">${current.last_measurement_at ? dateTime(current.last_measurement_at) : t('meter.missing')}</span>
+          <span class="kpi-trend kpi-trend--up">${goodwe.timestamp ? siteDateTime(goodwe.timestamp) : t('meter.missing')}</span>
         </div>
       </article>
 
@@ -256,7 +263,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         <div class="kpi-body">
           <span class="kpi-label">${t('entity.house')}</span>
           <div class="kpi-value">${housePower.value} <span class="kpi-unit">${housePower.unit}</span></div>
-          <span class="kpi-trend kpi-trend--neutral">${current.last_measurement_at ? dateTime(current.last_measurement_at) : t('meter.missing')}</span>
+          <span class="kpi-trend kpi-trend--neutral">${goodwe.timestamp ? siteDateTime(goodwe.timestamp) : t('meter.missing')}</span>
         </div>
       </article>
 
@@ -283,19 +290,21 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         <div class="kpi-body">
           <span class="kpi-label">${t('entity.price')}</span>
           <div class="kpi-value">${num(spotPrice, 2)} <span class="kpi-unit">${t('unit.czk_kwh')}</span></div>
-          <span class="kpi-trend kpi-trend--good">${current.last_measurement_at ? dateTime(current.last_measurement_at) : t('meter.missing')}</span>
+          <span class="kpi-trend kpi-trend--good">${spotPrice === null ? t('meter.missing') : t('today_chart.price_current')}</span>
         </div>
       </article>
 
-      <article class="kpi-card kpi-card--heatpump">
+      <article class="kpi-card kpi-card--heatpump" data-quality="${heatpumpPower(source(current, 'shelly')) === null ? 'invalid' : 'valid'}">
         <div class="kpi-icon-wrap" aria-hidden="true">♨️</div>
         <div class="kpi-body">
           <span class="kpi-label">${t('entity.heatpump')}</span>
-          <div class="kpi-value">${power(source(current, 'shelly').heatpump_power_w).value} <span class="kpi-unit">${power(source(current, 'shelly').heatpump_power_w).unit}</span></div>
+          <div class="kpi-value">${power(heatpumpPower(source(current, 'shelly'))).value} <span class="kpi-unit">${power(heatpumpPower(source(current, 'shelly'))).unit}</span></div>
           <span class="kpi-trend kpi-trend--neutral">${heatpumpText(source(current, 'shelly'))}</span>
         </div>
       </article>
     </section>
+
+    <p class="today-source-note">${t('today_chart.measurement_note')} ${goodwe.timestamp ? siteDateTime(goodwe.timestamp) : t('meter.missing')}</p>
 
     <!-- 4. ENERGETICKÝ RYTMUS DNE (24h timeline) -->
     <section class="rhythm-section" aria-labelledby="rhythm-title">
@@ -304,8 +313,8 @@ export function renderToday(view, { current, weather, prices, prediction }) {
           <h3 id="rhythm-title" class="rhythm-heading">${t('advisor.timeline_title')}</h3>
           <div class="rhythm-production-summary">
             <span>${t('advisor.daily_pv_estimate_title')}</span>
-            <strong>${formatRange(advice.day?.pv_kwh_low, advice.day?.pv_kwh_high, 1, 'unit.kwh')}</strong>
-            <small>${prediction.generated_at ? dateTime(prediction.generated_at) : '–'}</small>
+            <strong>${formatRange(advice.today?.pv_kwh_low, advice.today?.pv_kwh_high, 1, 'unit.kwh')}</strong>
+            <small>${advice.today ? (prediction.generated_at ? siteDateTime(prediction.generated_at) : '–') : t('today_chart.no_today_forecast')}</small>
           </div>
           <div class="rhythm-legend-tags">
             <span class="legend-tag legend-tag--best">● ${t('advisor.best')}</span>
@@ -320,7 +329,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
             ${timeline.map(slot => `<div class="rhythm-seg rhythm-seg--${slot.level}" style="width:12.5%"></div>`).join('')}
           </div>
           <div class="rhythm-now-marker" style="left: ${nowPercent.toFixed(1)}%">
-            <span class="now-badge">${time(now)}</span>
+            <span class="now-badge">${siteClock(now)}</span>
             <div class="now-line"></div>
           </div>
         </div>
@@ -362,8 +371,8 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         </div>
       </article>
 
-      <article class="workspace-card forecast-chart-card"><header class="workspace-card-header"><h4>${t('advisor.outlook_title')}</h4></header>
-        <p>${t('flow.forecast_table_note')}</p><div class="forecast-observed-table"><table><thead><tr><th>${t('history.time')}</th><th>${t('advisor.solar_curve')}</th><th>${t('entity.price')}</th></tr></thead><tbody>${timeline.map(slot => `<tr><td>${String(slot.start).padStart(2,'0')}:00</td><td>${num(slot.solar,0)} W/m²</td><td>${num(slot.price,2)} ${t('unit.czk_kwh')}</td></tr>`).join('')}</tbody></table></div>
+      <article class="workspace-card forecast-chart-card"><header class="workspace-card-header"><h4>${t('today_chart.title')}</h4></header>
+        <div id="today-energy-chart"></div>
       </article>
     </section>
   </div>`;
@@ -372,7 +381,11 @@ export function renderToday(view, { current, weather, prices, prediction }) {
   if (btnWhyNow) {
     btnWhyNow.addEventListener('click', () => {
       const dlg = document.getElementById('why-now-dialog');
-      if (dlg) dlg.showModal();
+      if (dlg) {
+        const body = dlg.querySelector('#why-now-body');
+        if (body) body.textContent = `${advice.best}. ${t('advisor.why_now_content')}`;
+        dlg.showModal();
+      }
     });
   }
 }
@@ -408,7 +421,7 @@ export function renderForecastStory(view, { prediction, weather, prices }) {
           <p>${t('nav.forecast')}</p>
           <h3>${t('forecast.title')}</h3>
         </div>
-        <span class="story-surface__meta">${prediction?.generated_at ? t('app.updated', { time: dateTime(prediction.generated_at) }) : ''}</span>
+        <span class="story-surface__meta">${prediction?.generated_at ? t('app.updated', { time: siteDateTime(prediction.generated_at) }) : ''}</span>
       </header>
       <div class="forecast-grid" id="forecast-grid"></div>
     </section>
@@ -420,7 +433,7 @@ export function renderForecastStory(view, { prediction, weather, prices }) {
         <div class="story-data-rows">
           <div class="story-data-row"><span>${t('prediction.best_appliance_window')}</span><strong>${bestDay?.best_appliance_window ? escapeHtml(bestDay.best_appliance_window) : '–'}</strong></div>
           <div class="story-data-row"><span>${t('prediction.best_dhw_window')}</span><strong>${dhwDay?.best_dhw_window ? escapeHtml(dhwDay.best_dhw_window) : '–'}</strong></div>
-          <div class="story-data-row"><span>${t('overview.last_data_update')}</span><strong>${prediction?.generated_at ? dateTime(prediction.generated_at) : '–'}</strong></div>
+          <div class="story-data-row"><span>${t('overview.last_data_update')}</span><strong>${prediction?.generated_at ? siteDateTime(prediction.generated_at) : '–'}</strong></div>
         </div>
       </article>
       <article class="story-card story-card--soft">

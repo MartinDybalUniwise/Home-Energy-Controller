@@ -1,0 +1,97 @@
+/* Step33: readable cards and natural vertical flow, independent of screen height. */
+.view:has(.today-screen) { padding: 24px; background: var(--bg-app); }
+.today-screen { width: min(100%, 1760px); gap: 22px; }
+.today-screen .today-header { height: auto; min-height: 150px; padding: 26px 30px; border-radius: 18px; background: var(--bg-card-highlight); flex-wrap: wrap; }
+.today-screen .greeting-title h2 { font-size: clamp(1.8rem, 2.8vw, 2.8rem); }
+.today-screen .greeting-sun { font-size: 2.4rem; }
+.today-screen .greeting-date, .today-screen .greeting-sub { margin-top: 9px; font-size: .95rem; }
+.today-screen .weather-station-widget { gap: 24px; padding: 18px; border: 1px solid var(--panel-border); border-radius: 14px; background: var(--bg-card); }
+.today-screen .temp-num { font-size: 2.6rem; }
+.today-screen .temp-cond, .today-screen .weather-sun-times, .today-screen .weather-detail-item { font-size: .9rem; }
+.today-screen .weather-details { padding-left: 16px; }
+.today-screen .today-recommendation-panel { grid-template-columns: minmax(0,1.3fr) minmax(0,1.7fr); min-height: 240px; height: auto; gap: 20px; padding: 0; background: transparent; }
+.today-screen .hero-primary-card { display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 14px; padding: 26px; border: 1px solid var(--state-good-border); border-radius: 16px; background: color-mix(in srgb, var(--state-good) 7%, var(--bg-card)); }
+.today-screen .hero-card-kicker, .today-screen .recommendation-status > span { font-size: .85rem; letter-spacing: .08em; overflow-wrap: anywhere; }
+.today-screen .hero-card-heading { font-size: 1.2rem; line-height: 1.4; }
+.today-screen .hero-main-window { font-size: clamp(1.7rem, 2.8vw, 2.8rem); line-height: 1.3; color: var(--state-good); }
+.today-screen .hero-main-window--unavailable { font-size: 1.2rem; color: var(--ink-secondary); }
+.today-screen .hero-card-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.today-screen .hero-check-badge { font-size: .95rem; }
+.today-screen .btn--touch { min-height: 48px; padding: 12px 18px; border: 1px solid var(--panel-border-accent); border-radius: 10px; color: var(--ink-primary); background: var(--bg-card-highlight); font-size: 1rem; }
+.today-screen .recommendation-statuses { gap: 18px; }
+.today-screen .recommendation-status { align-content: start; gap: 18px; padding: 26px 20px; border: 1px solid var(--panel-border-accent); border-radius: 16px; background: var(--bg-card); }
+.today-screen .recommendation-status--avoid { border-color: var(--state-warning-border); }
+.today-screen .recommendation-status strong { font-size: 1.25rem; line-height: 1.5; }
+.today-screen .today-kpi-strip { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,12rem),1fr)); min-height: 0; gap: 14px; padding: 0; border: 0; background: transparent; }
+.today-screen .kpi-card { gap: 12px; padding: 22px 18px; border: 1px solid var(--panel-border); border-radius: 14px; background: var(--bg-card); }
+.today-screen .kpi-icon-wrap { font-size: 1.7rem; }
+.today-screen .kpi-label { white-space: normal; overflow: visible; font-size: .85rem; line-height: 1.4; }
+.today-screen .kpi-value { margin-top: 10px; font-size: 2rem; line-height: 1.2; white-space: normal; overflow-wrap: anywhere; }
+.today-screen .kpi-unit { font-size: .55em; }
+.today-screen .kpi-trend { margin-top: 10px; font-size: .85rem; color: var(--ink-secondary); }
+.today-screen .kpi-card[data-quality="invalid"] { border-color: var(--state-warning-border); }
+.today-screen .kpi-card[data-quality="invalid"] .kpi-trend { color: var(--state-warning); }
+.today-screen .rhythm-section { min-height: 0; padding: 26px; border-radius: 18px; background: var(--bg-card); }
+.today-screen .rhythm-header { flex-wrap: wrap; align-items: baseline; gap: 18px; }
+.today-screen .rhythm-heading { font-size: 1.25rem; }
+.today-screen .rhythm-production-summary { flex-wrap: wrap; font-size: .85rem; }
+.today-screen .rhythm-production-summary strong { font-size: 1.4rem; }
+.today-screen .rhythm-legend-tags { flex-wrap: wrap; font-size: .85rem; }
+.today-screen .rhythm-bar-container { margin-top: 32px; }
+.today-screen .rhythm-bar { height: 14px; border-radius: 7px; }
+.today-screen .now-badge { font-size: .8rem; top: -22px; }
+.today-screen .rhythm-hours-row { margin-top: 12px; font-size: .8rem; }
+.today-screen .rhythm-slots-grid { gap: 10px; margin-top: 20px; }
+.today-screen .rhythm-slot { min-height: 170px; padding: 16px 6px; gap: 8px; background: var(--bg-card-subtle); }
+.today-screen .slot-weather-icon svg { width: 36px; height: 36px; }
+.today-screen .slot-temp { font-size: 1.4rem; }
+.today-screen .slot-rain, .today-screen .slot-rating { font-size: .85rem; }
+.today-screen .slot-price { font-size: 1.1rem; }
+.today-screen .today-workspace-grid { grid-template-columns: minmax(0,.32fr) minmax(0,.68fr); gap: 22px; align-items: start; min-height: 0; }
+.today-screen .today-workspace-grid .workspace-card { min-height: 0; padding: 26px; border-radius: 18px; background: var(--bg-card); }
+.today-screen .workspace-card-header h4 { min-width: 0; font-size: 1.2rem; line-height: 1.4; overflow-wrap: anywhere; }
+.today-screen .appliances-list { margin-top: 20px; }
+.today-screen .appliance-row { padding: 14px 0; min-height: 64px; }
+.today-screen .appliance-info { min-width: 0; }
+.today-screen .appliance-info strong { font-size: 1rem; }
+.today-screen .appliance-info small { white-space: normal; overflow-wrap: anywhere; font-size: .85rem; line-height: 1.5; }
+.today-chart-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.today-chart-controls button { min-height: 44px; padding: 8px 14px; border: 1px solid var(--panel-border); border-radius: 8px; background: var(--bg-card-subtle); color: var(--ink-primary); font: inherit; cursor: pointer; }
+.today-chart-controls button[aria-pressed="true"] { background: var(--bg-card-highlight); border-color: var(--state-ok); }
+.today-chart-note { font-size: .9rem; line-height: 1.6; color: var(--ink-secondary); }
+.today-chart-legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 18px 0; font-size: 1rem; }
+.today-chart-legend span::before { content: ''; display: inline-block; width: 20px; border-top: 3px solid var(--series); margin-right: 8px; vertical-align: middle; }
+.today-chart-panels { display: grid; gap: 10px; touch-action: pan-y; }
+.today-plot { display: block; width: 100%; height: auto; min-width: 0; overflow: visible; }
+.today-plot .axis-label { fill: var(--ink-secondary); font-size: 13px; }
+.today-axis-unit { fill: var(--ink-primary); font-size: 15px; font-weight: 600; }
+.today-gridline { stroke: var(--panel-border); stroke-width: 1; }
+.today-now { stroke: var(--state-ok); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.today-crosshair { stroke: var(--ink-primary); stroke-width: 1; stroke-dasharray: 3 3; }
+.today-crosshair[hidden] { display: none; }
+.today-chart-tooltip { display: block; padding: 12px; min-height: 48px; border-radius: 8px; background: var(--bg-card-subtle); font-size: .9rem; line-height: 1.5; overflow-wrap: anywhere; }
+.today-chart-table { margin-top: 16px; max-height: 400px; overflow: auto; }
+.today-chart-table th, .today-chart-table td { padding: 10px; text-align: left; white-space: nowrap; }
+@media (max-width: 1399px) {
+  .today-screen .today-recommendation-panel { grid-template-columns: minmax(0,1fr); }
+  .today-screen .recommendation-status { gap: 10px; }
+  .today-screen .today-workspace-grid { grid-template-columns: minmax(0,1fr); }
+  .today-screen .forecast-chart-card { grid-row: 1; }
+}
+@media (max-width: 1099px) {
+  .today-screen .rhythm-left-panel { min-width: 760px; }
+  .today-screen .rhythm-section { overflow-x: auto; }
+}
+@media (max-width: 720px) {
+  .view:has(.today-screen) { padding: 16px; }
+  .today-screen { gap: 18px; }
+  .today-screen .today-header, .today-screen .hero-primary-card,
+  .today-screen .today-workspace-grid .workspace-card { padding: 20px; }
+  .today-screen .recommendation-statuses { grid-template-columns: minmax(0,1fr); }
+  .today-screen .recommendation-status { padding: 18px; }
+  .today-screen .weather-station-widget { padding: 12px; }
+  .today-screen .weather-details { padding-left: 0; border: 0; }
+  .today-screen .today-kpi-strip { grid-template-columns: minmax(0,1fr); }
+  .today-screen .rhythm-section { padding: 18px; }
+  .today-plot { min-height: 180px; }
+}

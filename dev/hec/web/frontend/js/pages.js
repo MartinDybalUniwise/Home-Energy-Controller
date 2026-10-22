@@ -1,8 +1,9 @@
-import { source, finite, heatpumpText, heatingPermission, batteryText, batteryReason } from './telemetry.js';
+import { mountTodayChart, siteDateTime } from './today-chart.js';
+import { source, finite, energySnapshot, heatpumpText, heatingPermission, batteryText, batteryReason } from './telemetry.js';
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 
 import { renderChart, renderGoodWeHistoryChart, renderTable } from './chart.js?v=4';
-import { renderForecastStory, renderToday } from './advisor.js?v=15';
+import { renderForecastStory, renderToday } from './advisor.js?v=33';
 import { renderFlow } from './flow.js?v=3';
 import { availableLanguages, currentLanguage, dateTime, duration, num, power, t, time, weekday } from './i18n.js';
 import { weatherIcon } from './icons.js';
@@ -146,6 +147,7 @@ export async function overview(view, { api, motion }) {
     api.prediction().catch(() => ({})),
   ]);
   renderToday(view, { current, weather, prices, prediction: predictionPayload, motion });
+  await mountTodayChart(view.querySelector('#today-energy-chart'), {api, prices});
 }
 
 function phaseTile(goodwe) {
@@ -725,7 +727,7 @@ function lastDecisionText(controller) {
 
 export async function flow(view, { api, motion }) {
   const current = await api.current();
-  const goodwe = source(current, 'goodwe');
+  const goodwe = energySnapshot(current);
   const shelly = source(current, 'shelly');
   const tng = source(current, 'tng');
   const controller = current?.status?.controller || {};
@@ -733,7 +735,7 @@ export async function flow(view, { api, motion }) {
   const grid = finite(goodwe.grid_import_w) === null || finite(goodwe.grid_export_w) === null ? 'unknown' : Number(goodwe.grid_import_w) > 20 ? 'import' : Number(goodwe.grid_export_w) > 20 ? 'export' : 'balanced';
   const gridPower = finite(goodwe.grid_import_w) === null || finite(goodwe.grid_export_w) === null ? null : Math.max(Number(goodwe.grid_import_w), Number(goodwe.grid_export_w));
   const batteryPower = finite(goodwe.battery_charge_w) === null || finite(goodwe.battery_discharge_w) === null ? null : Math.max(Number(goodwe.battery_charge_w), Number(goodwe.battery_discharge_w));
-  const lastMeasurement = current?.last_measurement_at ? dateTime(current.last_measurement_at) : '–';
+  const lastMeasurement = goodwe.timestamp ? siteDateTime(goodwe.timestamp) : t('meter.missing');
   const controllerBadges = [
     controller.enabled
       ? `<span class="pill" data-level="ok">${t('status.controller_running')}</span>`
@@ -764,7 +766,7 @@ export async function flow(view, { api, motion }) {
           <div class="story-flow-summary">
             <p>${batteryStateText(goodwe)} · ${t('entity.battery_soc')}: ${num(goodwe.battery_soc, 0)} %</p>
             <p>${t('flow.reserve')}: ${num(goodwe.on_grid_soc_limit_pct, 0)} % · ${t('flow.inverter_mode')}: ${escapeHtml(goodwe.operation_mode || '–')}</p>
-            <p>${batteryReason(goodwe)}</p>
+            <p>${batteryReason(goodwe)}</p><p>${t('today_chart.measurement_note')}</p>
             <p>${heatpumpText(shelly)} · ${heatingPermission(tng)}</p>
             <p>${controllerStateText(controller)}</p>
           </div>

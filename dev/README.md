@@ -65,6 +65,7 @@ Každý `stepNN/` obsahuje minimálně:
 | [`step30/`](step30/) | Incremental release backups without repeated history scans | ✅ hotovo <!-- status: DONE --> |
 | [`step31/`](step31/) | Mobile layout, graphical flows and touch navigation fixes | ✅ hotovo <!-- status: DONE --> |
 | [`step32/`](step32/) | GoodWe AC/grid energy counter correction | ✅ hotovo <!-- status: DONE --> |
+| [`step33/`](step33/) | Čitelný přehled a přesnost energetických údajů | ✅ hotovo <!-- status: DONE --> |
 
 ## Aktuálně připravovaný Step 16
 
