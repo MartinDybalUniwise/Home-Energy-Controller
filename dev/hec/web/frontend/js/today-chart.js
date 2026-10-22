@@ -130,6 +130,7 @@ function panel(rows, fields, unit, range, now, gap, width) {
 let selectedDays = 1;
 let tableOpen = false;
 const historyCache = new Map();
+const rangeLabels = {1:'today_chart.days_1',2:'today_chart.days_2',7:'today_chart.days_7'};
 
 export async function mountTodayChart(container, {api, prices, now = new Date()}) {
   let generation = 0;
@@ -159,7 +160,7 @@ export async function mountTodayChart(container, {api, prices, now = new Date()}
     const width = Math.max(240,container.clientWidth);
     const missingPrices = [prices?.today,prices?.tomorrow].some(day=>
       (day?.periods || []).some(period=>!priceInterval(day.date,period)));
-    container.innerHTML = `<div class="today-chart-controls" role="group" aria-label="${t('today_chart.range')}">${[1,2,7].map(d=>`<button type="button" data-days="${d}" aria-pressed="${days===d}">${t('today_chart.days_'+d)}</button>`).join('')}<button type="button" data-table aria-expanded="false">${t('history.table')}</button></div>
+    container.innerHTML = `<div class="today-chart-controls" role="group" aria-label="${t('today_chart.range')}">${[1,2,7].map(d=>`<button type="button" data-days="${d}" aria-pressed="${days===d}">${t(rangeLabels[d])}</button>`).join('')}<button type="button" data-table aria-expanded="false">${t('history.table')}</button></div>
       <p class="today-chart-note">${t('today_chart.note')}</p>
       ${missingPrices?`<p class="today-chart-note">${t('today_chart.ambiguous_price')}</p>`:''}
       ${failed?`<p role="alert">${t('today_chart.failed')}</p>`:''}
