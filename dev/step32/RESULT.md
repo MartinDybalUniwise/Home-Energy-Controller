@@ -1,3 +1,16 @@
+# Deployment result - 0.1.5
+
+Owner final Human Gate APPROVED in chat. Candidate 4ea6752c6dd87ba93358b2b39c25d1c3ef26b59a verified at 2026-10-22T11:56:16.473489+02:00.
+Final production revision 704feee638daf75c014f9cecb050678a5a98bb19, PID 17376; final metadata reload verified at 2026-10-22T12:01:30.830574+02:00.
+All six sources fresh, controller remains disabled, native TNG write gate preserved, private configuration hashes unchanged. History tracker valid and actual writer PID matches.
+Real production current API confirms energy_counter_semantics=ac-grid-separated-v1, unsupported daily GRID counters null, explicit AC daily and cumulative GRID counters numeric. Actual API query over pre-fix22October07:58 history returns GRIDdaily null and preserves AC energy under explicit names; no raw rewrite.
+Actual read-only Chromium smoke PASS at390/1280px: GoodWe source, daily GRID dashes, load visible, no page overflow or page errors. Existing mobile flow connectors visible. No mocked production responses or API writes. Actual release dialog timestamp matches the verified release time.
+Routine backup snapshot 79c2f332239a4d24b37680fb90328ad5, initial_audit=false, newly copied 57811055 bytes/39 files. Changed history source reads 21 files/69467330 bytes; unchanged history not traversed. Logical restore references 1514752357 bytes, not newly copied volume. No bootstrap or frozen-log access. Metadata-only final reload copied0 backup bytes.
+Evidence: C:/TepelneCerpadlo/step32-release-evidence/{backup.json,deployed.json,deployed-final.json,final-status.json,browser-smoke.json,legacy-history-proof.json,final-release-browser.json} and production-energy-390.png.
+No algorithm tuning, instantaneous sign changes, new device settings, imports or backfill. Daily GRID stays unknown until a trustworthy daily source/baseline exists; lifetime totals are never relabelled as day totals.
+
+## Historical implementation and pre-deployment record
+
 # Result
 
 Implementation complete; Gate B APPROVED by independent /root/release_review for exact code2c56811294ae8219b37f0605814fff9f91edf602, no unresolved BLOCKER/IMPORTANT. Owner final Human Gate and deployment remain pending; Step32 IN_PROGRESS. Production0.1.4 unchanged.
