@@ -1,9 +1,11 @@
-# Step33 — průběžný výsledek
+# Step33 — ověřený kandidát
 
-Implementována čitelná hlavní stránka, společná platnost energetických údajů, oddělené grafy naměřeného výkonu a publikovaných cen, správná data doporučení a časy Europe/Prague. Hodinová předpověď výkonu se nevymýšlí. Podrobný důkaz původu hodnot je v DATA_AUDIT.md.
+Implementace PASS: čitelný přehled podle referencí, skutečná historie FVE/spotřeby a samostatné zarovnané ceny OTE, společná platnost energetických údajů, datum doporučení i jeho vysvětlení, Europe/Prague, mezery historie a chybějící předpověď bez smyšlených křivek. Původ a omezení měření dokládá DATA_AUDIT.md.
 
-Předběžné prohlížečové běhy: 12 geometrií CZ/EN PASS; poté 7 datových případů PASS. Nezávislé review nalezlo tři IMPORTANT (časová zóna, chybějící bucket, DST ceny); všechny opraveny a reviewer potvrdil kódové review APPROVED bez dalších IMPORTANT/BLOCKER. Finální Gate B čeká na zelené testy a přesnou revizi.
+Ověřený produktový commit: 9ab4302c7848105561e7ed634951664468501200. Lokálně skutečný Edge: 52 regresí Step33/31/29 PASS a14 dotčených desktopových smoke PASS;25 cílených unit PASS. Logy mimo repo: C:/TepelneCerpadlo/step33-e2e-core.log, step33-e2e-smoke.log a step33-unit-final.log. Testovací snímky a izolace: C:/TepelneCerpadlo/step33-evidence. Nikoli produkční telemetrie.
 
-Závěrečný kombinovaný běh zatím není PASS: po 10 geometriích nastal timeout čekání na graf. Samostatná regrese chyby a browserová stopa právě probíhají. Dřívější nespuštěné/deselektované E2E ani selhání nenalezeného výchozího prohlížeče nejsou důkazem testů. Používá se skutečný nainstalovaný Edge s izolovaným preview na8184.
+Kompletní push CI nad přesnou revizí je zelená; duplicitní PR běh při uzavření review ještě dobíhal a nebyl označen jako PASS; plné výsledky a odkazy jsou v C:/TepelneCerpadlo/step33-release-evidence/github-checks.json. Předchozí neúspěšné běhy (nespuštěné E2E, chybná testová očekávání a Linuxové přetékání při EN360/200%) nejsou závěrečným důkazem. Žádný geometrický test nebyl vypnut; dlouhé nadpisy byly opraveny zalamováním.
 
-Ruff změněných testů PASS; strukturální/ready validace Step33 PASS. Vlastník schválil plán i nasazení; produkční zásah se zatím neprovedl. Žádná záloha, fyzický zápis, backfill ani čtení zmrazených logů. Akceptační kritéria a E-033-001 až006 zůstávají neuzavřené do konečných důkazů.
+Nezávislý reviewer /root/release_review ověřil opravy a nenašel zbývající IMPORTANT/BLOCKER. Gate A/B/C APPROVED; vlastník nasazení výslovně schválil. PR44: https://github.com/MartinDybalUniwise/Home-Energy-Controller/pull/44.
+
+Produkční nasazení a AC-033-006 ještě čekají na ověření. Produkce zatím0.1.5; žádná záloha ani fyzický zápis zatím nebyly provedeny. Připraven pouze inkrementální backup s limitem300000000 nově kopírovaných bajtů, bez bootstrap/fullscan a bez zmrazených logů. Řízení, konfigurace a surová historie se nemění.

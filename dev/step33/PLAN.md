@@ -22,7 +22,7 @@ Plán a nasazení vlastník výslovně schválil. Implementace dokončena v prac
 | S02 | Sjednotit hodnoty, kvalitu, jednotky a datum | DONE |
 | S03 | Obnovit rozložení podle zářijových referencí | DONE |
 | S04 | Vrátit graf skutečné historie a doložené předpovědi | DONE |
-| S05 | Cílené datové a prohlížečové ověření | IN_PROGRESS |
+| S05 | Cílené datové a prohlížečové ověření | DONE |
 | S06 | Review, PR a samostatné schválení nasazení | IN_PROGRESS |
 
 ## S01 — audit měření
