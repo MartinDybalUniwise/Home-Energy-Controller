@@ -958,6 +958,8 @@
   },
   "release": {
     "truthful_flow": "Factual battery and heat pump states, measurement quality checks, improved reports and readable mobile energy flow.",
+    "energy_domains": "Separate inverter AC energy from grid meter counters; unsupported daily grid energy remains unknown.",
+    "legacy_grid_energy": "Correct legacy energy display without rewriting historical records.",
     "mobile_flow": "Readable mobile energy flow graphics, aligned values and complete recommendation text.",
     "touch_navigation": "Dragging content no longer changes the page; navigation remains in the menu.",
     "incremental_backups": "Incremental backups store only new and changed files and reuse existing historical payloads.",

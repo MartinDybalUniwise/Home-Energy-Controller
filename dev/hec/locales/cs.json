@@ -958,6 +958,8 @@
   },
   "release": {
     "truthful_flow": "Pravdivé stavy baterie a tepelného čerpadla, kontrola kvality měření, přesnější reporty a čitelný tok energie na mobilu.",
+    "energy_domains": "Oddělení AC energie měniče od síťových čítačů; nepodložené denní přetoky zůstávají neznámé.",
+    "legacy_grid_energy": "Opravené zobrazení starých energetických záznamů bez přepisování historie.",
     "mobile_flow": "Čitelné grafické toky energie na mobilu, zarovnané hodnoty a úplné texty doporučení.",
     "touch_navigation": "Posun obsahu již nepřepíná stránku; navigace zůstává v nabídce.",
     "incremental_backups": "Přírůstkové zálohy ukládají jen nové a změněné soubory a opakovaně nekopírují starou historii.",
