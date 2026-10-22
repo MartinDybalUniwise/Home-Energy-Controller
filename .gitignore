@@ -37,3 +37,13 @@ Thumbs.db
 .vscode/*
 !.vscode/tasks.json
 !.vscode/launch.json
+
+# Local installation configuration, backups, and accidental artifacts
+/config.json
+/history.zip
+/%TEMPFILE%
+/dev/hec/config/config - Copy.json
+/dev/hec/config/config.backup-*.json
+/dev/sdd/config/preview.mock.backup-*.json
+# Runtime write-ahead history backup metadata.
+*.backup-tracking/

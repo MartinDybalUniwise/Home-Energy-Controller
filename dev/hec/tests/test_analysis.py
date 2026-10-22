@@ -207,7 +207,7 @@ def test_heatpump_analysis_reports_measurable_values_only(tmp_path):
 def test_heatpump_analysis_without_meter_says_so(tmp_path):
     config, storage = make(tmp_path)
     result = HeatPumpAnalyser(config, storage).analyse_day()
-    assert result["measured"] is False and result["energy_kwh"] == 0.0
+    assert result["measured"] is False and result["energy_kwh"] is None
 
 
 # --- údržba -------------------------------------------------------------------

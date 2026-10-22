@@ -1,0 +1,47 @@
+{
+  "step": 29,
+  "classification": "LARGE",
+  "status": "DONE",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner: Schvaluji opravy after diagnostic plan and mobile layout proposal",
+    "approved_at": "2026-10-21T00:32:18.568108+02:00"
+  },
+  "gate_b": {
+    "status": "APPROVED",
+    "approved_by": "independent review agent /root/release_review; code 135b70c3f4cbc1bd5ccd0f672a40d555f2d077b6; 56 E2E PASS and external I/O disabled",
+    "approved_at": "2026-10-21T02:31:10.947665+02:00"
+  },
+  "gate_c": {
+    "status": "APPROVED",
+    "approved_by": "repository owner: Schvaluji nasazeni; confirm no repeated 1 GB backup; combined Step29 + Step30",
+    "approved_at": "2026-10-21T11:10:20.340013+02:00"
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "Owner midnight diagnostic report and mobile readability proposal; explicit Schvaluji opravy in chat",
+  "branch": "claude/step29-truthful-energy-flow",
+  "pr": null,
+  "notes": "Approval of concrete diagnostic plan preceded implementation. Recorded without requesting duplicate consent; production deployment is a later Human Gate. Owner approved combined deployment; production 0.1.3 and final release metadata verified; evidence in step30-release-evidence.",
+  "requirements": [
+    "REQ-029-001",
+    "REQ-029-002",
+    "REQ-029-003",
+    "REQ-029-004",
+    "REQ-029-005"
+  ],
+  "acceptance": [
+    "AC-029-001",
+    "AC-029-002",
+    "AC-029-003",
+    "AC-029-004",
+    "AC-029-005"
+  ],
+  "evidence": [
+    "E-029-001",
+    "E-029-002",
+    "E-029-003",
+    "E-029-004",
+    "E-029-005"
+  ]
+}

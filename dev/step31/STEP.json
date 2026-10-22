@@ -1,0 +1,44 @@
+{
+  "step": 31,
+  "classification": "LARGE",
+  "status": "DONE",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner: Schvaluji after concrete Step31 plan",
+    "approved_at": "2026-10-21T13:34:55.036004+02:00"
+  },
+  "gate_b": {
+    "status": "APPROVED",
+    "approved_by": "independent agent /root/release_review; exact code 09b75c0684dfa535fad41b332b28d6b02522e1e1; 77 real E2E PASS",
+    "approved_at": "2026-10-21T14:30:48.514720+02:00"
+  },
+  "gate_c": {
+    "status": "APPROVED",
+    "approved_by": "repository owner: Schvaluji nasazení",
+    "approved_at": "2026-10-21T14:37:02.960976+02:00"
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "Owner screenshots 54278/54277; plan and deployment explicitly approved",
+  "branch": "claude/step31-mobile-layout-flow",
+  "pr": null,
+  "notes": "All 77 E2E PASS, independent review and owner Human Gate approved. Production 0.1.4, real browser and actual release timestamp verified. Evidence: C:/TepelneCerpadlo/step31-release-evidence.",
+  "requirements": [
+    "REQ-031-001",
+    "REQ-031-002",
+    "REQ-031-003",
+    "REQ-031-004"
+  ],
+  "acceptance": [
+    "AC-031-001",
+    "AC-031-002",
+    "AC-031-003",
+    "AC-031-004"
+  ],
+  "evidence": [
+    "E-031-001",
+    "E-031-002",
+    "E-031-003",
+    "E-031-004"
+  ]
+}

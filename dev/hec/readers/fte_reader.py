@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from ..core.goodwe_energy import energy_values
 from ..readers.base import BaseReader
 from .goodwe_manager import GoodWeManager
 
@@ -32,8 +33,6 @@ FIELD_MAP: dict[str, tuple[str, ...]] = {
     "inverter_temp_c": ("temperature",),
     "e_day_kwh": ("e_day",),
     "e_load_day_kwh": ("e_load_day",),
-    "e_import_day_kwh": ("e_day_imp",),
-    "e_export_day_kwh": ("e_day_exp",),
     "l1_a": ("igrid",),
     "l2_a": ("igrid2",),
     "l3_a": ("igrid3",),
@@ -42,8 +41,11 @@ FIELD_MAP: dict[str, tuple[str, ...]] = {
 }
 
 NORMALIZED_FIELDS = tuple(FIELD_MAP) + (
+    "e_import_day_kwh", "e_export_day_kwh", "inverter_ac_import_day_kwh", "inverter_ac_export_day_kwh",
+    "grid_import_total_kwh", "grid_export_total_kwh", "energy_counter_semantics",
     "grid_import_w", "grid_export_w", "battery_charge_w", "battery_discharge_w",
     "phase_imbalance_w", "model", "firmware", "work_mode", "control_status",
+    "export_limit_enabled", "export_limit_w", "on_grid_soc_limit_pct", "operation_mode",
 )
 
 
@@ -65,20 +67,25 @@ class FTEReader(BaseReader):
     def read(self) -> dict[str, Any]:
         try:
             raw = self._manager.read_runtime()
-            return self.map_values(raw)
+            control_state = (
+                self._manager.read_control_state()
+                if self.config.get("goodwe.control_state_read_enabled", True) else {}
+            )
+            return self.map_values(raw, control_state)
         except Exception as exc:  # noqa: BLE001
             values = self._empty_values()
             values.update({"online": False, "source": "goodwe",
                            "error": f"{type(exc).__name__}: {exc}"})
             return values
 
-    def map_values(self, raw: dict[str, Any]) -> dict[str, Any]:
+    def map_values(self, raw: dict[str, Any], control_state: dict[str, Any] | None = None) -> dict[str, Any]:
         values: dict[str, Any] = {}
         for target, candidates in FIELD_MAP.items():
             for key in candidates:
                 if key in raw and raw[key] is not None:
                     values[target] = raw[key]
                     break
+        values.update(energy_values(raw))
         if "active_power" in raw and raw["active_power"] is not None:
             values["grid_w"] = raw["active_power"]
         if "battery_soc" in raw and raw["battery_soc"] is not None:
@@ -102,6 +109,7 @@ class FTEReader(BaseReader):
         values["model"] = status.get("model")
         values["firmware"] = status.get("firmware")
         values["control_status"] = raw.get("work_mode_label")
+        values.update(control_state or {})
         for field in NORMALIZED_FIELDS:
             values.setdefault(field, None)
         values["online"] = True

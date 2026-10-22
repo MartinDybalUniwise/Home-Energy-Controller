@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import struct
 import threading
 from datetime import UTC, date, datetime
@@ -47,6 +48,7 @@ class FakeInverter:
         self.active = 0
         self.max_active = 0
         self.mode_calls = []
+        self.last_mode_kwargs = None
         self._lock = threading.Lock()
 
     async def read_runtime_data(self):
@@ -87,6 +89,11 @@ class FakeInverter:
     async def set_operation_mode(self, mode, eco_mode_power=100, eco_mode_soc=100):
         await self.write_setting("mode", mode)
         self.mode_calls.append((getattr(mode, "name", str(mode)), eco_mode_power, eco_mode_soc))
+        self.last_mode_kwargs = {
+            "mode": getattr(mode, "name", str(mode)),
+            "eco_mode_power": eco_mode_power,
+            "eco_mode_soc": eco_mode_soc,
+        }
         self.mode = getattr(mode, "name", str(mode))
 
     async def get_operation_mode(self):
@@ -192,15 +199,59 @@ def test_manager_all_supported_commands_use_real_api_and_readback(tmp_path):
         writer.set_export_limit_enabled(True),
         writer.set_export_limit_w(4000),
         writer.set_on_grid_soc_limit_pct(20),
-        writer.start_battery_charge(50, 20, 80, "00:00", "01:00"),
-        writer.start_battery_discharge(30, 80, 20, "01:00", "02:00"),
+        writer.start_battery_charge(50, 20, 80, "00:00", "23:59"),
+        writer.start_battery_discharge(30, 80, 20, "00:00", "23:59"),
         writer.stop_battery_control(),
     ]
     assert all(result["success"] for result in results)
     assert len(writer.audit_log) == 6
     assert inverter.write_calls >= 6
-    assert {call[0] for call in inverter.mode_calls} == {"ECO", "GENERAL"}
+    assert {call[0] for call in inverter.mode_calls} == {"ECO_CHARGE", "ECO_DISCHARGE", "GENERAL"}
     assert storage.last("goodwe_audit", 20)
+
+
+def test_charge_and_discharge_preserve_direction_and_soc_contract(tmp_path):
+    config = enabled_config(tmp_path)
+    inverter = FakeInverter()
+    manager = GoodWeManager(config, client=FakeClient(inverter), test_fake=True)
+    writer = FTEWriter(config, manager=manager)
+
+    writer.start_battery_charge(50, 20, 80, "00:00", "23:59")
+    charge_call = inverter.last_mode_kwargs
+
+    writer.start_battery_discharge(30, 80, 20, "00:00", "23:59")
+    discharge_call = inverter.last_mode_kwargs
+
+    assert charge_call["mode"] == "ECO_CHARGE"
+    assert charge_call["eco_mode_power"] == 50
+    assert charge_call["eco_mode_soc"] == 80
+    assert discharge_call["mode"] == "ECO_DISCHARGE"
+    assert discharge_call["eco_mode_power"] == 30
+    assert discharge_call["eco_mode_soc"] == 20
+
+
+def test_reader_normalizes_goodwe_control_state(tmp_path):
+    config = enabled_config(tmp_path)
+    reader = FTEReader(config, client=FakeClient(FakeInverter()), test_fake=True)
+
+    values = reader.read()
+
+    assert values["export_limit_enabled"] is False
+    assert values["export_limit_w"] == 5000
+    assert values["on_grid_soc_limit_pct"] == 10
+    assert values["operation_mode"] == "GENERAL"
+
+
+def test_writer_rejects_partial_day_window_before_write(tmp_path):
+    config = enabled_config(tmp_path)
+    inverter = FakeInverter()
+    manager = GoodWeManager(config, client=FakeClient(inverter), test_fake=True)
+    writer = FTEWriter(config, manager=manager)
+
+    with pytest.raises(ValueError, match="partial-day validity windows"):
+        writer.start_battery_charge(50, 20, 80, "10:00", "12:00")
+
+    assert inverter.write_calls == 0
 
 
 def test_writer_diagnostics_reads_authorization_artifact_not_config(tmp_path):
@@ -455,7 +506,11 @@ def test_sdg_reader_retries_file_after_all_rows_were_skipped(tmp_path):
     assert first["imported"] == 0
     assert first["skipped"] == 1
 
+    previous_stat = source.stat()
     write_dbf(source, [("2026-09-14 10:00:00", 100, "OK")])
+    # Windows can assign identical mtimes to rapid equal-size rewrites.
+    # This case tests changed metadata; preserved metadata has a separate audit test.
+    os.utime(source, ns=(previous_stat.st_atime_ns, previous_stat.st_mtime_ns + 1_000_000_000))
     second = reader.import_history()
     assert second["imported"] == 1
     assert len(storage.last("sdg_history", 10)) == 1

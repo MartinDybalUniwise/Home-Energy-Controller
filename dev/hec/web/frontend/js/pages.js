@@ -1,8 +1,9 @@
+import { source, finite, heatpumpText, heatingPermission, batteryText, batteryReason } from './telemetry.js';
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 
-import { renderChart, renderTable } from './chart.js';
-import { renderForecastStory, renderToday } from './advisor.js?v=13';
-import { renderFlow } from './flow.js';
+import { renderChart, renderGoodWeHistoryChart, renderTable } from './chart.js?v=4';
+import { renderForecastStory, renderToday } from './advisor.js?v=15';
+import { renderFlow } from './flow.js?v=3';
 import { availableLanguages, currentLanguage, dateTime, duration, num, power, t, time, weekday } from './i18n.js';
 import { weatherIcon } from './icons.js';
 
@@ -55,6 +56,80 @@ const SERIES_LABELS = {
   boiler_temperature: 'entity.dhw',
   water_output_temperature: 'entity.water_out',
 };
+
+const GOODWE_HISTORY_FIELDS = new Set([
+  'house_w', 'grid_import_w', 'grid_export_w', 'battery_soc',
+]);
+
+const GOODWE_HISTORY_METADATA = {
+  house_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-house)', defaultEnabled: true },
+  grid_import_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-grid-import)', defaultEnabled: true },
+  grid_export_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-grid-export)', defaultEnabled: true },
+  battery_soc: { group: 'percent', unitKey: 'unit.percent', scale: 1, axis: 'right', color: 'var(--series-battery)', defaultEnabled: true },
+  pv_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-pv)', defaultEnabled: true },
+  pv1_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-pv)' },
+  pv2_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-pv)' },
+  grid_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-grid-import)' },
+  battery_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-battery)' },
+  battery_charge_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-battery)' },
+  battery_discharge_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: 'var(--series-battery)' },
+  l1_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: '#6b9ee8' },
+  l2_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: '#9b8be8' },
+  l3_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: '#d07eb5' },
+  phase_imbalance_w: { group: 'power', unitKey: 'unit.kw', scale: 0.001, axis: 'left', color: '#8b9bad' },
+  battery_soh: { group: 'percent', unitKey: 'unit.percent', scale: 1, axis: 'right', color: '#5dbb91' },
+  battery_v: { group: 'voltage', unitKey: 'unit.v', scale: 1, axis: 'left', color: '#8f77d6' },
+  l1_v: { group: 'voltage', unitKey: 'unit.v', scale: 1, axis: 'left', color: '#5d78d6' },
+  l2_v: { group: 'voltage', unitKey: 'unit.v', scale: 1, axis: 'left', color: '#7d68c4' },
+  l3_v: { group: 'voltage', unitKey: 'unit.v', scale: 1, axis: 'left', color: '#9b62b5' },
+  battery_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#31a7a0' },
+  battery_charge_limit_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#278e83' },
+  battery_discharge_limit_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#4ab0a0' },
+  charge_current_limit_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#278e83' },
+  discharge_current_limit_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#4ab0a0' },
+  l1_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#2f9ca6' },
+  l2_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#3b8caa' },
+  l3_a: { group: 'current', unitKey: 'unit.a', scale: 1, axis: 'left', color: '#4d7fae' },
+  battery_temp_c: { group: 'temperature', unitKey: 'unit.celsius', scale: 1, axis: 'left', color: '#d46a72' },
+  temperature_c: { group: 'temperature', unitKey: 'unit.celsius', scale: 1, axis: 'left', color: '#c45f74' },
+  inverter_temp_c: { group: 'temperature', unitKey: 'unit.celsius', scale: 1, axis: 'left', color: '#b85577' },
+  e_day_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-pv)' },
+  e_load_day_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-house)' },
+  e_import_day_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-grid-import)' },
+  e_export_day_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-grid-export)' },
+  inverter_ac_import_day_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-grid-import)' },
+  inverter_ac_export_day_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-grid-export)' },
+  grid_import_total_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-grid-import)' },
+  grid_export_total_kwh: { group: 'energy', unitKey: 'unit.kwh', scale: 1, axis: 'left', color: 'var(--series-grid-export)' },
+  grid_frequency_hz: { group: 'frequency', unitKey: 'unit.hz', scale: 1, axis: 'left', color: '#78899a' },
+};
+
+function goodweHistoryMetadata(field) {
+  const known = GOODWE_HISTORY_METADATA[field];
+  return {
+    field,
+    label: known ? t(`history.goodwe_metrics.${field}.label`) : field,
+    explanation: known
+      ? t(`history.goodwe_metrics.${field}.explanation`)
+      : t('history.goodwe_unknown_explanation', { field }),
+    group: known?.group || `unknown:${field}`,
+    unit: known ? t(known.unitKey) : t('unit.raw'),
+    scale: known?.scale ?? 1,
+    axis: known?.axis || 'left',
+    axisMin: known?.group === 'percent' ? 0 : null,
+    axisMax: known?.group === 'percent' ? 100 : null,
+    color: known?.color || '#78899a',
+    defaultEnabled: known?.defaultEnabled === true,
+  };
+}
+
+function historyFieldKind(source, field) {
+  if (source === 'sdg_history') return 'raw';
+  if (field === 'battery_soc') return 'percent';
+  if (field.includes('temperature')) return 'temperature';
+  if (field.endsWith('_w')) return 'power';
+  return null;
+}
 
 const bigValue = (watts) => {
   const { value, unit } = power(watts);
@@ -234,6 +309,206 @@ const RANGES = [
   { key: 'history.range_30d', from: '-30d' },
 ];
 
+const GOODWE_PRIMARY_ORDER = ['house_w', 'grid_import_w', 'grid_export_w', 'battery_soc', 'pv_w'];
+
+function orderedGoodWeFields(fields) {
+  return [...fields].sort((left, right) => {
+    const leftPrimary = GOODWE_PRIMARY_ORDER.indexOf(left);
+    const rightPrimary = GOODWE_PRIMARY_ORDER.indexOf(right);
+    if (leftPrimary >= 0 || rightPrimary >= 0) {
+      return (leftPrimary < 0 ? GOODWE_PRIMARY_ORDER.length : leftPrimary)
+        - (rightPrimary < 0 ? GOODWE_PRIMARY_ORDER.length : rightPrimary);
+    }
+    return left.localeCompare(right);
+  });
+}
+
+function goodweHistoryState(state, fields) {
+  state.goodweHistory ||= {
+    mode: 'actual', selection: {}, groupAxes: { power: 'left', percent: 'right' },
+  };
+  fields.forEach((field) => {
+    if (!(field in state.goodweHistory.selection)) {
+      state.goodweHistory.selection[field] = goodweHistoryMetadata(field).defaultEnabled;
+    }
+  });
+  return state.goodweHistory;
+}
+
+function selectedGroups(series, selection) {
+  return [...new Set(series.filter((entry) => selection[entry.field]).map((entry) => entry.group))];
+}
+
+let activeMetricPopupContainer = null;
+
+function closeMetricPopups(container) {
+  container.querySelectorAll('.metric-info-button[aria-expanded="true"]').forEach((button) => {
+    button.setAttribute('aria-expanded', 'false');
+    button.closest('.goodwe-metric').querySelector('[role="tooltip"]').hidden = true;
+    button.dataset.pinned = 'false';
+  });
+  if (activeMetricPopupContainer === container) activeMetricPopupContainer = null;
+}
+
+function bindMetricPopups(container) {
+  container.querySelectorAll('.metric-info-button').forEach((button) => {
+    const popup = button.closest('.goodwe-metric').querySelector('[role="tooltip"]');
+    const open = (pinned = false) => {
+      closeMetricPopups(container);
+      popup.hidden = false;
+      const bounds = button.getBoundingClientRect();
+      const popupWidth = Math.min(320, window.innerWidth - 24);
+      popup.style.width = `${popupWidth}px`;
+      popup.style.left = `${Math.max(12, Math.min(window.innerWidth - popupWidth - 12, bounds.right - popupWidth))}px`;
+      const below = bounds.bottom + 8;
+      popup.style.top = `${below + popup.offsetHeight <= window.innerHeight - 12
+        ? below : Math.max(12, bounds.top - popup.offsetHeight - 8)}px`;
+      button.setAttribute('aria-expanded', 'true');
+      button.dataset.pinned = String(pinned);
+      activeMetricPopupContainer = container;
+    };
+    const closeTransient = () => {
+      if (button.dataset.pinned !== 'true') closeMetricPopups(container);
+    };
+    button.addEventListener('mouseenter', () => open(false));
+    button.addEventListener('mouseleave', closeTransient);
+    button.addEventListener('focus', () => open(false));
+    button.addEventListener('blur', closeTransient);
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      if (button.getAttribute('aria-expanded') === 'true' && button.dataset.pinned === 'true') {
+        closeMetricPopups(container);
+      } else {
+        open(true);
+      }
+    });
+  });
+  container.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeMetricPopups(container);
+  });
+}
+
+document.addEventListener('pointerdown', (event) => {
+  if (activeMetricPopupContainer && !event.target.closest('.goodwe-metric')) {
+    closeMetricPopups(activeMetricPopupContainer);
+  }
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && activeMetricPopupContainer) {
+    closeMetricPopups(activeMetricPopupContainer);
+  }
+});
+
+function goodweLegendHtml(series, selection) {
+  return `<div class="goodwe-metric-list" aria-label="${escapeHtml(t('history.series'))}">${series.map((entry) => {
+    const popupId = `metric-info-${entry.field.replace(/[^a-zA-Z0-9_-]/g, '-')}`;
+    return `<div class="goodwe-metric" data-field="${escapeHtml(entry.field)}" data-active="${selection[entry.field] === true}">
+      <label class="goodwe-metric-check">
+        <input type="checkbox" data-goodwe-field="${escapeHtml(entry.field)}"${selection[entry.field] ? ' checked' : ''}>
+        <span class="swatch" style="background:${entry.color}" aria-hidden="true"></span>
+        <span>${escapeHtml(entry.label)}</span><small>${escapeHtml(entry.unit)}</small>
+      </label>
+      <button type="button" class="metric-info-button" aria-label="${escapeHtml(t('history.metric_explanation', { metric: entry.label }))}" aria-describedby="${popupId}" aria-expanded="false">i</button>
+      <div class="metric-popup" id="${popupId}" role="tooltip" hidden>${escapeHtml(entry.explanation)}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function renderGoodWeHistory(view, payload, state) {
+  const chart = view.querySelector('#chart');
+  const table = view.querySelector('#table');
+  const tools = view.querySelector('#goodwe-history-tools');
+  const legend = view.querySelector('#goodwe-history-legend');
+  const fields = orderedGoodWeFields(payload.fields);
+  const series = fields.map(goodweHistoryMetadata);
+  const chartState = goodweHistoryState(state, fields);
+  const active = series.filter((entry) => chartState.selection[entry.field]);
+  const groups = selectedGroups(series, chartState.selection);
+
+  tools.hidden = false;
+  tools.innerHTML = `
+    <div class="goodwe-mode-row">
+      <fieldset class="goodwe-mode-selector">
+        <legend>${t('history.display_mode')}</legend>
+        <label><input type="radio" name="goodwe-history-mode" value="actual"${chartState.mode === 'actual' ? ' checked' : ''}>${t('history.mode_actual')}</label>
+        <label><input type="radio" name="goodwe-history-mode" value="trend"${chartState.mode === 'trend' ? ' checked' : ''}>${t('history.mode_trend')}</label>
+      </fieldset>
+      <p class="goodwe-mode-note">${t(chartState.mode === 'trend' ? 'history.trend_disclosure' : 'history.actual_disclosure')}</p>
+    </div>
+    <p class="goodwe-history-message" aria-live="polite"></p>`;
+  legend.hidden = false;
+  legend.innerHTML = goodweLegendHtml(series, chartState.selection);
+
+  const message = tools.querySelector('.goodwe-history-message');
+  const showGuard = (key) => { message.textContent = t(key); };
+  tools.querySelectorAll('input[name="goodwe-history-mode"]').forEach((input) => {
+    input.addEventListener('change', () => {
+      if (input.value === 'actual' && groups.length > 2) {
+        tools.querySelector('input[value="trend"]').checked = true;
+        showGuard('history.actual_mode_guard');
+        return;
+      }
+      if (input.value === 'actual') {
+        const occupied = new Set(groups.map((group) => chartState.groupAxes[group]).filter(Boolean));
+        groups.forEach((group) => {
+          if (chartState.groupAxes[group]) return;
+          const preferred = series.find((entry) => entry.group === group)?.axis || 'left';
+          chartState.groupAxes[group] = occupied.has(preferred)
+            ? (preferred === 'left' ? 'right' : 'left') : preferred;
+          occupied.add(chartState.groupAxes[group]);
+        });
+      }
+      chartState.mode = input.value;
+      renderGoodWeHistory(view, payload, state);
+    });
+  });
+  legend.querySelectorAll('[data-goodwe-field]').forEach((checkbox) => {
+    checkbox.addEventListener('change', () => {
+      const entry = series.find((candidate) => candidate.field === checkbox.dataset.goodweField);
+      if (checkbox.checked && chartState.mode === 'actual') {
+        const currentGroups = selectedGroups(series, chartState.selection);
+        if (!currentGroups.includes(entry.group) && currentGroups.length >= 2) {
+          checkbox.checked = false;
+          showGuard('history.third_unit_guard');
+          return;
+        }
+        if (!chartState.groupAxes[entry.group]) {
+          const occupied = new Set(currentGroups.map((group) => chartState.groupAxes[group]));
+          chartState.groupAxes[entry.group] = occupied.has(entry.axis)
+            ? (entry.axis === 'left' ? 'right' : 'left') : entry.axis;
+        }
+      }
+      chartState.selection[entry.field] = checkbox.checked;
+      renderGoodWeHistory(view, payload, state);
+    });
+  });
+  bindMetricPopups(legend);
+
+  if (state.historyView === 'table') {
+    chart.innerHTML = '';
+    renderTable(table, payload.rows.map((row) => {
+      const copy = { timestamp: row.timestamp };
+      active.forEach((entry) => {
+        const raw = row[entry.field];
+        const value = raw === null || raw === undefined || raw === '' ? null : Number(raw);
+        copy[entry.field] = Number.isFinite(value) ? value * entry.scale : null;
+      });
+      return copy;
+    }), active, '');
+    return;
+  }
+  table.innerHTML = '';
+  chart.dataset.emptyText = t('app.no_data');
+  renderGoodWeHistoryChart(chart, {
+    rows: payload.rows,
+    series: active.map((entry) => ({ ...entry, axis: chartState.groupAxes[entry.group] || entry.axis })),
+    mode: chartState.mode,
+    range: state.historyRange,
+    trendAxisLabel: t('history.relative_trend_axis'),
+    ariaLabel: t('history.goodwe_chart_label'),
+  });
+}
+
 export async function history(view, { api, state }) {
   const { sources } = await api.sources();
   state.historySource = state.historySource && sources.includes(state.historySource)
@@ -251,7 +526,9 @@ export async function history(view, { api, state }) {
           ${RANGES.map((range) => `<button data-range="${range.from}" aria-pressed="${state.historyRange === range.from}">${t(range.key)}</button>`).join('')}
           <button id="toggle-view" aria-pressed="${state.historyView === 'table'}">${t('history.table')}</button>
         </div>
-        <div class="chart-wrap" id="chart" style="position:relative"></div>
+        <div id="goodwe-history-tools" hidden></div>
+        <div class="chart-wrap" id="chart" data-chart="history" style="position:relative"></div>
+        <div id="goodwe-history-legend" hidden></div>
         <div id="table"></div>
       </section>
     </div>
@@ -266,20 +543,37 @@ export async function history(view, { api, state }) {
 
   const draw = async () => {
     const chart = view.querySelector('#chart');
+    const goodweTools = view.querySelector('#goodwe-history-tools');
+    const goodweLegend = view.querySelector('#goodwe-history-legend');
     chart.innerHTML = `<p class="notice">${t('app.loading')}</p>`;
+    goodweTools.hidden = true;
+    goodweTools.innerHTML = '';
+    goodweLegend.hidden = true;
+    goodweLegend.innerHTML = '';
     const payload = await api.history({ source: state.historySource, from: state.historyRange, to: 'now' });
+    if (!chart.isConnected || !view.querySelector('#table')) return;
+    if (state.historySource === 'goodwe') {
+      renderGoodWeHistory(view, payload, state);
+      return;
+    }
     const isSdgHistory = state.historySource === 'sdg_history';
-    const isTemperature = payload.fields.some((field) => field.includes('temperature'));
-    const series = payload.fields
-      .filter((field) => isSdgHistory || SERIES_LABELS[field] || isTemperature)
-      .map((field) => ({
+    const classifiedFields = payload.fields.map((field) => ({
+      field,
+      kind: historyFieldKind(state.historySource, field),
+    }));
+    const primaryKind = isSdgHistory ? 'raw'
+      : classifiedFields.some((entry) => entry.kind === 'power') ? 'power'
+        : classifiedFields.some((entry) => entry.kind === 'temperature') ? 'temperature' : null;
+    const series = classifiedFields
+      .filter(({ field, kind }) => (state.historySource !== 'goodwe' || GOODWE_HISTORY_FIELDS.has(field))
+        && (kind === primaryKind || kind === 'percent'))
+      .map(({ field }) => ({
         field,
         label: t(SERIES_LABELS[field] || field),
         color: SERIES_COLORS[field] || 'var(--series-house)',
-        area: field === 'pv_w',
       }));
-    const unit = isSdgHistory ? '' : isTemperature ? t('unit.celsius') : t('unit.kw');
-    const scale = isSdgHistory || isTemperature ? 1 : 0.001;
+    const unit = primaryKind === 'temperature' ? t('unit.celsius') : primaryKind === 'power' ? t('unit.kw') : '';
+    const scale = primaryKind === 'power' ? 0.001 : 1;
 
     // Navigace může mezitím nahradit celý view. Starý dotaz pak nesmí
     // přepisovat novou stránku ani vyvolat chybu při hledání původní tabulky.
@@ -289,13 +583,21 @@ export async function history(view, { api, state }) {
       chart.innerHTML = '';
       renderTable(view.querySelector('#table'), payload.rows.map((row) => {
         const copy = { timestamp: row.timestamp };
-        series.forEach(({ field }) => { copy[field] = Number(row[field]) * scale; });
+        series.forEach(({ field }) => {
+          copy[field] = row[field] == null ? null : Number(row[field]) * (field === 'battery_soc' ? 1 : scale);
+        });
         return copy;
-      }), series, unit);
+      }), series.map((entry) => ({
+        ...entry,
+        unit: entry.field === 'battery_soc' ? t('unit.percent') : unit,
+      })), unit);
     } else {
       view.querySelector('#table').innerHTML = '';
       chart.dataset.emptyText = t('app.no_data');
-      renderChart(chart, { rows: payload.rows, series, unit, scale });
+      renderChart(chart, {
+        rows: payload.rows, series, unit, scale,
+        responsive: state.historySource === 'tng', range: state.historyRange,
+      });
     }
   };
 
@@ -341,7 +643,8 @@ async function renderAnalysis(container, api) {
       + `<p class="meta">${t('analysis.run_hours')}: ${num(heatpump.run_hours, 1)} ${t('unit.hours')}<br>`
       + `${t('entity.outside')}: ${num(heatpump.mean_outside_c, 1)} °C<br>`
       + `${t('analysis.kwh_per_degree_day')}: ${num(heatpump.kwh_per_degree_day, 2)}</p>`
-    : `<p class="meta">${t('analysis.not_measured')}</p>`));
+    : `<p class="meta">${t('flow.report_unavailable')}</p>`));
+  if (heatpump.power_quality) parts.push(`<p class="notice">${t('flow.report_coverage')}: ${num(heatpump.power_quality.coverage_pct, 1)} % · ${t('flow.invalid_samples')}: ${num(heatpump.power_quality.invalid_samples, 0)}</p>`);
 
   const recent = (cycles.cycles || []).slice(-6).reverse();
   parts.push(card('history.appliance_cycles', recent.length
@@ -366,8 +669,8 @@ async function renderAnalysis(container, api) {
 
 async function renderSummaries(container, api) {
   const { days } = await api.summaries(7).catch(() => ({ days: [] }));
+  if (!days?.length) { container.innerHTML = `<p class="notice">${t('flow.summary_pending')}</p>`; return; }
   if (!container.isConnected) return;
-  if (!days.length) { container.innerHTML = `<p class="notice">${t('app.no_data')}</p>`; return; }
   container.innerHTML = days.slice(-7).reverse().map((day) => `
     <div class="card">
       <div class="card-header">${escapeHtml(day.date)}</div>
@@ -377,7 +680,7 @@ async function renderSummaries(container, api) {
         ${t('entity.grid_import')}: ${num(day.grid_import_kwh, 1)} ${t('unit.kwh')}<br>
         ${t('entity.grid_export')}: ${num(day.grid_export_kwh, 1)} ${t('unit.kwh')}<br>
         ${t('overview.self_consumption')}: ${num(day.self_consumption_pct, 0)} %<br>
-        ${t('overview.cost_today')}: ${num(day.cost_czk, 0)} Kč
+        ${t('overview.cost_today')}: ${day.priced ? num(day.cost_czk, 0) : '–'} Kč
       </p>
     </div>`).join('');
 }
@@ -403,12 +706,11 @@ function translatedText(key, params, fallback = '') {
 }
 
 function batteryStateText(goodwe) {
-  return Number(goodwe?.battery_charge_w) > 20 ? t('flow.charging')
-    : Number(goodwe?.battery_discharge_w) > 20 ? t('flow.discharging')
-      : t('flow.idle');
+  return batteryText(goodwe);
 }
 
 function controllerStateText(controller) {
+  if (!controller?.enabled) return t('status.controller_disabled');
   if (controller?.safe_mode) {
     return translatedText(controller.safe_mode_reason?.reason_key, controller.safe_mode_reason?.reason_params, t('status.safe_mode_active'));
   }
@@ -423,15 +725,14 @@ function lastDecisionText(controller) {
 
 export async function flow(view, { api, motion }) {
   const current = await api.current();
-  const sources = current.sources || {};
-  const goodwe = sources.goodwe || {};
-  const shelly = sources.shelly || {};
-  const tng = sources.tng || {};
+  const goodwe = source(current, 'goodwe');
+  const shelly = source(current, 'shelly');
+  const tng = source(current, 'tng');
   const controller = current?.status?.controller || {};
   const staleSources = current?.status?.stale_sources || [];
-  const grid = Number(goodwe.grid_import_w) > 20 ? 'import' : Number(goodwe.grid_export_w) > 20 ? 'export' : 'balanced';
-  const gridPower = Number(goodwe.grid_import_w) || Number(goodwe.grid_export_w);
-  const batteryPower = Number(goodwe.battery_charge_w) || Number(goodwe.battery_discharge_w);
+  const grid = finite(goodwe.grid_import_w) === null || finite(goodwe.grid_export_w) === null ? 'unknown' : Number(goodwe.grid_import_w) > 20 ? 'import' : Number(goodwe.grid_export_w) > 20 ? 'export' : 'balanced';
+  const gridPower = finite(goodwe.grid_import_w) === null || finite(goodwe.grid_export_w) === null ? null : Math.max(Number(goodwe.grid_import_w), Number(goodwe.grid_export_w));
+  const batteryPower = finite(goodwe.battery_charge_w) === null || finite(goodwe.battery_discharge_w) === null ? null : Math.max(Number(goodwe.battery_charge_w), Number(goodwe.battery_discharge_w));
   const lastMeasurement = current?.last_measurement_at ? dateTime(current.last_measurement_at) : '–';
   const controllerBadges = [
     controller.enabled
@@ -449,48 +750,27 @@ export async function flow(view, { api, motion }) {
           <h2>${t('flow.title')}</h2>
           <p class="story-hero__summary">${t(`flow.grid_${grid}`)}</p>
         </div>
-        <div class="story-hero__aside">
-          <dl class="story-hero__stats">
-            <div><dt>${t('entity.pv')}</dt><dd>${power(goodwe.pv_w).value}<small>${power(goodwe.pv_w).unit}</small></dd></div>
-            <div><dt>${t('entity.house')}</dt><dd>${power(goodwe.house_w).value}<small>${power(goodwe.house_w).unit}</small></dd></div>
-            <div><dt>${t('entity.grid')}</dt><dd>${power(gridPower).value}<small>${power(gridPower).unit}</small></dd></div>
-            <div><dt>${t('entity.battery_soc')}</dt><dd>${num(goodwe.battery_soc, 0)}<small>${t('unit.percent')}</small></dd></div>
-          </dl>
-        </div>
       </section>
       <section class="story-surface story-surface--flow flow-stage">
         <header class="story-surface__header">
           <div>
             <p>${t('overview.flow')}</p>
-            <h3>${t(`flow.grid_${grid}`)}</h3>
+
           </div>
           <span class="story-surface__meta">${lastMeasurement}</span>
         </header>
         <div class="story-flow-stage">
           <div id="live-flow"></div>
           <div class="story-flow-summary">
-            <p>${batteryStateText(goodwe)}</p>
-            <p>${tng.heating_on === true ? t('flow.heating_active') : t('flow.heating_idle')}</p>
+            <p>${batteryStateText(goodwe)} · ${t('entity.battery_soc')}: ${num(goodwe.battery_soc, 0)} %</p>
+            <p>${t('flow.reserve')}: ${num(goodwe.on_grid_soc_limit_pct, 0)} % · ${t('flow.inverter_mode')}: ${escapeHtml(goodwe.operation_mode || '–')}</p>
+            <p>${batteryReason(goodwe)}</p>
+            <p>${heatpumpText(shelly)} · ${heatingPermission(tng)}</p>
             <p>${controllerStateText(controller)}</p>
           </div>
         </div>
       </section>
       <section class="story-card-grid story-card-grid--flow-support flow-details">
-        <article class="story-card story-card--soft">
-          <p class="story-card__eyebrow">${t('entity.grid')}</p>
-          <strong class="story-card__value">${bigValue(gridPower)}</strong>
-          <p class="story-card__meta">${t(`flow.grid_${grid}`)}</p>
-        </article>
-        <article class="story-card story-card--soft">
-          <p class="story-card__eyebrow">${t('entity.battery')}</p>
-          <strong class="story-card__value">${bigValue(batteryPower)}</strong>
-          <p class="story-card__meta">${batteryStateText(goodwe)}</p>
-        </article>
-        <article class="story-card story-card--soft">
-          <p class="story-card__eyebrow">${t('entity.heatpump')}</p>
-          <strong class="story-card__value">${bigValue(shelly.heatpump_power_w)}</strong>
-          <p class="story-card__meta">${tng.heating_on === true ? t('flow.heating_active') : t('flow.heating_idle')}</p>
-        </article>
         <article class="story-card story-card--soft">
           <div class="story-card__header-row">
             <p class="story-card__eyebrow">${t('settings.controller')}</p>
@@ -501,7 +781,16 @@ export async function flow(view, { api, motion }) {
         </article>
       </section>
     </div>`;
-  renderFlow(view.querySelector('#live-flow'), { ...goodwe, heatpump_power_w: shelly.heatpump_power_w, devices: shelly.devices }, t, motion);
+  renderFlow(view.querySelector('#live-flow'), {
+    ...goodwe,
+    heatpump_power_w: shelly.heatpump_power_w,
+    heating_on: tng.heating_on,
+    boiler_temperature: tng.boiler_temperature,
+    water_output_temperature: tng.water_output_temperature,
+    devices: shelly.devices,
+    device_status: shelly.device_status,
+    heatpump_quality: shelly.heatpump_quality,
+  }, t, motion);
 }
 
 // --- Nastavení ---------------------------------------------------------------
@@ -632,15 +921,18 @@ export async function settings(view, { api, onUiChange }) {
     event.preventDefault();
     const message = view.querySelector('#settings-message');
     const payload = {};
+    const uiLanguageInput = view.querySelector('[data-path="ui.language"]');
+    const uiUpdate = { ...(payload.ui || {}) };
+    if (uiLanguageInput) uiUpdate.language = uiLanguageInput.value;
     view.querySelectorAll('[data-path]').forEach((input) => {
       const field = fields.find((entry) => entry.path === input.dataset.path);
       setAt(payload, input.dataset.path, readInput(input, field));
     });
     try {
       const result = await api.saveConfig(payload);
+      await onUiChange?.(uiUpdate);
       message.textContent = t('settings.saved')
         + (result.restart_required?.length ? ` · ${t('settings.restart_required')}` : '');
-      await onUiChange?.(payload.ui || {});
     } catch (error) {
       message.innerHTML = `<span class="error">${(error.payload?.errors || [t('error.save_failed')]).map(escapeHtml).join('<br>')}</span>`;
     }
@@ -728,7 +1020,12 @@ function fieldRow(field, value) {
 
 function readInput(input, field) {
   if (input.type === 'checkbox') return input.checked;
-  if (field && (field.kind === 'int' || field.kind === 'float')) return Number(input.value);
+  if (field && (field.kind === 'int' || field.kind === 'float')) {
+    // Null means inherit the configured default, whereas zero is a value
+    // (and is invalid for e.g. per-source freshness overrides).
+    if (input.value.trim() === '' && field.default === null) return null;
+    return Number(input.value);
+  }
   if (field && field.kind === 'enum' && typeof field.default === 'number') return Number(input.value);
   return input.value;
 }
@@ -872,8 +1169,9 @@ export async function status(view, { api }) {
 
 // --- Control & Plan ------------------------------------------------------
 
-function controlPlanPill(level, key) {
-  return `<span class="pill" data-level="${level}">${t(key)}</span>`;
+function controlPlanPill(level, key, helpKey = 'control_plan.status_help') {
+  const label = t(key);
+  return `<span class="pill" data-level="${level}" title="${escapeHtml(t(helpKey, { status: label }))}" aria-label="${escapeHtml(`${label}: ${t(helpKey, { status: label })}`)}">${label}</span>`;
 }
 
 function controlPlanValue(value, formatter = (item) => escapeHtml(item)) {
@@ -881,11 +1179,11 @@ function controlPlanValue(value, formatter = (item) => escapeHtml(item)) {
 }
 
 function sourceState(reader) {
-  if (!reader) return controlPlanPill('neutral', 'control_plan.unavailable');
-  if (!reader.enabled) return controlPlanPill('neutral', 'status.disabled');
-  if (reader.error_count && reader.last_error) return controlPlanPill('critical', 'status.reader_error');
-  if (reader.stale) return controlPlanPill('warning', 'status.stale');
-  return controlPlanPill('ok', 'status.ok');
+  if (!reader) return controlPlanPill('neutral', 'control_plan.unavailable', 'control_plan.help_unavailable');
+  if (!reader.enabled) return controlPlanPill('neutral', 'status.disabled', 'control_plan.help_disabled');
+  if (reader.error_count && reader.last_error) return controlPlanPill('critical', 'status.reader_error', 'control_plan.help_error');
+  if (reader.stale) return controlPlanPill('warning', 'status.stale', 'control_plan.help_stale');
+  return controlPlanPill('ok', 'status.ok', 'control_plan.help_ok');
 }
 
 function deviceMetric(labelKey, value) {
@@ -905,18 +1203,24 @@ function renderControlPlanDevice(titleKey, source, current, reader) {
 function renderControlPlanMode(titleKey, enabled, reader) {
   const state = enabled === true ? 'on' : enabled === false ? 'off' : 'unknown';
   const labelKey = state === 'on' ? 'control_plan.on' : state === 'off' ? 'control_plan.off' : 'control_plan.unknown';
+  const helpKey = state === 'on' ? 'control_plan.help_mode_on' : state === 'off' ? 'control_plan.help_mode_off' : 'control_plan.help_mode_unknown';
+  const label = t(labelKey);
   return `<article class="control-plan-device control-plan-device--mode control-plan-device--${state}">
-    <header><h3>${t(titleKey)}</h3><span class="control-plan-mode" data-state="${state}">${t(labelKey)}</span></header>
+    <header><h3>${t(titleKey)}</h3><span class="control-plan-mode" data-state="${state}" title="${escapeHtml(t(helpKey))}" aria-label="${escapeHtml(`${label}: ${t(helpKey)}`)}">${label}</span></header>
     <p class="meta">${reader?.name || 'tng'} · ${reader?.last_success ? dateTime(reader.last_success) : t('control_plan.no_observation')}</p>`;
 }
 
 function renderControlPlanDailyEnergy(goodwe, sdg, summary) {
   const values = sdg?.values || sdg || {};
+  // ET e_day_imp/exp are inverter AC energy, never grid import/export.
+  const currentValues = [values.e_day_kwh, values.e_day, values.e_load_day_kwh, values.e_load_day]
+    .some(value => value !== null && value !== undefined) ? values : goodwe;
+  const hasGridSemantics = currentValues.energy_counter_semantics === 'ac-grid-separated-v1';
   const currentDaily = {
-    production: values.e_day_kwh ?? values.e_day,
-    load: values.e_load_day_kwh ?? values.e_load_day,
-    import: values.e_import_day_kwh ?? values.e_day_imp,
-    export: values.e_export_day_kwh ?? values.e_day_exp,
+    production: currentValues.e_day_kwh ?? currentValues.e_day,
+    load: currentValues.e_load_day_kwh ?? currentValues.e_load_day,
+    import: hasGridSemantics ? currentValues.e_import_day_kwh : null,
+    export: hasGridSemantics ? currentValues.e_export_day_kwh : null,
   };
   const historicalDaily = {
     production: summary?.pv_kwh,
@@ -926,13 +1230,13 @@ function renderControlPlanDailyEnergy(goodwe, sdg, summary) {
   };
   const hasCurrentDaily = Object.values(currentDaily).some((value) => value !== null && value !== undefined);
   const daily = hasCurrentDaily ? currentDaily : {
-    production: historicalDaily.production ?? goodwe.e_day_kwh,
-    load: historicalDaily.load ?? goodwe.e_load_day_kwh,
-    import: historicalDaily.import ?? goodwe.e_import_day_kwh,
-    export: historicalDaily.export ?? goodwe.e_export_day_kwh,
+    production: historicalDaily.production,
+    load: historicalDaily.load,
+    import: historicalDaily.import,
+    export: historicalDaily.export,
   };
-  const source = hasCurrentDaily ? (Object.keys(values).length ? 'SDG' : 'GoodWe') : t('control_plan.historical');
-  const metric = (labelKey, value, tone) => `<div class="control-plan-energy-metric" data-tone="${tone}"><span>${t(labelKey)}</span><strong>${controlPlanValue(value, (item) => `${num(item, 1)} ${t('unit.kwh')}`)}</strong></div>`;
+  const source = hasCurrentDaily ? (currentValues === values ? 'SDG' : 'GoodWe') : t('control_plan.historical');
+  const metric = (labelKey, value, tone) => `<div class="control-plan-energy-metric" data-tone="${tone}"><span>${t(labelKey)}</span><strong>${controlPlanValue(value, (item) => `${num(item, ['import', 'export'].includes(tone) ? 2 : 1)} ${t('unit.kwh')}`)}</strong></div>`;
   const hasData = Object.values(daily).some((value) => value !== null && value !== undefined);
   return `<article class="control-plan-daily-energy"><header><h3>${t('control_plan.daily_energy')}</h3><span class="meta">${t('control_plan.source_label')}: ${source}</span></header>
     <div class="control-plan-energy-grid">${hasData ? [
@@ -964,6 +1268,64 @@ function renderControlPlanOutlook(prices, prediction) {
   return days.length ? days.join('') : `<p class="notice">${t('control_plan.no_outlook')}</p>`;
 }
 
+function stableDecisionIdentity(decision) {
+  return JSON.stringify({
+    rule: decision.rule || '',
+    action: decision.action || '',
+    value: decision.value ?? null,
+    applied: decision.applied === true,
+    reason_key: decision.reason_key || '',
+    reason_params: decision.reason_params || {},
+  });
+}
+
+function groupControlPlanDecisions(decisions) {
+  const groups = [];
+  (decisions || []).forEach((decision) => {
+    const identity = stableDecisionIdentity(decision);
+    const previous = groups.at(-1);
+    if (previous && previous.identity === identity) {
+      previous.items.push(decision);
+      previous.latest = decision;
+      return;
+    }
+    groups.push({ identity, items: [decision], latest: decision });
+  });
+  return groups;
+}
+
+function renderControlPlanDecisionDialog(group) {
+  const decision = group.latest;
+  const parameters = decision.reason_params && Object.keys(decision.reason_params).length
+    ? Object.entries(decision.reason_params).map(([key, value]) => `<li><strong>${escapeHtml(key)}</strong>: ${escapeHtml(String(value))}</li>`).join('')
+    : `<li>${t('control_plan.no_parameters')}</li>`;
+  const resultKey = decision.applied ? 'control_plan.applied' : 'control_plan.not_applied';
+  const resultNote = decision.applied ? t('control_plan.detail_applied_note') : t('control_plan.detail_not_applied_note');
+  return `<dialog id="control-plan-decision-dialog" class="hec-dialog control-plan-decision-dialog">
+    <div class="dialog-content">
+      <header class="dialog-header"><h2>${t('control_plan.decision_detail')}</h2><button type="button" class="dialog-close" data-control-plan-close aria-label="${escapeHtml(t('app.close'))}">×</button></header>
+      <div class="dialog-body">
+        <dl class="control-plan-detail-list">
+          <div><dt>${t('control_plan.detail_when')}</dt><dd>${dateTime(decision.timestamp)}</dd></div>
+          <div><dt>${t('control_plan.detail_rule')}</dt><dd>${escapeHtml(decision.rule || '–')}</dd></div>
+          <div><dt>${t('control_plan.detail_command')}</dt><dd>${decisionCommandText(decision)}</dd></div>
+          <div><dt>${t('control_plan.detail_reason')}</dt><dd>${translatedText(decision.reason_key, decision.reason_params, t('control_plan.unknown_reason'))}</dd></div>
+          <div><dt>${t('control_plan.result')}</dt><dd>${controlPlanPill(decision.applied ? 'ok' : 'neutral', resultKey)}<span class="control-plan-detail-note">${escapeHtml(resultNote)}</span></dd></div>
+        </dl>
+        <h3>${t('control_plan.detail_parameters')}</h3><ul class="control-plan-detail-parameters">${parameters}</ul>
+        ${group.items.length > 1 ? `<p class="meta">${t('control_plan.grouped_count', { count: group.items.length })}</p>` : ''}
+      </div>
+      <footer class="dialog-footer"><button type="button" class="btn btn--primary" data-control-plan-close>${t('app.close')}</button></footer>
+    </div>
+  </dialog>`;
+}
+
+function decisionCommandText(decision) {
+  const action = decision.action || decision.rule || t('control_plan.unknown_command');
+  if (decision.value === null || decision.value === undefined) return action;
+  return `${action}: ${escapeHtml(String(decision.value))}`;
+}
+
 function renderControlPlanActivity(decisions) {
   const today = new Date().toLocaleDateString('en-CA');
   const rows = (decisions || []).filter((decision) => {
@@ -971,13 +1333,19 @@ function renderControlPlanActivity(decisions) {
     return !Number.isNaN(stamp.getTime()) && stamp.toLocaleDateString('en-CA') === today;
   }).slice(-12).reverse();
   if (!rows.length) return `<p class="notice">${t('control_plan.no_activity')}</p>`;
+  const groups = groupControlPlanDecisions(rows);
   return `<div class="table-wrap"><table class="data control-plan-activity"><thead><tr>
     <th>${t('control_plan.time')}</th><th>${t('control_plan.action')}</th><th>${t('control_plan.result')}</th><th>${t('control_plan.reason')}</th>
-  </tr></thead><tbody>${rows.map((decision) => `<tr>
-    <td>${dateTime(decision.timestamp)}</td><td>${escapeHtml(decision.action || decision.rule || '–')}</td>
+  </tr></thead><tbody>${groups.map((group, groupIndex) => {
+    const decision = group.latest;
+    const count = group.items.length;
+    const countText = count > 1 ? ` <span class="control-plan-activity__count">×${count}</span>` : '';
+    return `<tr data-decision-group="${groupIndex}" tabindex="0" aria-label="${escapeHtml(t('control_plan.open_detail'))}">
+    <td>${dateTime(decision.timestamp)}${countText}</td><td>${decisionCommandText(decision)}</td>
     <td>${decision.applied ? controlPlanPill('ok', 'control_plan.applied') : controlPlanPill('neutral', 'control_plan.not_applied')}</td>
     <td>${translatedText(decision.reason_key, decision.reason_params)}</td>
-  </tr>`).join('')}</tbody></table></div>`;
+  </tr>`;
+  }).join('')}</tbody></table></div>`;
 }
 
 export async function controlPlan(view, { api }) {
@@ -1007,13 +1375,36 @@ export async function controlPlan(view, { api }) {
     <header class="control-plan-header"><div><span class="section-tab">${t('control_plan.title')}</span><p class="meta">${t('control_plan.subtitle')}</p></div><span id="control-plan-updated" class="meta">${t('app.updated', { time: time(new Date()) })}</span></header>
     <section class="panel control-plan-status" aria-labelledby="control-plan-status-title"><h2 id="control-plan-status-title">${t('control_plan.automation')}</h2><div class="control-plan-status-grid">
       <article><h3>${t('control_plan.planner')}</h3>${controlPlanPill('neutral', 'control_plan.not_exposed')}<p class="meta">${t('control_plan.planner_note')}</p></article>
-      <article><h3>${t('settings.controller')}</h3>${controller.enabled ? controlPlanPill('ok', 'status.controller_running') : controlPlanPill('neutral', 'status.controller_disabled')}${controller.safe_mode ? controlPlanPill('warning', 'status.safe_mode') : ''}<p class="meta">${controller.last_run ? `${t('control_plan.last_run')}: ${dateTime(controller.last_run)}` : t('control_plan.no_run')}</p></article>
-      <article><h3>${t('control_plan.writers')}</h3>${writer.enabled ? controlPlanPill('warning', 'control_plan.available_disabled') : controlPlanPill('neutral', 'status.write_disabled')}<p class="meta">${t('control_plan.read_only')}</p></article>
+      <article><h3>${t('settings.controller')}</h3>${controller.enabled ? controlPlanPill('ok', 'status.controller_running', 'control_plan.help_controller_active') : controlPlanPill('neutral', 'status.controller_disabled', 'control_plan.help_controller_disabled')}${controller.safe_mode ? controlPlanPill('warning', 'status.safe_mode', 'control_plan.help_safe_mode') : ''}<p class="meta">${controller.last_run ? `${t('control_plan.last_run')}: ${dateTime(controller.last_run)}` : t('control_plan.no_run')}</p></article>
+      <article><h3>${t('control_plan.writers')}</h3>${writer.enabled ? controlPlanPill('warning', 'control_plan.available_disabled', 'control_plan.help_writer_available') : controlPlanPill('neutral', 'status.write_disabled', 'control_plan.help_writer_disabled')}<p class="meta">${t('control_plan.read_only')}</p></article>
     </div></section>
     <section class="panel control-plan-devices" aria-labelledby="control-plan-devices-title"><h2 id="control-plan-devices-title">${t('control_plan.devices')}</h2><div class="control-plan-device-grid">${cards.join('')}${shellyCards}</div></section>
     <section class="panel control-plan-lower"><div><h2>${t('control_plan.today_activity')}</h2>${renderControlPlanActivity(decisionsPayload.decisions)}</div><div><h2>${t('control_plan.outlook')}</h2><div class="control-plan-outlook">${renderControlPlanOutlook(prices, prediction)}</div><p class="meta">${t('control_plan.appliance_cycles')}: ${num((appliances.cycles || []).length, 0)}</p></div></section>
     <section class="panel control-plan-daily-panel">${renderControlPlanDailyEnergy(goodwe, sdg, summaryPayload.days?.at(-1))}</section>
+    ${(() => { const today = new Date().toLocaleDateString('en-CA'); const groups = groupControlPlanDecisions((decisionsPayload.decisions || []).filter((decision) => { const stamp = new Date(decision.timestamp); return !Number.isNaN(stamp.getTime()) && stamp.toLocaleDateString('en-CA') === today; }).slice(-12).reverse()); return groups.length ? renderControlPlanDecisionDialog(groups[0]) : ''; })()}
   </div>`;
+  const activityGroups = groupControlPlanDecisions((decisionsPayload.decisions || []).filter((decision) => {
+    const stamp = new Date(decision.timestamp);
+    return !Number.isNaN(stamp.getTime()) && stamp.toLocaleDateString('en-CA') === new Date().toLocaleDateString('en-CA');
+  }).slice(-12).reverse());
+  const openers = [...view.querySelectorAll('[data-decision-group]')];
+  let lastOpener = null;
+  const closeDialog = () => { const activeDialog = view.querySelector('#control-plan-decision-dialog'); if (activeDialog?.open) activeDialog.close(); lastOpener?.focus(); };
+  openers.forEach((opener) => {
+    const open = () => {
+      const group = activityGroups[Number(opener.dataset.decisionGroup)];
+      const activeDialog = view.querySelector('#control-plan-decision-dialog');
+      if (!activeDialog || !group) return;
+      const replacement = new DOMParser().parseFromString(renderControlPlanDecisionDialog(group), 'text/html').body.firstElementChild;
+      activeDialog.replaceWith(replacement);
+      lastOpener = opener;
+      replacement.querySelectorAll('[data-control-plan-close]').forEach((button) => button.addEventListener('click', closeDialog));
+      replacement.addEventListener('close', () => lastOpener?.focus(), { once: true });
+      replacement.showModal();
+    };
+    opener.addEventListener('click', open);
+    opener.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
+  });
 }
 
 // --- Data (prohlížeč JSONL historie) -------------------------------------

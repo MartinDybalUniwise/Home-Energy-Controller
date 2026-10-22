@@ -16,9 +16,12 @@ from ..core.timeutil import now_local, to_iso
 from ..storage.base import read_json
 from .rules import Context, clamp, default_rules
 
-CRITICAL_SOURCES = ("goodwe", "tng")
+CRITICAL_SOURCES = ("goodwe", "tng", "ote")
 GOODWE_ACTIONS = {
     "set_export_limit_enabled", "set_export_limit_w", "set_on_grid_soc_limit_pct",
+    "start_battery_charge", "start_battery_discharge", "stop_battery_control",
+}
+GOODWE_BATTERY_ACTIONS = {
     "start_battery_charge", "start_battery_discharge", "stop_battery_control",
 }
 
@@ -36,23 +39,28 @@ class Controller:
         self.safe_mode_reason: dict | None = None
         self._lock = threading.Lock()
         self._last_run: datetime | None = None
-        self._applied: dict[str, float] = {}
+        self._applied: dict[str, object] = {}
 
     # --- stav ---------------------------------------------------------------
     @property
     def enabled(self) -> bool:
         return bool(self.config.get("controller.enabled", False))
 
+    def max_data_age(self, source: str) -> float:
+        """Return the configured freshness limit for one critical source."""
+        fallback = float(self.config.get("controller.max_data_age_seconds", 300))
+        override = self.config.get(f"controller.max_data_age_by_source.{source}")
+        return float(override) if isinstance(override, (int, float)) and override >= 60 else fallback
+
     def stale_sources(self) -> list[str]:
         """Kritické zdroje, které nedávají čerstvá data."""
-        limit = float(self.config.get("controller.max_data_age_seconds", 300))
         stale = []
         for reader in self.app.readers:
             if reader.name not in CRITICAL_SOURCES or not reader.status.enabled:
                 continue
             age = reader.status.age
             snapshot = self.app.snapshot.get(reader.name, {})
-            if age is None or age > limit or snapshot.get("online") is False:
+            if age is None or age > self.max_data_age(reader.name) or snapshot.get("online") is False:
                 stale.append(reader.name)
         return stale
 
@@ -92,8 +100,9 @@ class Controller:
         """První pravidlo pro danou akci vyhrává – priorita je pořadí v seznamu."""
         decisions: list[Decision] = []
         taken: set[str] = set()
+        battery_mode_taken = False
         for rule in self.rules:
-            if rule.action in taken:
+            if rule.action in taken or (rule.action in GOODWE_BATTERY_ACTIONS and battery_mode_taken):
                 continue
             decision = rule(context)
             if decision is None:
@@ -101,6 +110,8 @@ class Controller:
             self._enforce_limits(decision, context)
             decisions.append(decision)
             taken.add(rule.action)
+            if rule.action in GOODWE_BATTERY_ACTIONS:
+                battery_mode_taken = True
         return decisions
 
     def _enforce_limits(self, decision: Decision, context: Context) -> None:
@@ -116,6 +127,39 @@ class Controller:
             decision.value = round(min(float(decision.value), maximum), 1)
 
     # --- provedení -------------------------------------------------------------
+    @staticmethod
+    def _goodwe_command_key(decision: Decision) -> tuple:
+        """Return only physical target fields, excluding changing reasons/telemetry."""
+        params = decision.reason_params
+        if decision.action in {"set_export_limit_enabled", "set_export_limit_w",
+                               "set_on_grid_soc_limit_pct"}:
+            return decision.action, decision.value
+        if decision.action in {"start_battery_charge", "start_battery_discharge"}:
+            return (
+                decision.action,
+                decision.value,
+                params.get("start_soc_pct"),
+                params.get("stop_soc_pct"),
+                params.get("valid_from"),
+                params.get("valid_to"),
+            )
+        if decision.action == "stop_battery_control":
+            return (decision.action,)
+        return decision.action, decision.value
+
+    @staticmethod
+    def _goodwe_writer_params(decision: Decision) -> dict:
+        params = decision.reason_params
+        if decision.action in {"set_export_limit_enabled", "set_export_limit_w",
+                               "set_on_grid_soc_limit_pct"}:
+            return {"value": decision.value}
+        if decision.action in {"start_battery_charge", "start_battery_discharge"}:
+            return {
+                key: params[key]
+                for key in ("power_pct", "start_soc_pct", "stop_soc_pct", "valid_from", "valid_to")
+            }
+        return {}
+
     def apply(self, decision: Decision) -> Decision:
         """Zápis jde vždy přes change-gate readeru TNG – ten chrání čerpadlo."""
         if decision.action in GOODWE_ACTIONS:
@@ -124,13 +168,20 @@ class Controller:
                 decision.applied = False
                 decision.reason_key = "reason.write_blocked_gate"
                 return decision
+            command_key = self._goodwe_command_key(decision)
+            if self._applied.get("goodwe_command") == command_key:
+                decision.applied = False
+                decision.reason_key = "reason.no_action_needed"
+                return decision
             try:
                 method = getattr(writer, decision.action)
-                params = dict(decision.reason_params)
-                if decision.action in {"set_export_limit_enabled", "set_export_limit_w", "set_on_grid_soc_limit_pct"}:
-                    params.setdefault("value", decision.value)
-                method(**params)
-                decision.applied = True
+                result = method(**self._goodwe_writer_params(decision))
+                success = result.get("success", True) if isinstance(result, dict) else True
+                decision.applied = bool(success)
+                if decision.applied:
+                    self._applied["goodwe_command"] = command_key
+                else:
+                    decision.reason_key = "reason.write_blocked_gate"
             except Exception:
                 decision.applied = False
                 decision.reason_key = "reason.write_blocked_gate"
@@ -183,7 +234,7 @@ class Controller:
                 self.safe_mode_reason = {
                     "reason_key": "reason.safe_mode_stale_data",
                     "reason_params": {"source": ", ".join(stale),
-                                      "age": int(self.config.get("controller.max_data_age_seconds", 300))},
+                                      "age": int(self.max_data_age(stale[0]))},
                 }
                 warn_event(self.log, "safe_mode", sources=",".join(stale))
                 return {"enabled": True, "safe_mode": True, "decisions": []}

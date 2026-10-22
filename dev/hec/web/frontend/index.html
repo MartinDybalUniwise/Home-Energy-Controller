@@ -8,7 +8,7 @@
 <link rel="icon" type="image/svg+xml" href="/icon.svg">
 <link rel="manifest" href="/manifest.json">
 <link rel="stylesheet" href="/css/tokens.css">
-<link rel="stylesheet" href="/css/app.css?v=18">
+<link rel="stylesheet" href="/css/app.css?v=28">
 </head>
 <body>
 <div id="scene" class="scene" aria-hidden="true"></div>
@@ -73,7 +73,7 @@
         <div class="status-detail" data-i18n="status.all_online">Všechny komponenty jsou online <span class="online-indicator"></span></div>
       </div>
 
-      <div class="sidebar-actions">
+      <div class="sidebar-actions"><button id="app-version" type="button" class="version-button" aria-haspopup="dialog" data-i18n-label="release.title"></button>
         <button id="theme-toggle" class="icon-action-btn" type="button" aria-label="Přepnout motiv" title="Přepnout motiv">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         </button>
@@ -115,6 +115,9 @@
 </dialog>
 
 <!-- Dialog přihlášení -->
+<dialog id="release-dialog" class="hec-dialog" aria-labelledby="release-title">
+<div class="dialog-content"><header class="dialog-header"><h2 id="release-title" data-i18n="release.title"></h2><button id="release-close" type="button" class="dialog-close" data-i18n-label="app.close">×</button></header><div id="release-body" class="dialog-body"></div></div>
+</dialog>
 <dialog id="login">
   <form method="dialog" id="login-form">
     <h2 data-i18n="login.title">Přihlášení</h2>
@@ -125,6 +128,6 @@
   </form>
 </dialog>
 
-<script type="module" src="/js/app.js?v=18"></script>
+<script type="module" src="/js/app.js?v=31"></script>
 </body>
 </html>

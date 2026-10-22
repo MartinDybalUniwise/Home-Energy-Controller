@@ -12,11 +12,13 @@ import json
 import mimetypes
 import secrets as pysecrets
 import socket
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
+from enum import Enum
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlparse
 
+from .. import RELEASES
 from ..core.logging_setup import get_logger
 from . import api
 
@@ -24,6 +26,21 @@ FRONTEND = Path(__file__).resolve().parent / "frontend"
 SESSION_HOURS = 24 * 30
 MAX_BODY = 2 * 1024 * 1024
 WILDCARD_HOSTS = ("0.0.0.0", "", "::")  # "poslouchej na všech rozhraních"
+
+
+def _json_safe(value):
+    """Normalize supported diagnostic values without hiding programming errors."""
+    if isinstance(value, datetime):
+        return value.astimezone().isoformat() if value.tzinfo is None else value.isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, Enum):
+        return _json_safe(value.value)
+    if isinstance(value, dict):
+        return {key: _json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple, set)):
+        return [_json_safe(item) for item in value]
+    return value
 
 
 class SessionStore:
@@ -75,7 +92,7 @@ class Handler(BaseHTTPRequestHandler):
         if isinstance(payload, bytes):
             body = payload
         elif content_type.startswith("application/json"):
-            body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+            body = json.dumps(_json_safe(payload), ensure_ascii=False).encode("utf-8")
         else:
             body = str(payload).encode("utf-8")
         self.send_response(status)
@@ -147,6 +164,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(401, {"error": "unauthorised"})
 
         routes = {
+            "/api/releases": lambda: (200, RELEASES),
             "/api/current": lambda: api.current(self.app, params),
             "/api/status": lambda: api.status(self.app),
             "/api/history": lambda: api.history(self.app, params),

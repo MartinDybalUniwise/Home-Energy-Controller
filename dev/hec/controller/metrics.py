@@ -31,6 +31,8 @@ class Metrics:
         house = total("house_kwh")
         grid_import = total("grid_import_kwh")
         priced = [day for day in history if day.get("priced")]
+        heatpump_known = [day["heatpump_kwh"] for day in history
+                          if day.get("heatpump_kwh") is not None]
 
         return {
             "days": len(history),
@@ -38,7 +40,8 @@ class Metrics:
             "house_kwh": house,
             "grid_import_kwh": grid_import,
             "grid_export_kwh": export,
-            "heatpump_kwh": total("heatpump_kwh"),
+            "heatpump_kwh": round(sum(heatpump_known), 1) if len(heatpump_known) == len(history) else None,
+            "heatpump_reported_days": len(heatpump_known),
             "appliances_kwh": total("appliances_kwh"),
             "self_consumption_pct": round((pv - export) / pv * 100, 1) if pv else None,
             "self_sufficiency_pct": round((house - grid_import) / house * 100, 1) if house else None,

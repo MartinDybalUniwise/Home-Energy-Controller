@@ -59,6 +59,16 @@ def test_change_gate_interval_cannot_be_lowered_below_the_safe_limit():
     assert errors
 
 
+def test_source_specific_data_age_limits_are_bounded():
+    data, errors = schema.validate({"controller": {
+        "max_data_age_by_source": {"ote": 7200, "goodwe": 30},
+    }})
+
+    assert data["controller"]["max_data_age_by_source"]["ote"] == 7200
+    assert data["controller"]["max_data_age_by_source"]["goodwe"] is None
+    assert any("controller.max_data_age_by_source.goodwe" in error for error in errors)
+
+
 def test_unknown_keys_are_preserved():
     data, _ = schema.validate({"future_section": {"whatever": 1}})
     assert data["future_section"] == {"whatever": 1}

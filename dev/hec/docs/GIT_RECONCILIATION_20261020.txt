@@ -1,0 +1,46 @@
+HEC production Git reconciliation - 2026-10-20
+
+Production root: C:\TepelneCerpadlo\Home-Energy-Controller
+Reconciliation branch: claude/reconcile-production-20261020
+Original checkout: merge-step18-final at 05b9004
+GitHub main at audit: 67b9b8f (37 commits beyond original checkout)
+GitHub merge-step18-final at audit: 9de46b6 (3 commits beyond original checkout)
+
+Saved production changes:
+- a20ce7d: deployed readers, controllers, history charts, frontend, API and tests.
+- 1c97a3f: read-only production operations agent, CLI and tests.
+- d8c3ef4: ignore local configuration, backups, history archive and temporary file.
+
+Merge policy:
+Preserve the deployed dev/hec source files, including existing local changes.
+Import main history, development records, validation tools and declared GoodWe
+dependency. Resolve the 11 merge conflicts using the deployed source snapshot.
+No device configuration, write permissions, control settings or runtime data
+are changed by the reconciliation. The local root config.json is preserved on
+disk and removed from Git tracking; the active HEC configuration remains
+dev/hec/config/config.json. No historical commits are rewritten.
+
+Production additions relative to main include extended GoodWe battery rules
+and command deduplication, source-specific freshness limits, history chart and
+interface changes, SDG log reader prototype, and a read-only operations agent.
+The reconciliation retains those differences; it does not replace production
+with an unmodified checkout of main.
+
+Validation:
+- No application source differences between saved production and merged tree.
+- Git whitespace check passed; all merge conflicts resolved.
+- Isolated test environment; no production credentials or runtime data copied.
+- Windows test environment additionally requires tzdata, installed only in
+  the test environment during this audit.
+- Three existing SDG contract tests also fail on the pre-merge production
+  snapshot: registry expects sdg rather than sdg_history; two tests expect an
+  unimplemented SDG-primary/FTE-backup selection policy. These existing failures
+  are retained and reported, not hidden or changed as part of Git cleanup.
+- Browser E2E tests are opt-in and were not run.
+
+Recovery material (outside repository):
+C:\TepelneCerpadlo\git-reconcile-20261020\before.bundle
+C:\TepelneCerpadlo\git-reconcile-20261020\source\
+C:\TepelneCerpadlo\git-reconcile-20261020\config.local.backup.json
+
+Main is not modified or force-pushed. Production uses the reconciliation branch.

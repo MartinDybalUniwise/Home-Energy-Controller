@@ -153,6 +153,34 @@ class GoodWeManager:
                     raise
                 raise RuntimeError(self._last_error) from exc
 
+    def read_control_state(self) -> dict[str, Any]:
+        """Read optional control settings without breaking runtime telemetry."""
+        with self._lock:
+            inverter = self._require_inverter()
+            state: dict[str, Any] = {
+                "export_limit_enabled": None,
+                "export_limit_w": None,
+                "on_grid_soc_limit_pct": None,
+                "operation_mode": None,
+            }
+            readers = (
+                ("export_limit_enabled", lambda: self._run(self._read_setting("grid_export"))),
+                ("export_limit_w", lambda: self._run(self._await(inverter.get_grid_export_limit()))),
+                ("on_grid_soc_limit_pct", lambda: self._run(self._await(inverter.get_ongrid_battery_dod()))),
+                ("operation_mode", lambda: self._run(self._await(inverter.get_operation_mode()))),
+            )
+            for name, reader in readers:
+                try:
+                    value = reader()
+                    if name == "on_grid_soc_limit_pct":
+                        value = 100 - int(value)
+                    elif name == "operation_mode":
+                        value = getattr(value, "name", str(value))
+                    state[name] = value
+                except Exception:  # noqa: BLE001 - optional control fields must not break telemetry
+                    continue
+            return state
+
     def _write_gates(self) -> dict[str, bool]:
         authorization = load_authorization(self.config)
         return {
@@ -191,8 +219,10 @@ class GoodWeManager:
         elif command in {"start_battery_charge", "start_battery_discharge"}:
             from goodwe import OperationMode
 
+            mode = (OperationMode.ECO_CHARGE if command == "start_battery_charge"
+                    else OperationMode.ECO_DISCHARGE)
             await self._await(inverter.set_operation_mode(
-                OperationMode.ECO,
+                mode,
                 eco_mode_power=int(kwargs["power_pct"]),
                 eco_mode_soc=int(kwargs["stop_soc_pct"]),
             ))
@@ -246,6 +276,7 @@ class GoodWeManager:
         """Perform a supported write; retry only after evidence of non-application."""
         with self._lock:
             gates = self._require_write_gate(command)
+            self._validate_command(command, kwargs)
             attempts = int(self.config.get("goodwe.retry_count", 3)) + 1
             command_id = str(uuid4())
             requested = {"command": command, **kwargs, "requested_by": requested_by, "source": source}
@@ -320,6 +351,31 @@ class GoodWeManager:
         time.sleep(delay)
 
     @staticmethod
+    def _validate_command(command: str, kwargs: dict[str, Any]) -> None:
+        if command == "set_export_limit_w":
+            value = int(kwargs["value"])
+            if not 0 <= value <= 100_000:
+                raise ValueError("GoodWe export limit must be between 0 and 100000 W")
+        elif command == "set_on_grid_soc_limit_pct":
+            value = int(kwargs["value"])
+            if not 0 <= value <= 100:
+                raise ValueError("GoodWe on-grid SOC limit must be between 0 and 100 percent")
+        elif command in {"start_battery_charge", "start_battery_discharge"}:
+            power = int(kwargs["power_pct"])
+            start = int(kwargs["start_soc_pct"])
+            stop = int(kwargs["stop_soc_pct"])
+            if not 1 <= power <= 100:
+                raise ValueError("GoodWe battery power must be between 1 and 100 percent")
+            if not 0 <= start <= 100 or not 0 <= stop <= 100:
+                raise ValueError("GoodWe battery SOC values must be between 0 and 100 percent")
+            if command == "start_battery_charge" and stop < start:
+                raise ValueError("GoodWe charge stop SOC must not be below start SOC")
+            if command == "start_battery_discharge" and stop > start:
+                raise ValueError("GoodWe discharge stop SOC must not be above start SOC")
+            if (kwargs.get("valid_from"), kwargs.get("valid_to")) != ("00:00", "23:59"):
+                raise ValueError("GoodWe SDK operation mode does not support partial-day validity windows")
+
+    @staticmethod
     def _expected_value(command: str, kwargs: dict[str, Any]) -> Any:
         if command == "set_export_limit_enabled":
             return bool(kwargs["value"])
@@ -329,6 +385,10 @@ class GoodWeManager:
             return int(kwargs["value"])
         if command == "stop_battery_control":
             return "GENERAL"
+        if command == "start_battery_charge":
+            return "ECO_CHARGE"
+        if command == "start_battery_discharge":
+            return "ECO_DISCHARGE"
         return "ECO"
 
     def status_snapshot(self) -> dict[str, Any]:

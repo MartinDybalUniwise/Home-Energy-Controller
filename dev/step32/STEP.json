@@ -1,0 +1,41 @@
+{
+  "step": 32,
+  "classification": "SMALL",
+  "status": "DONE",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner: Dohledej a oprav to, schvaluji",
+    "approved_at": "2026-10-22T09:03:30.220276+02:00"
+  },
+  "gate_b": {
+    "status": "APPROVED",
+    "approved_by": "independent agent /root/release_review; exact code2c56811294ae8219b37f0605814fff9f91edf602; no unresolved BLOCKER/IMPORTANT",
+    "approved_at": "2026-10-22T09:29:05.436385+02:00"
+  },
+  "gate_c": {
+    "status": "APPROVED",
+    "approved_by": "repository owner: Schvaluji in reply to final Step32 deployment request",
+    "approved_at": "2026-10-22T11:51:01.644905+02:00"
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "Explicit owner approval: Dohledej a oprav to, schvaluji",
+  "branch": "claude/step32-goodwe-grid-energy",
+  "pr": null,
+  "notes": "112targetedtestsPASS, independentreviewandownerHumanGateAPPROVED. Production0.1.5verified with sixfreshsources, correctedcountersemantics, legacyhistorymasking andactualrelease-time dialog. Configurationsandphysicalcontrolsunchanged.",
+  "requirements": [
+    "REQ-032-001",
+    "REQ-032-002",
+    "REQ-032-003"
+  ],
+  "acceptance": [
+    "AC-032-001",
+    "AC-032-002",
+    "AC-032-003"
+  ],
+  "evidence": [
+    "E-032-001",
+    "E-032-002",
+    "E-032-003"
+  ]
+}

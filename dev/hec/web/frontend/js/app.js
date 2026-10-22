@@ -3,13 +3,11 @@
 import { api } from './api.js';
 import { applyScene } from './background.js';
 import { applyTranslations, setLanguage, t, time } from './i18n.js';
-import { pages } from './pages.js?v=11';
+import { pages } from './pages.js?v=17';
+import { setupReleases } from './releases.js';
 
 const REFRESH_MS = 10000;
 const STARTUP_STATUS_TIMEOUT_MS = 1500;
-// Gesto swipe zůstává jen mezi třemi hlavními stránkami (kap. 13 zadání);
-// Stav, Data a Nastavení jsou dostupné výhradně přes menu.
-const PRIMARY_ORDER = ['overview', 'prediction', 'flow', 'history', 'finance'];
 const ALL_PAGES = ['overview', 'prediction', 'flow', 'history', 'finance', 'finance/manual', 'control-plan', 'status', 'logs', 'settings'];
 
 const state = {
@@ -127,25 +125,6 @@ function askForPassword() {
   };
 }
 
-function enableSwipe() {
-  let startX = 0;
-  let startY = 0;
-  document.addEventListener('touchstart', (event) => {
-    startX = event.touches[0].clientX;
-    startY = event.touches[0].clientY;
-  }, { passive: true });
-  document.addEventListener('touchend', (event) => {
-    const deltaX = event.changedTouches[0].clientX - startX;
-    const deltaY = event.changedTouches[0].clientY - startY;
-    // Gesto je zkratka, ne jediná cesta – menu funguje vždy.
-    if (Math.abs(deltaX) < 70 || Math.abs(deltaY) > 50) return;
-    const index = PRIMARY_ORDER.indexOf(state.page);
-    if (index === -1) return;
-    const next = PRIMARY_ORDER[index + (deltaX < 0 ? 1 : -1)];
-    if (next) location.hash = `#/${next}`;
-  }, { passive: true });
-}
-
 async function start() {
   let configuredUi = {};
   try {
@@ -161,6 +140,7 @@ async function start() {
   await setLanguage(languageFromConfig(configuredUi), api);
   applyPreferences(configuredUi);
   applyTranslations(document);
+  void setupReleases();
   await render();
   // Status diagnostics include slow optional readers; they must not block the
   // first render of a page whose own data is already available.
@@ -185,7 +165,6 @@ async function start() {
 
 async function init() {
   applyPreferences();
-  enableSwipe();
   window.addEventListener('hashchange', render);
 
   const menuToggle = document.getElementById('menu-toggle');

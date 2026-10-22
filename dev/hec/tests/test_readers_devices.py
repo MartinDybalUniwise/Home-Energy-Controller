@@ -35,7 +35,8 @@ def test_goodwe_maps_known_fields(tmp_path):
     assert values["pv_w"] == 4210
     assert values["house_w"] == 1250
     assert values["battery_soc"] == 91
-    assert values["e_export_day_kwh"] == 5.5
+    assert values["inverter_ac_export_day_kwh"] == 5.5
+    assert values["e_export_day_kwh"] is None
     assert values["l3_w"] == 1400
 
 

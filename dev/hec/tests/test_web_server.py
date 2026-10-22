@@ -6,6 +6,7 @@ import json
 import threading
 import urllib.error
 import urllib.request
+from datetime import UTC, datetime
 
 import pytest
 from hec.core import config as config_mod
@@ -25,10 +26,13 @@ class MiniApp:
         self.storage = JsonlStorage(self.config.data_dir, self.config.history_dir)
 
     def current(self):
-        return {"sources": {"goodwe": {"pv_w": 4210}}, "status": self.status()}
+        return {"timestamp": datetime(2026, 9, 19, 18, 0, tzinfo=UTC),
+            "sources": {"goodwe": {"pv_w": 4210}}, "status": self.status()}
 
     def status(self):
-        return {"readers": {}, "stale_sources": [], "site_name": "Test"}
+        return {"readers": {}, "stale_sources": [], "site_name": "Test",
+            "diagnostics": {"last_read": datetime(2026, 9, 19, 18, 0, tzinfo=UTC),
+                    "nested": ({"seen": datetime(2026, 9, 19, 18, 1, tzinfo=UTC)},)}}
 
     def stop(self):
         pass
@@ -55,6 +59,20 @@ def get(url, cookie=None):
 def test_api_returns_current_state(server):
     status, payload, _ = get(f"{server}/api/current")
     assert status == 200 and payload["sources"]["goodwe"]["pv_w"] == 4210
+    assert payload["timestamp"] == "2026-09-19T18:00:00+00:00"
+    assert payload["status"]["diagnostics"]["nested"][0]["seen"].endswith("+00:00")
+
+
+def test_api_status_serializes_datetime_diagnostics(server):
+    status, payload, _ = get(f"{server}/api/status")
+
+    assert status == 200
+    assert payload["diagnostics"]["last_read"] == "2026-09-19T18:00:00+00:00"
+
+
+def test_json_safe_rejects_unsupported_values():
+    with pytest.raises(TypeError):
+        json.dumps(server_module._json_safe({"bad": object()}))
 
 
 def test_unknown_api_route_is_404(server):

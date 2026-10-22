@@ -32,6 +32,7 @@
     "enabled": false,
     "writer_enabled": false,
     "verify_after_write": true,
+    "control_state_read_enabled": true,
     "read_interval_seconds": 10,
     "host": "${HEC_GOODWE_HOST}",
     "family": "ET",
@@ -308,6 +309,11 @@
   "controller": {
     "enabled": false,
     "max_data_age_seconds": 300,
+    "max_data_age_by_source": {
+      "goodwe": null,
+      "tng": null,
+      "ote": null
+    },
     "decision_interval_seconds": 300,
     "comfort": {
       "room_min_c": 20.0,
@@ -324,14 +330,29 @@
       "battery_soc_min_pct": 60.0,
       "cheap_price_percentile": 0.25,
       "expensive_price_percentile": 0.75,
+      "goodwe_control": {
+        "enabled": false,
+        "export_limit_enabled": false,
+        "export_limit_w": 0,
+        "on_grid_soc_limit_enabled": false,
+        "on_grid_soc_limit_pct": 80,
+        "charge_power_pct": 50,
+        "discharge_power_pct": 30,
+        "charge_start_soc_pct": 20,
+        "charge_stop_soc_pct": 80,
+        "discharge_start_soc_pct": 80,
+        "discharge_stop_soc_pct": 20
+      },
       "priorities": [
-        "house_load",
-        "battery_charge",
-        "dhw",
-        "thermal_storage",
-        "flexible_loads",
-        "sharing",
-        "grid_export"
+        "goodwe_enable_export_limit",
+        "goodwe_set_export_limit",
+        "goodwe_set_on_grid_soc_limit",
+        "goodwe_charge_cheap",
+        "goodwe_discharge_expensive",
+        "goodwe_stop_when_neutral",
+        "dhw_pv_surplus",
+        "dhw_price_high",
+        "heating_preheat_cheap"
       ]
     }
   },

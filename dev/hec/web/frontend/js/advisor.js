@@ -1,3 +1,4 @@
+import { source, finite, batteryText, heatpumpText, heatingPermission } from './telemetry.js';
 // Rozhodovací vrstva pro domovskou stránku (Step 18 Touchscreen Redesign).
 // Pracuje výhradně s daty, která rozhraní dostává z API: cenou, předpovědí počasí,
 // predikcí výroby a okamžitým stavem.
@@ -33,14 +34,14 @@ const dateKey = (value) => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 
-const values = (items, key) => items.map((item) => Number(item?.[key])).filter(Number.isFinite);
+const values = (items, key) => items.map(item => finite(item?.[key])).filter(value => value !== null);
 const dayLabel = (value) => {
   const date = new Date(`${value}T00:00:00`);
   if (Number.isNaN(date.getTime())) return value || '–';
   return `${weekday(date)}, ${time(date, { day: '2-digit', month: '2-digit' })}`;
 };
 const formatRange = (low, high, digits, unitKey) => {
-  if (!Number.isFinite(Number(low)) || !Number.isFinite(Number(high))) return '–';
+  if (finite(low) === null || finite(high) === null) return '–';
   return `${num(low, digits)}–${num(high, digits)} ${t(unitKey)}`;
 };
 const percentile = (list, ratio) => {
@@ -73,11 +74,11 @@ function rangeFor(periods, predicate) {
 }
 
 function daylight(hour) {
-  return Number(hour?.ghi_wm2) || 0;
+  return finite(hour?.ghi_wm2);
 }
 
 function suitability(hour, period, thresholds) {
-  if (!hour || !period) return 'unknown';
+  if (!hour || !period || finite(hour.ghi_wm2) === null || finite(period.price_total_czk_kwh) === null) return 'unknown';
   const price = Number(period.price_total_czk_kwh);
   const sun = daylight(hour);
   if (sun >= 300 && price <= thresholds.priceLow) return 'best';
@@ -97,12 +98,12 @@ function timelineFor(date, weather, prices) {
     const hour = rows[Math.floor(rows.length / 2)] || null;
     const stamp = hour ? new Date(hour.time) : new Date(`${date}T${String(start).padStart(2, '0')}:00`);
     const period = priceAt(stamp, priceDay);
-    const rainProb = hour?.precipitation_probability ?? (start >= 9 && start <= 15 ? 0 : 0);
+    const rainProb = num(hour?.precipitation_probability, 0);
     return {
       start,
       hour,
-      price: period?.price_total_czk_kwh ?? (start >= 9 && start <= 15 ? 0.16 : 4.5),
-      solar: hour ? daylight(hour) : (start >= 9 && start <= 15 ? 580 : 0),
+      price: finite(period?.price_total_czk_kwh),
+      solar: hour ? daylight(hour) : null,
       rainProb,
       level: suitability(hour, period, thresholds),
     };
@@ -116,8 +117,8 @@ function bestAdvice(prediction, prices) {
   const high = percentile(priceValues, 0.8);
   return {
     day,
-    best: day?.best_appliance_window || '11:30 – 14:30',
-    avoid: high === null ? '20:30 – 22:15' : (rangeFor(priceDay.periods, (p) => Number(p.price_total_czk_kwh) >= high) || '20:30 – 22:15'),
+    best: day?.best_appliance_window || t('advisor.window_unavailable'),
+    avoid: high === null ? '–' : (rangeFor(priceDay.periods, (p) => Number(p.price_total_czk_kwh) >= high) || '–'),
   };
 }
 
@@ -144,39 +145,35 @@ function formatDateFull(now) {
 }
 
 export function renderToday(view, { current, weather, prices, prediction }) {
-  const sources = current.sources || {};
-  const goodwe = sources.goodwe || {};
-  const tng = sources.tng || {};
-  const ote = sources.ote || {};
+  const goodwe = source(current, 'goodwe');
+  const tng = source(current, 'tng');
   const controller = current?.status?.controller || {};
-  const staleSources = current?.status?.stale_sources || [];
   const advice = bestAdvice(prediction, prices);
   const now = new Date();
   const todayDate = dateKey(now);
   const timeline = timelineFor(todayDate, weather, prices);
   const daily = (weather?.forecast_daily || []).find((d) => d.date === todayDate) || weather?.forecast_daily?.[0] || {};
 
-  const pvW = Number(goodwe.pv_w) || 1860;
-  const houseW = Number(goodwe.house_w) || 749;
-  const batterySoc = Number(goodwe.battery_soc) || 83;
-  const batteryChargeW = Number(goodwe.battery_charge_w) || (goodwe.battery_discharge_w ? -Number(goodwe.battery_discharge_w) : 1100);
-  const gridImportW = Number(goodwe.grid_import_w) || 121;
-  const gridExportW = Number(goodwe.grid_export_w) || 0;
-  const spotPrice = Number(ote.price_total_czk_kwh ?? ote.price_czk_kwh ?? 2.34);
-  const tngTemp = Number(tng.boiler_temperature ?? tng.water_output_temperature ?? 22.5);
+  const pvW = finite(goodwe.pv_w);
+  const houseW = finite(goodwe.house_w);
+  const batterySoc = num(finite(goodwe.battery_soc), 0);
+  const gridImportW = finite(goodwe.grid_import_w);
+  const gridExportW = finite(goodwe.grid_export_w);
+  const spotPrice = finite(priceAt(now, dayFor(todayDate, prices))?.price_total_czk_kwh);
 
   const pvPower = power(pvW);
   const housePower = power(houseW);
-  const gridPower = power(gridExportW > 20 ? gridExportW : gridImportW);
+  const gridState = gridImportW === null || gridExportW === null ? 'unknown' : gridExportW > 20 ? 'export' : gridImportW > 20 ? 'import' : 'balanced';
+  const gridPower = power(gridState === 'unknown' ? null : Math.max(gridExportW, gridImportW));
 
-  const currentTemp = num(weather?.current?.temp_c ?? 18, 0);
-  const condition = weather?.current?.condition || 'clear';
-  const tempMax = num(daily.temp_max_c ?? 24, 0);
-  const tempMin = num(daily.temp_min_c ?? 13, 0);
-  const sunrise = daily.sunrise ? time(new Date(daily.sunrise)) : '06:12';
-  const sunset = daily.sunset ? time(new Date(daily.sunset)) : '20:01';
-  const rainProb = num(weather?.current?.precipitation_probability ?? 0, 0);
-  const windSpeed = num(weather?.current?.wind_speed_kmh ?? 12, 0);
+  const currentTemp = num(weather?.current?.temp_c, 0);
+  const condition = weather?.current?.condition || 'unknown';
+  const tempMax = num(daily.temp_max_c, 0);
+  const tempMin = num(daily.temp_min_c, 0);
+  const sunrise = daily.sunrise ? time(new Date(daily.sunrise)) : '–';
+  const sunset = daily.sunset ? time(new Date(daily.sunset)) : '–';
+  const rainProb = num(weather?.current?.precipitation_probability, 0);
+  const windSpeed = num(weather?.current?.wind_speed_kmh, 0);
 
   const currentHour = now.getHours() + now.getMinutes() / 60;
   const nowPercent = Math.min(100, Math.max(0, (currentHour / 24) * 100));
@@ -188,10 +185,10 @@ export function renderToday(view, { current, weather, prices, prediction }) {
       <div class="greeting-box">
         <div class="greeting-title">
           <span class="greeting-sun" aria-hidden="true">☀️</span>
-          <h2>${getGreeting(now)}, Martin!</h2>
+          <h2>${getGreeting(now)}</h2>
         </div>
         <p class="greeting-date">${formatDateFull(now)}</p>
-        <p class="greeting-sub">${t('advisor.weather_summary_today')}</p>
+        <p class="greeting-sub">${t('overview.last_data_update')}: ${current.last_measurement_at ? dateTime(current.last_measurement_at) : '–'}</p>
       </div>
 
       <div class="weather-station-widget">
@@ -223,22 +220,22 @@ export function renderToday(view, { current, weather, prices, prediction }) {
       <div class="hero-primary-card">
         <div class="hero-card-kicker">${t('advisor.best_action')}</div>
         <h3 id="hero-rec-title" class="hero-card-heading">${t('advisor.best_time_consumption')}</h3>
-        <div class="hero-main-window">${advice.best}</div>
+        <div class="hero-main-window${advice.day?.best_appliance_window ? '' : ' hero-main-window--unavailable'}">${advice.best}</div>
         <div class="hero-card-footer">
-          <span class="hero-check-badge">✓ ${t('advisor.best_window_summary')}</span>
+          <span class="hero-check-badge">${t('prediction.confidence')}: ${advice.day ? t(`prediction.confidence_${advice.day.confidence || 'low'}`) : '–'}</span>
           <button type="button" class="btn btn--secondary btn--touch" id="btn-why-now">${t('advisor.why_now_btn')}</button>
         </div>
       </div>
 
       <div class="recommendation-statuses">
         <div class="recommendation-status recommendation-status--now">
-          <span>${t('advisor.now_is')}</span><strong>● ${t('advisor.good_time')}</strong>
+          <span>${t('advisor.now_is')}</span><strong>${t('advisor.' + (timeline.find(slot => now.getHours() >= slot.start && now.getHours() < slot.start + 3)?.level || 'unknown'))}</strong>
         </div>
         <div class="recommendation-status recommendation-status--avoid">
           <span>${t('advisor.avoid_label')}</span><strong>⚠ ${advice.avoid}</strong>
         </div>
         <div class="recommendation-status recommendation-status--solar">
-          <span>${t('advisor.expected_label')}</span><strong>☀ ${t('advisor.daily_pv_max_time', { time: '13:00' })}</strong>
+          <span>${t('advisor.expected_label')}</span><strong>${formatRange(advice.day?.pv_kwh_low, advice.day?.pv_kwh_high, 1, 'unit.kwh')}</strong>
         </div>
       </div>
     </section>
@@ -250,7 +247,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         <div class="kpi-body">
           <span class="kpi-label">${t('entity.pv')}</span>
           <div class="kpi-value">${pvPower.value} <span class="kpi-unit">${pvPower.unit}</span></div>
-          <span class="kpi-trend kpi-trend--up">↗ ${t('advisor.pv_trend_growing')}</span>
+          <span class="kpi-trend kpi-trend--up">${current.last_measurement_at ? dateTime(current.last_measurement_at) : t('meter.missing')}</span>
         </div>
       </article>
 
@@ -259,7 +256,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         <div class="kpi-body">
           <span class="kpi-label">${t('entity.house')}</span>
           <div class="kpi-value">${housePower.value} <span class="kpi-unit">${housePower.unit}</span></div>
-          <span class="kpi-trend kpi-trend--neutral">↗ ${t('advisor.load_medium')}</span>
+          <span class="kpi-trend kpi-trend--neutral">${current.last_measurement_at ? dateTime(current.last_measurement_at) : t('meter.missing')}</span>
         </div>
       </article>
 
@@ -268,16 +265,16 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         <div class="kpi-body">
           <span class="kpi-label">${t('entity.battery')}</span>
           <div class="kpi-value">${batterySoc} <span class="kpi-unit">%</span></div>
-          <span class="kpi-trend kpi-trend--good">↗ ${t('advisor.battery_charging_state', { power: batteryChargeW > 0 ? `${(batteryChargeW / 1000).toFixed(1)} kW` : '1,1 kW' })}</span>
+          <span class="kpi-trend kpi-trend--good">${batteryText(goodwe)}</span>
         </div>
       </article>
 
       <article class="kpi-card kpi-card--grid">
         <div class="kpi-icon-wrap" aria-hidden="true">🗼</div>
         <div class="kpi-body">
-          <span class="kpi-label">${t(gridExportW > 20 ? 'entity.grid_export' : 'entity.grid_import')}</span>
+          <span class="kpi-label">${t(gridState === 'export' ? 'entity.grid_export' : gridState === 'import' ? 'entity.grid_import' : 'entity.grid')}</span>
           <div class="kpi-value">${gridPower.value} <span class="kpi-unit">${gridPower.unit}</span></div>
-          <span class="kpi-trend kpi-trend--warning">${gridExportW > 20 ? '↗ export' : '↘ import'}</span>
+          <span class="kpi-trend kpi-trend--warning">${t(`flow.grid_${gridState}`)}</span>
         </div>
       </article>
 
@@ -286,7 +283,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         <div class="kpi-body">
           <span class="kpi-label">${t('entity.price')}</span>
           <div class="kpi-value">${num(spotPrice, 2)} <span class="kpi-unit">${t('unit.czk_kwh')}</span></div>
-          <span class="kpi-trend kpi-trend--good">↘ ${t('advisor.price_low')}</span>
+          <span class="kpi-trend kpi-trend--good">${current.last_measurement_at ? dateTime(current.last_measurement_at) : t('meter.missing')}</span>
         </div>
       </article>
 
@@ -294,8 +291,8 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         <div class="kpi-icon-wrap" aria-hidden="true">♨️</div>
         <div class="kpi-body">
           <span class="kpi-label">${t('entity.heatpump')}</span>
-          <div class="kpi-value">Auto</div>
-          <span class="kpi-trend kpi-trend--neutral">${num(tngTemp, 1)} °C</span>
+          <div class="kpi-value">${power(source(current, 'shelly').heatpump_power_w).value} <span class="kpi-unit">${power(source(current, 'shelly').heatpump_power_w).unit}</span></div>
+          <span class="kpi-trend kpi-trend--neutral">${heatpumpText(source(current, 'shelly'))}</span>
         </div>
       </article>
     </section>
@@ -307,8 +304,8 @@ export function renderToday(view, { current, weather, prices, prediction }) {
           <h3 id="rhythm-title" class="rhythm-heading">${t('advisor.timeline_title')}</h3>
           <div class="rhythm-production-summary">
             <span>${t('advisor.daily_pv_estimate_title')}</span>
-            <strong>52 – 108 kWh</strong>
-            <small>${t('advisor.daily_pv_max_time', { time: '13:00' })}</small>
+            <strong>${formatRange(advice.day?.pv_kwh_low, advice.day?.pv_kwh_high, 1, 'unit.kwh')}</strong>
+            <small>${prediction.generated_at ? dateTime(prediction.generated_at) : '–'}</small>
           </div>
           <div class="rhythm-legend-tags">
             <span class="legend-tag legend-tag--best">● ${t('advisor.best')}</span>
@@ -320,11 +317,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         <!-- 24h barevný pruh s ukazatelem 'now' -->
         <div class="rhythm-bar-container">
           <div class="rhythm-bar">
-            <div class="rhythm-seg rhythm-seg--avoid" style="width: 25%"></div>
-            <div class="rhythm-seg rhythm-seg--ok" style="width: 12.5%"></div>
-            <div class="rhythm-seg rhythm-seg--best" style="width: 25%"></div>
-            <div class="rhythm-seg rhythm-seg--ok" style="width: 12.5%"></div>
-            <div class="rhythm-seg rhythm-seg--avoid" style="width: 25%"></div>
+            ${timeline.map(slot => `<div class="rhythm-seg rhythm-seg--${slot.level}" style="width:12.5%"></div>`).join('')}
           </div>
           <div class="rhythm-now-marker" style="left: ${nowPercent.toFixed(1)}%">
             <span class="now-badge">${time(now)}</span>
@@ -340,12 +333,11 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         <!-- 8 slotů s počasím, hodnocením a cenou -->
         <div class="rhythm-slots-grid">
           ${timeline.map((slot, index) => {
-            const ratings = [t('advisor.rating_unsuitable'), t('advisor.rating_unsuitable'), t('advisor.rating_possible'), t('advisor.rating_good'), t('advisor.rating_ideal'), t('advisor.rating_good'), t('advisor.rating_good'), t('advisor.rating_unsuitable')];
-            const rating = ratings[index] || t(`advisor.${slot.level}`);
-            const temp = slot.hour?.temp_c !== undefined ? num(slot.hour.temp_c, 0) : (12 + index * 2);
+            const rating = t(`advisor.${slot.level}`);
+            const temp = num(slot.hour?.temp_c, 0);
             return `
             <div class="rhythm-slot rhythm-slot--${slot.level}">
-              <div class="slot-weather-icon">${weatherIcon(slot.hour?.condition || (index >= 3 && index <= 5 ? 'clear' : 'partly_cloudy'), index >= 2 && index <= 6, 'rhythm-icon')}</div>
+              <div class="slot-weather-icon">${weatherIcon(slot.hour?.condition || 'unknown', index >= 2 && index <= 6, 'rhythm-icon')}</div>
               <div class="slot-temp">${temp}°</div>
               <div class="slot-rain">${slot.rainProb}%</div>
               <div class="slot-rating slot-rating--${slot.level}">${rating}</div>
@@ -364,117 +356,14 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         <header class="workspace-card-header">
           <h4>${t('advisor.appliances_title')}</h4>
         </header>
-        <div class="appliances-list">
-          <div class="appliance-row">
-            <div class="appliance-info">
-              <div class="app-icon-badge">${applianceIcon('washing_machine')}</div>
-              <div>
-                <strong>${t('entity.washing_machine')}</strong>
-                <small>${t('advisor.appliance_window', { window: '12:10' })}</small>
-              </div>
-            </div>
-            <div class="appliance-badge appliance-badge--best">★ ${t('advisor.badge_great')}</div>
-          </div>
-
-          <div class="appliance-row">
-            <div class="appliance-info">
-              <div class="app-icon-badge">${applianceIcon('dishwasher')}</div>
-              <div>
-                <strong>${t('entity.dishwasher')}</strong>
-                <small>11:40 – 14:30</small>
-              </div>
-            </div>
-            <div class="appliance-badge appliance-badge--best">★ ${t('advisor.badge_ideal')}</div>
-          </div>
-
-          <div class="appliance-row">
-            <div class="appliance-info">
-              <div class="app-icon-badge">${applianceIcon('dryer')}</div>
-              <div>
-                <strong>${t('entity.dryer')}</strong>
-                <small>11:50 – 14:30</small>
-              </div>
-            </div>
-            <div class="appliance-badge appliance-badge--ok">★ ${t('advisor.rating_possible')}</div>
-          </div>
-
-          <div class="appliance-row">
-            <div class="appliance-info">
-              <div class="app-icon-badge">${applianceIcon('heatpump')}</div>
-              <div>
-                <strong>${t('entity.heatpump')} / TUV</strong>
-                <small>${t('advisor.controller_active')}</small>
-              </div>
-            </div>
-            <div class="appliance-badge appliance-badge--optimum">${t('advisor.badge_optimum')} <small>Auto</small></div>
-          </div>
+        <div class="appliances-list">${['washing_machine','dishwasher','dryer'].map(type => `<div class="appliance-row"><div class="appliance-info"><div class="app-icon-badge">${applianceIcon(type)}</div><div><strong>${t('entity.'+type)}</strong><small>${escapeHtml(advice.best)}</small></div></div></div>`).join('')}
+          <p>${heatingPermission(tng)} · ${heatpumpText(source(current,'shelly'))}</p>
+          <p>${t(controller.enabled ? 'status.controller_running' : 'status.controller_disabled')}</p>
         </div>
-
-        <footer class="appliances-footer">
-          <span class="savings-text">${t('advisor.estimated_savings_today', { value: '18,4 Kč' })}</span>
-        </footer>
       </article>
 
-      <!-- Panel 2: Vývoj v dalších hodinách (Graf) -->
-      <article class="workspace-card forecast-chart-card">
-        <header class="workspace-card-header forecast-chart-header">
-          <h4>${t('advisor.outlook_title')}</h4>
-          <div class="horizon-toggles" role="group">
-            <button type="button" class="btn-toggle btn-toggle--active">${t('advisor.horizon_day')}</button>
-            <button type="button" class="btn-toggle">${t('advisor.horizon_2days')}</button>
-            <button type="button" class="btn-toggle">${t('advisor.horizon_7days')}</button>
-          </div>
-        </header>
-
-        <div class="chart-legend-top">
-          <span class="chart-legend-item pv-legend">━ ${t('advisor.solar_curve')}</span>
-          <span class="chart-legend-item load-legend">━ ${t('advisor.load_curve')}</span>
-          <span class="chart-legend-item price-legend">━ ${t('advisor.price_curve')}</span>
-        </div>
-
-        <div class="multi-curve-container">
-          <svg viewBox="0 0 540 200" class="multi-curve-svg" preserveAspectRatio="none">
-            <!-- Grid lines -->
-            <line x1="30" y1="30" x2="520" y2="30" class="curve-grid"/>
-            <line x1="30" y1="80" x2="520" y2="80" class="curve-grid"/>
-            <line x1="30" y1="130" x2="520" y2="130" class="curve-grid"/>
-            <line x1="30" y1="170" x2="520" y2="170" class="curve-grid"/>
-
-            <!-- Y Axis values -->
-            <text x="18" y="34" class="curve-axis-text">8</text>
-            <text x="18" y="84" class="curve-axis-text">6</text>
-            <text x="18" y="134" class="curve-axis-text">4</text>
-            <text x="18" y="174" class="curve-axis-text">0</text>
-
-            <!-- Current time marker -->
-            <line x1="160" y1="20" x2="160" y2="175" class="curve-now-line"/>
-            <rect x="142" y="8" width="36" height="16" rx="4" class="curve-now-badge"/>
-            <text x="160" y="20" text-anchor="middle" class="curve-now-text">07:35</text>
-
-            <!-- Curves: PV (yellow), Consumption (blue), Price (purple) -->
-            <!-- PV Bell Curve -->
-            <path d="M 130 170 Q 270 10 410 170" class="curve-line curve-line--pv"/>
-            <circle cx="270" cy="50" r="4" class="curve-dot curve-dot--pv"/>
-            <circle cx="210" cy="110" r="4" class="curve-dot curve-dot--pv"/>
-            <circle cx="330" cy="110" r="4" class="curve-dot curve-dot--pv"/>
-
-            <!-- Consumption (Load) curve -->
-            <path d="M 30 150 Q 120 160 210 140 T 360 130 T 520 160" class="curve-line curve-line--house"/>
-            <circle cx="210" cy="140" r="3" class="curve-dot curve-dot--house"/>
-            <circle cx="360" cy="130" r="3" class="curve-dot curve-dot--house"/>
-
-            <!-- Price curve -->
-            <path d="M 30 130 Q 100 160 220 170 T 380 150 T 450 60 T 520 150" class="curve-line curve-line--price"/>
-            <circle cx="450" cy="60" r="3" class="curve-dot curve-dot--price"/>
-
-            <!-- X Axis ticks -->
-            <text x="30" y="192" class="curve-axis-text">00:00</text>
-            <text x="152" y="192" class="curve-axis-text">06:00</text>
-            <text x="275" y="192" class="curve-axis-text">12:00</text>
-            <text x="397" y="192" class="curve-axis-text">18:00</text>
-            <text x="500" y="192" class="curve-axis-text">24:00</text>
-          </svg>
-        </div>
+      <article class="workspace-card forecast-chart-card"><header class="workspace-card-header"><h4>${t('advisor.outlook_title')}</h4></header>
+        <p>${t('flow.forecast_table_note')}</p><div class="forecast-observed-table"><table><thead><tr><th>${t('history.time')}</th><th>${t('advisor.solar_curve')}</th><th>${t('entity.price')}</th></tr></thead><tbody>${timeline.map(slot => `<tr><td>${String(slot.start).padStart(2,'0')}:00</td><td>${num(slot.solar,0)} W/m²</td><td>${num(slot.price,2)} ${t('unit.czk_kwh')}</td></tr>`).join('')}</tbody></table></div>
       </article>
     </section>
   </div>`;
@@ -577,20 +466,4 @@ export function renderForecastStory(view, { prediction, weather, prices }) {
       <footer>${day.best_appliance_window ? `<span>${t('forecast.recommendation')}</span><strong>${translatedText('advisor.appliance_window', { window: day.best_appliance_window }, day.best_appliance_window)}</strong>` : `<span>${t('advisor.window_unavailable')}</span>`}</footer>
     </article>`;
   }).join('');
-}
-
-function linePath(values, width, height, pad) {
-  const max = Math.max(...values, 1);
-  return values.map((value, index) => {
-    const x = pad + index * ((width - pad * 2) / Math.max(values.length - 1, 1));
-    const y = height - pad - (Math.max(0, value) / max) * (height - pad * 2);
-    return `${index ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`;
-  }).join(' ');
-}
-
-function renderOutlookChart(timeline) {
-  const solar = timeline.map((slot) => Number(slot.solar) || 0);
-  const price = timeline.map((slot) => Number(slot.price) || 0);
-  const width = 500; const height = 166; const pad = 20;
-  return `<div class="outlook-chart"><div class="outlook-chart__legend"><span class="solar">${t('advisor.solar_curve')}</span><span class="price">${t('advisor.price_curve')}</span></div><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${t('advisor.outlook_title')}"><path class="outlook-grid" d="M${pad} 40H${width - pad}M${pad} 82H${width - pad}M${pad} 124H${width - pad}"/><path class="outlook-solar" d="${linePath(solar, width, height, pad)}"/><path class="outlook-price" d="${linePath(price, width, height, pad)}"/>${timeline.map((slot, index) => `<text x="${pad + index * ((width - pad * 2) / 7)}" y="157" text-anchor="middle">${String(slot.start).padStart(2, '0')}</text>`).join('')}</svg></div>`;
 }

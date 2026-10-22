@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import json
+from datetime import UTC, datetime
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
@@ -18,7 +21,14 @@ def set_language_in_settings(page: Page, language: str) -> None:
     page.locator("#more-toggle").click()
     page.locator('#utility-nav a[data-page="settings"]').click()
     page.locator("#f_ui_language").select_option(language)
-    page.locator("#settings-form button[type='submit']").click()
+    # Reload/navigation must wait for persistence, including response errors.
+    with page.expect_response(
+        lambda response: response.url.endswith("/api/config")
+        and response.request.method == "PUT"
+    ) as saved:
+        page.locator("#settings-form button[type='submit']").click()
+    assert saved.value.ok, saved.value.text()
+    assert saved.value.json()["saved"] is True
 
 
 @pytest.mark.parametrize("viewport", [(1920, 1080), (1280, 800), (1024, 768), (390, 844)])
@@ -183,48 +193,56 @@ def test_prediction_renders_forecast_without_application_error(page: Page):
     assert not any("formatCurrency" in error for error in errors)
 
 
-def test_prediction_renders_when_status_is_slow(page: Page):
-    import time
+def delay_status_without_blocking_other_requests(page: Page):
+    # Sleeping in a sync route handler freezes dispatch of unrelated requests too.
+    # Isolate this latency regression from unrelated loopback/API variance.
+    # Real backend integration remains covered by the other browser tests.
+    catalog = json.loads((Path(__file__).parents[2] / "locales" / "cs.json").read_text(encoding="utf-8"))
+    page.add_init_script("""(() => {
+      const originalFetch = window.fetch.bind(window);
+      const fastResponses = {
+        '/api/session': {required: false, authorised: true},
+        '/api/i18n/cs': {lang: 'cs', available: ['cs', 'en'], catalog: __CS_CATALOG__},
+        '/api/current': {sources: {}, readers: {}},
+        '/api/weather': {},
+        '/api/prices': {},
+        '/api/prediction': {
+          available: true, generated_at: '2026-09-15T18:37:40+02:00',
+          days: [{date: '2026-09-16', pv_kwh: 99.7, pv_kwh_low: 79.8,
+            pv_kwh_high: 119.6, irradiation_kwh_m2: 4.257,
+            confidence: 'medium', consumption_kwh: 16.87, cost_czk: 120}]
+        }
+      };
+      const response = payload => new Response(JSON.stringify(payload),
+        {status: 200, headers: {'Content-Type': 'application/json'}});
+      window.fetch = (input, options) => {
+        const target = input instanceof Request ? input.url : String(input);
+        const url = new URL(target, window.location.href);
+        if (url.origin === window.location.origin && url.pathname === '/api/status') {
+          return new Promise(resolve => setTimeout(() => resolve(response(
+            {ui: {language: 'cs', animations: 'reduced', theme: 'dark'}}
+          )), 2000));
+        }
+        if (url.origin === window.location.origin && url.pathname in fastResponses) {
+          return Promise.resolve(response(fastResponses[url.pathname]));
+        }
+        return originalFetch(input, options);
+      };
+    })();""".replace("__CS_CATALOG__", json.dumps(catalog)))
 
+
+def test_prediction_renders_when_status_is_slow(page: Page):
     from playwright.sync_api import expect
 
-    def route_api(route):
-        if route.request.url.endswith("/api/status"):
-            time.sleep(2)
-            route.fulfill(status=200, content_type="application/json", body=(
-                '{"ui":{"language":"cs","animations":"reduced","theme":"dark"}}'
-            ))
-            return
-        if route.request.url.endswith("/api/prediction"):
-            route.fulfill(status=200, content_type="application/json", body=(
-                '{"available":true,"generated_at":"2026-09-15T18:37:40+02:00",'
-                '"days":[{"date":"2026-09-16","pv_kwh":99.7,"pv_kwh_low":79.8,'
-                '"pv_kwh_high":119.6,"irradiation_kwh_m2":4.257,"confidence":"medium",'
-                '"consumption_kwh":16.87,"cost_czk":120}]}'
-            ))
-            return
-        route.continue_()
-
-    page.route("**/api/**", route_api)
+    delay_status_without_blocking_other_requests(page)
     page.goto("/#/prediction")
     expect(page.locator(".forecast-day-card").first).to_be_visible()
 
 
 def test_today_renders_when_status_is_slow(page: Page):
-    import time
-
     from playwright.sync_api import expect
 
-    def route_api(route):
-        if route.request.url.endswith("/api/status"):
-            time.sleep(2)
-            route.fulfill(status=200, content_type="application/json", body=(
-                '{"ui":{"language":"cs","animations":"reduced","theme":"dark"}}'
-            ))
-            return
-        route.continue_()
-
-    page.route("**/api/**", route_api)
+    delay_status_without_blocking_other_requests(page)
     page.goto("/")
     expect(page.locator(".today-screen")).to_be_visible()
 
@@ -277,10 +295,49 @@ def test_control_plan_english_catalog(page: Page):
     set_language_in_settings(page, "en")
     expect(page.locator("html")).to_have_attribute("lang", "en")
     page.reload()
+    expect(page.locator("html")).to_have_attribute("lang", "en")
     page.goto("/#/control-plan")
     expect(page.locator(".control-plan-page")).to_contain_text("Control & Plan")
     expect(page.locator(".control-plan-page")).to_contain_text("Heating")
     expect(page.locator(".notice.error")).to_have_count(0)
+
+
+def test_control_plan_groups_decisions_and_opens_detail(page: Page):
+    from playwright.sync_api import expect
+
+    timestamp = datetime.now(UTC).isoformat()
+    decision = {
+        "timestamp": timestamp,
+        "rule": "goodwe_charge_cheap",
+        "action": "start_battery_charge",
+        "value": 50,
+        "applied": False,
+        "reason_key": "reason.goodwe_charge_cheap",
+        "reason_params": {"price": 0.5},
+    }
+
+    def route_api(route):
+        if "/api/decisions?" in route.request.url:
+            route.fulfill(status=200, content_type="application/json", body=(
+                json.dumps({"decisions": [decision, decision], "state": {}})
+            ))
+            return
+        route.continue_()
+
+    page.route("**/api/**", route_api)
+    page.goto("/#/control-plan")
+    expect(page.locator(".control-plan-activity tbody tr")).to_have_count(1)
+    expect(page.locator(".control-plan-activity__count")).to_contain_text("2")
+    expect(page.locator(".control-plan-status .pill[title]").first).to_be_visible()
+    expect(page.locator(".control-plan-mode[title]").first).to_be_visible()
+    page.locator(".control-plan-activity tbody tr").click()
+    expect(page.locator("#control-plan-decision-dialog")).to_be_visible()
+    expect(page.locator("#control-plan-decision-dialog")).to_contain_text("start_battery_charge")
+    page.keyboard.press("Escape")
+    expect(page.locator("#control-plan-decision-dialog")).to_be_hidden()
+    page.locator(".control-plan-activity tbody tr").click()
+    page.locator("#control-plan-decision-dialog [data-control-plan-close]").last.click()
+    expect(page.locator("#control-plan-decision-dialog")).to_be_hidden()
 
 
 @pytest.mark.parametrize("viewport", [(1920, 1080), (1440, 900), (1280, 800), (1024, 768), (390, 844)])
@@ -380,6 +437,8 @@ def test_today_desktop_panels_use_full_content_width(page: Page, viewport: tuple
 
         page.set_viewport_size({"width": viewport[0], "height": viewport[1]})
         page.goto("/")
+        # Geometry is measured after data rendering; startup latency has separate tests.
+        page.locator(".today-screen").wait_for()
         expect(page.locator(".today-recommendation-panel")).to_be_visible()
 
         widths = page.evaluate("""() => {
@@ -482,9 +541,16 @@ def test_energy_flow_screen_rendering(page: Page, viewport: tuple[int, int]):
     expect(page.locator(".flow-hero")).to_be_visible()
     expect(page.locator(".flow-stage")).to_be_visible()
     expect(page.locator(".flow .main-node")).to_have_count(4)
-    expect(page.locator(".flow .appliance-node")).to_have_count(6)
-    expect(page.locator(".flow .appliance-node__icon")).to_have_count(6)
-    expect(page.locator(".flow .wire")).to_have_count(8)
+    # Approved redesign uses unscaled HTML appliance readings and no fabricated heat outputs.
+    expect(page.locator(".flow-main-readings .flow-reading")).to_have_count(4)
+    expect(page.locator(".flow-device-row")).to_have_count(6)
+    expect(page.locator(".flow-device-row[data-device='heatpump']")).to_have_count(1)
+    expect(page.locator(".flow .appliance-node--service")).to_have_count(0)
+    if viewport[0] < 768:
+        expect(page.locator(".flow-main-readings")).to_be_visible()
+        expect(page.locator(".flow-desktop")).to_be_hidden()
+    else:
+        expect(page.locator(".flow-desktop")).to_be_visible()
     expect(page.locator(".flow-details")).to_be_visible()
     expect(page.locator(".notice.error")).to_have_count(0)
 

@@ -1,0 +1,50 @@
+{
+  "step": 30,
+  "classification": "LARGE",
+  "status": "DONE",
+  "gate_a": {
+    "status": "APPROVED",
+    "approved_by": "repository owner: Udelej to after incremental backup proposal",
+    "approved_at": "2026-10-21T07:27:33.743800+02:00"
+  },
+  "gate_b": {
+    "status": "APPROVED",
+    "approved_by": "independent agent /root/release_review; implementation 048ce35f1a13a0f8fa19890216514d54dfefe899",
+    "approved_at": "2026-10-21T08:18:12.079618+02:00"
+  },
+  "gate_c": {
+    "status": "APPROVED",
+    "approved_by": "repository owner: Schvaluji nasazeni; confirm no repeated 1 GB backup; combined Step29 + Step30",
+    "approved_at": "2026-10-21T11:10:20.340013+02:00"
+  },
+  "readiness": "YES",
+  "requested_by": "repository owner / maintainer",
+  "source": "Owner approved incremental backups in chat: Udelej to",
+  "branch": "claude/step30-incremental-backups",
+  "pr": null,
+  "notes": "Gate A approved by the explicit user instruction following the concrete proposal; do not repeat approval request. Production activation remains a later Human Gate. Owner approved combined deployment; production 0.1.3 and final release metadata verified; evidence in step30-release-evidence.",
+  "requirements": [
+    "REQ-030-001",
+    "REQ-030-002",
+    "REQ-030-003",
+    "REQ-030-004",
+    "REQ-030-005",
+    "REQ-030-006"
+  ],
+  "acceptance": [
+    "AC-030-001",
+    "AC-030-002",
+    "AC-030-003",
+    "AC-030-004",
+    "AC-030-005",
+    "AC-030-006"
+  ],
+  "evidence": [
+    "E-030-001",
+    "E-030-002",
+    "E-030-003",
+    "E-030-004",
+    "E-030-005",
+    "E-030-006"
+  ]
+}

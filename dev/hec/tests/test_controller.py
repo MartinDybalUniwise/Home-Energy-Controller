@@ -9,10 +9,21 @@ from datetime import datetime, timedelta
 
 from hec.controller.controller import Controller
 from hec.controller.metrics import Metrics
-from hec.controller.rules import Context, dhw_price_high, dhw_pv_surplus, heating_preheat_cheap
+from hec.controller.rules import (
+    Context,
+    dhw_price_high,
+    dhw_pv_surplus,
+    goodwe_charge_cheap,
+    goodwe_discharge_expensive,
+    goodwe_enable_export_limit,
+    goodwe_set_export_limit,
+    goodwe_set_on_grid_soc_limit,
+    goodwe_stop_when_neutral,
+    heating_preheat_cheap,
+)
 from hec.core import config as config_mod
 from hec.core import schema
-from hec.core.model import ReaderStatus
+from hec.core.model import Decision, ReaderStatus
 from hec.core.timeutil import now_local, to_iso
 from hec.storage.jsonl import JsonlStorage
 
@@ -111,6 +122,91 @@ def test_preheating_skipped_when_it_is_warm_outside():
                                                          "heating_set_temperature": 40}})) is None
 
 
+def goodwe_context(**values):
+    optimization = {
+        "cheap_price_percentile": 0.25,
+        "expensive_price_percentile": 0.75,
+        "goodwe_control": {
+            "enabled": True,
+            "charge_power_pct": 50,
+            "discharge_power_pct": 30,
+            "charge_start_soc_pct": 20,
+            "charge_stop_soc_pct": 80,
+            "discharge_start_soc_pct": 80,
+            "discharge_stop_soc_pct": 20,
+        },
+    }
+    base = {"goodwe": {"pv_w": 0, "house_w": 1000, "battery_soc": 10},
+            "ote": {"price_total_czk_kwh": 1.0}}
+    base.update(values)
+    return context(values=base, optimization=optimization)
+
+
+def test_goodwe_charge_rule_requires_low_soc_and_cheap_price():
+    decision = goodwe_charge_cheap(goodwe_context())
+    assert decision.action == "start_battery_charge"
+    assert decision.value == 50
+    assert decision.reason_params["start_soc_pct"] == 20
+    assert goodwe_charge_cheap(goodwe_context(
+        goodwe={"pv_w": 0, "house_w": 1000, "battery_soc": 20})) is None
+    assert goodwe_charge_cheap(goodwe_context(
+        goodwe={"pv_w": 0, "house_w": 1000, "battery_soc": 50,
+                "operation_mode": "ECO_CHARGE"})) is not None
+    assert goodwe_charge_cheap(goodwe_context(
+        goodwe={"pv_w": 0, "house_w": 1000, "battery_soc": 80,
+                "operation_mode": "ECO_CHARGE"})) is None
+
+
+def test_goodwe_discharge_rule_requires_high_soc_and_expensive_price():
+    decision = goodwe_discharge_expensive(goodwe_context(
+        goodwe={"pv_w": 0, "house_w": 1000, "battery_soc": 90},
+        ote={"price_total_czk_kwh": 6.0}))
+    assert decision.action == "start_battery_discharge"
+    assert decision.value == 30
+    assert decision.reason_params["start_soc_pct"] == 80
+    assert decision.reason_params["stop_soc_pct"] == 20
+    assert goodwe_discharge_expensive(goodwe_context(
+        goodwe={"pv_w": 0, "house_w": 1000, "battery_soc": 80},
+        ote={"price_total_czk_kwh": 6.0})) is None
+
+
+def test_goodwe_charge_and_discharge_require_valid_battery_soc():
+    invalid_soc_values = (-1, 101, float("nan"), float("inf"))
+    for soc in invalid_soc_values:
+        assert goodwe_charge_cheap(goodwe_context(
+            goodwe={"pv_w": 0, "house_w": 1000, "battery_soc": soc})) is None
+        assert goodwe_discharge_expensive(goodwe_context(
+            goodwe={"pv_w": 0, "house_w": 1000, "battery_soc": soc},
+            ote={"price_total_czk_kwh": 6.0})) is None
+
+
+def test_goodwe_export_and_on_grid_limits_are_explicitly_configured():
+    goodwe = {"pv_w": 5000, "house_w": 1000, "battery_soc": 50,
+              "grid_export_w": 4000}
+    value = goodwe_context(goodwe=goodwe)
+    value.optimization["goodwe_control"].update({
+        "export_limit_enabled": True,
+        "export_limit_w": 2500,
+        "on_grid_soc_limit_enabled": True,
+        "on_grid_soc_limit_pct": 70,
+    })
+
+    enable = goodwe_enable_export_limit(value)
+    limit = goodwe_set_export_limit(value)
+    soc_limit = goodwe_set_on_grid_soc_limit(value)
+
+    assert (enable.action, enable.value) == ("set_export_limit_enabled", True)
+    assert (limit.action, limit.value) == ("set_export_limit_w", 2500)
+    assert (soc_limit.action, soc_limit.value) == ("set_on_grid_soc_limit_pct", 70)
+
+
+def test_goodwe_stop_rule_requires_valid_battery_soc():
+    for soc in (None, -1, 101, float("nan"), float("inf")):
+        assert goodwe_stop_when_neutral(goodwe_context(
+            goodwe={"pv_w": 0, "house_w": 1000, "battery_soc": soc,
+                    "operation_mode": "ECO_CHARGE"})) is None
+
+
 # --- controller ---------------------------------------------------------------
 
 class FakeReader:
@@ -123,6 +219,33 @@ class FakeReader:
     def request_boiler_temperature(self, temperature, state):
         self.requests.append(temperature)
         return True, "ok"
+
+
+class FakeGoodWeWriter:
+    def __init__(self, success=True):
+        self.success = success
+        self.calls = []
+
+    def start_battery_charge(self, **kwargs):
+        self.calls.append(("start_battery_charge", kwargs))
+        return {"success": self.success}
+
+    def start_battery_discharge(self, **kwargs):
+        self.calls.append(("start_battery_discharge", kwargs))
+        return {"success": self.success}
+
+    def stop_battery_control(self, **kwargs):
+        self.calls.append(("stop_battery_control", kwargs))
+        return {"success": self.success}
+
+
+class StrictGoodWeWriter:
+    def __init__(self):
+        self.calls = []
+
+    def start_battery_charge(self, power_pct, start_soc_pct, stop_soc_pct, valid_from, valid_to):
+        self.calls.append(("start_battery_charge", locals()))
+        return {"success": True}
 
 
 class FakeApp:
@@ -170,6 +293,40 @@ def test_stale_data_triggers_safe_mode_and_no_writes(tmp_path):
     assert result["safe_mode"] is True and result["decisions"] == []
     assert app.reader("tng").requests == []
     assert controller.state()["safe_mode_reason"]["reason_key"] == "reason.safe_mode_stale_data"
+
+
+def test_source_specific_ote_limit_does_not_relax_goodwe_or_tng(tmp_path):
+    controller, app, config = build(tmp_path, ages=(301.0, 301.0))
+    app.readers.append(FakeReader("ote", age=301.0))
+    config.data["controller"]["max_data_age_by_source"]["ote"] = 7200
+
+    assert controller.max_data_age("ote") == 7200
+    assert controller.max_data_age("goodwe") == 300
+    assert controller.stale_sources() == ["goodwe", "tng"]
+
+
+def test_ote_override_allows_hourly_polling_but_expires_at_boundary(tmp_path):
+    controller, app, config = build(tmp_path)
+    app.readers.append(FakeReader("ote", age=3500.0))
+    config.data["controller"]["max_data_age_by_source"]["ote"] = 3600
+
+    assert "ote" not in controller.stale_sources()
+    app.reader("ote").status.last_success = now_local() - timedelta(seconds=3601)
+    assert "ote" in controller.stale_sources()
+
+
+def test_safe_mode_reason_reports_effective_source_limit(tmp_path):
+    controller, app, config = build(tmp_path)
+    app.readers.append(FakeReader("ote", age=7201.0))
+    config.data["controller"]["max_data_age_by_source"]["ote"] = 7200
+
+    result = controller.run_once()
+
+    assert result["safe_mode"] is True
+    assert result["decisions"] == []
+    assert controller.state()["safe_mode_reason"]["reason_params"] == {
+        "source": "ote", "age": 7200,
+    }
 
 
 def test_decision_is_recorded_even_when_writing_is_disabled(tmp_path):
@@ -232,6 +389,107 @@ def test_decision_interval_limits_how_often_rules_run(tmp_path):
 
     controller.on_sample(object())
     assert controller._last_run == first
+
+
+def test_goodwe_controller_dispatches_one_battery_mode_and_is_idempotent(tmp_path):
+    snapshot = {
+        "goodwe": {"pv_w": 0, "house_w": 1000, "battery_soc": 10},
+        "tng": {"boiler_temperature": 46.0, "boiler_set_temperature": 45,
+                "heating_set_temperature": 40, "outside_temperature": 18.0},
+        "ote": {"price_total_czk_kwh": 1.0},
+    }
+    controller, app, config = build(tmp_path, snapshot=snapshot)
+    config.data["controller"]["optimization"]["goodwe_control"]["enabled"] = True
+    writer = FakeGoodWeWriter()
+    app.goodwe_writer = writer
+
+    first = controller.run_once()
+    controller._last_run = None
+    second = controller.run_once()
+
+    assert [call[0] for call in writer.calls] == ["start_battery_charge"]
+    assert any(item["action"] == "start_battery_charge" and item["applied"] for item in first["decisions"])
+    repeated = next(item for item in second["decisions"] if item["action"] == "start_battery_charge")
+    assert repeated["applied"] is False and repeated["reason_key"] == "reason.no_action_needed"
+
+
+def test_goodwe_writer_failure_is_recorded_as_not_applied(tmp_path):
+    snapshot = {
+        "goodwe": {"pv_w": 0, "house_w": 1000, "battery_soc": 10},
+        "tng": {"outside_temperature": 18.0},
+        "ote": {"price_total_czk_kwh": 1.0},
+    }
+    controller, app, config = build(tmp_path, snapshot=snapshot)
+    config.data["controller"]["optimization"]["goodwe_control"]["enabled"] = True
+    app.goodwe_writer = FakeGoodWeWriter(success=False)
+
+    result = controller.run_once()
+    decision = next(item for item in result["decisions"] if item["action"] == "start_battery_charge")
+
+    assert decision["applied"] is False
+    assert decision["reason_key"] == "reason.write_blocked_gate"
+
+
+def test_goodwe_dispatch_passes_only_writer_contract_parameters(tmp_path):
+    controller, app, _ = build(tmp_path, enabled=True)
+    writer = StrictGoodWeWriter()
+    app.goodwe_writer = writer
+    decision = Decision(
+        rule="goodwe_charge_cheap", action="start_battery_charge", value=50,
+        reason_params={"power_pct": 50, "start_soc_pct": 20, "stop_soc_pct": 80,
+                       "valid_from": "00:00", "valid_to": "23:59", "price": 1.0},
+    )
+
+    assert controller.apply(decision).applied is True
+    assert writer.calls[0][1]["power_pct"] == 50
+    assert "price" not in writer.calls[0][1]
+
+
+def test_goodwe_limit_rules_require_valid_battery_soc():
+    value = goodwe_context(goodwe={"pv_w": 5000, "house_w": 1000, "grid_export_w": 4000})
+    value.optimization["goodwe_control"].update({
+        "export_limit_enabled": True,
+        "on_grid_soc_limit_enabled": True,
+    })
+
+    assert goodwe_enable_export_limit(value) is None
+    assert goodwe_set_export_limit(value) is None
+    assert goodwe_set_on_grid_soc_limit(value) is None
+
+
+def test_goodwe_idempotence_ignores_changing_reason_telemetry(tmp_path):
+    controller, app, _ = build(tmp_path, enabled=True)
+    writer = FakeGoodWeWriter()
+    app.goodwe_writer = writer
+    first = Decision(
+        rule="goodwe_charge_cheap", action="start_battery_charge", value=50,
+        reason_params={"power_pct": 50, "start_soc_pct": 20, "stop_soc_pct": 80,
+                       "valid_from": "00:00", "valid_to": "23:59", "price": 1.0},
+    )
+    second = Decision(
+        rule="goodwe_charge_cheap", action="start_battery_charge", value=50,
+        reason_params={"power_pct": 50, "start_soc_pct": 20, "stop_soc_pct": 80,
+                       "valid_from": "00:00", "valid_to": "23:59", "price": 2.0},
+    )
+
+    assert controller.apply(first).applied is True
+    repeated = controller.apply(second)
+
+    assert repeated.applied is False
+    assert repeated.reason_key == "reason.no_action_needed"
+    assert [call[0] for call in writer.calls] == ["start_battery_charge"]
+
+
+def test_rule_order_uses_configured_priorities(tmp_path):
+    controller, _, config = build(tmp_path, enabled=True)
+    config.data["controller"]["optimization"]["priorities"] = [
+        "goodwe_discharge_expensive", "goodwe_charge_cheap", "dhw_pv_surplus",
+    ]
+    controller = Controller(FakeApp(config, controller.app.readers, controller.app.snapshot))
+
+    assert [rule.name for rule in controller.rules[:3]] == [
+        "goodwe_discharge_expensive", "goodwe_charge_cheap", "dhw_pv_surplus",
+    ]
 
 
 # --- metriky --------------------------------------------------------------------
