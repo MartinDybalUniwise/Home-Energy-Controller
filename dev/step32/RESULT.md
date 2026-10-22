@@ -37,3 +37,8 @@ Fresh final preview PID8984 on8185, workingroot C:/TepelneCerpadlo/step26-git, c
 ## Limits and safety
 
 No production restart, code/configuration change, backup, import/backfill or raw history rewrite. Frozen odlozene-logy never entered. Root prototypes, physical controls and TNG change gate untouched. The repair does not manufacture SDG screenshot values0.04/0.07 as HEC daily counters. A trustworthy day total derived from cumulative GRID counters requires a separate verified baseline design; the current repair correctly reports unsupported daily values as unknown. Future approved deployment uses existing incremental backups only.
+
+
+## GitHub promotion and portable test fixtures
+
+Owner requested PR and merge. PR43 promotes the deployed release plus earlier approved reconciliation from the integration branch into main: https://github.com/MartinDybalUniwise/Home-Energy-Controller/pull/43. Initial Linux CI exposed two test-fixture issues: the frozen-folder guard passed a POSIX directory descriptor to Path during temporary cleanup, and the energy summary fixture used Prague midnight while the CI host uses UTC day bounds. Only tests were corrected: integer descriptors delegate to real scandir, forbidden Path/string forms are explicitly asserted to fail before entry, and summary timestamps use the same host-local day as the analyser. Energy assertions, safety checks and workflow coverage are retained. No application or production change and no redeployment. Final CI results are recorded on PR43.

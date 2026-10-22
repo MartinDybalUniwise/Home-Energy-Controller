@@ -327,11 +327,15 @@ def test_current_data_walk_prunes_frozen_folder_before_entry(backed_up, monkeypa
     original = os.scandir
 
     def guard(path):
-        if Path(path) == frozen:
+        # POSIX tempfile cleanup also calls scandir with a directory descriptor.
+        if not isinstance(path, int) and Path(path) == frozen:
             pytest.fail('Entered frozen folder')
         return original(path)
 
     monkeypatch.setattr(os, 'scandir', guard)
+    for forbidden in (frozen, str(frozen)):
+        with pytest.raises(pytest.fail.Exception, match='Entered frozen folder'):
+            guard(forbidden)
     backups.capture(bootstrap=True)
     assert not any('odlozene-logy' in name for name in backups._snapshot()['files'])
 

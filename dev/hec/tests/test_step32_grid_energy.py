@@ -1,6 +1,6 @@
 """Regression: ET inverter AC output must never be labelled grid export."""
 from copy import deepcopy
-from datetime import date
+from datetime import date, datetime, timedelta
 from threading import RLock
 from types import SimpleNamespace
 
@@ -98,8 +98,10 @@ def test_mixed_legacy_shape_cannot_bypass_projection():
 def test_daily_summary_uses_grid_power_not_inverter_ac_energy(tmp_path):
     config = Config(defaults(), path=tmp_path / 'config.json', root=tmp_path)
     storage = JsonlStorage(config.data_dir, config.history_dir)
-    for minute in ['00', '15', '30']:
-        storage.append('goodwe', {'timestamp': f'2026-10-21T00:{minute}:00+02:00',
+    # Match the local-day bounds used by Summaries on both Prague and UTC hosts.
+    start = datetime(2026, 10, 21).astimezone()
+    for minute in [0, 15, 30]:
+        storage.append('goodwe', {'timestamp': (start + timedelta(minutes=minute)).isoformat(),
                                   'e_export_day_kwh': 7.9, 'e_import_day_kwh': 999,
                                   'grid_export_w': 20, 'grid_import_w': 10})
     report = Summaries(config, storage).compute(date(2026, 10, 21))
