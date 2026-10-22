@@ -147,7 +147,7 @@
     "best_window_summary": "High solar production & low price",
     "why_now_btn": "Why right now?",
     "why_now_title": "Why right now?",
-    "why_now_content": "The recommendation combines high PV solar generation forecast with the lowest spot electricity prices on the OTE market today. Running heavy appliances during this window maximizes self-consumption and minimizes costs.",
+    "why_now_content": "This is an indicative window based on the daily forecast and available OTE prices. It applies to the date shown with the recommendation. Confidence depends on measurement and forecast coverage; actual production and consumption may differ.",
     "now_is": "RIGHT NOW",
     "good_time": "Good time",
     "can_turn_on_appliances": "You can run standard appliances.",

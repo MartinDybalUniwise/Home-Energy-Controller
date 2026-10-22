@@ -147,7 +147,7 @@
     "best_window_summary": "Vysoká výroba FVE a nízká cena",
     "why_now_btn": "Proč právě teď?",
     "why_now_title": "Proč právě teď?",
-    "why_now_content": "Doporučení je vypočteno kombinací predikce vysokého slunečního svitu z FVE a nejnižší spotové ceny elektřiny na OTE trhu pro dnešní den. Zapnutím energeticky náročných spotřebičů v tomto okně maximalizujete přímou vlastní spotřebu a minimalizujete náklady.",
+    "why_now_content": "Jde o orientační okno z denní předpovědi a dostupných cen OTE. Platí pro datum uvedené u doporučení. Jistotu omezuje dostupnost měření a předpovědi; skutečná výroba a spotřeba se mohou lišit.",
     "now_is": "TEĎ JE",
     "good_time": "Dobrá doba",
     "can_turn_on_appliances": "Můžeš zapnout běžné spotřebiče.",

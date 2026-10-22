@@ -101,6 +101,10 @@ def test_chart_units_gaps_table_ranges_and_keyboard(page):
     # Returning to Today reuses its minute cache instead of rereading the day.
     assert len(requests)==3
     assert all('fields=pv_w%2Chouse_w' in r for r in requests)
+    page.locator('#btn-why-now').click()
+    expect(page.locator('#why-now-body')).to_contain_text('23')
+    expect(page.locator('#why-now-body')).not_to_contain_text('pro dnešní den')
+    page.locator('#why-now-close').click()
 
 
 def test_shared_snapshot_and_prague_dst_dates(page):

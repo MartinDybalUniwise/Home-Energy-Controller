@@ -381,7 +381,11 @@ export function renderToday(view, { current, weather, prices, prediction }) {
   if (btnWhyNow) {
     btnWhyNow.addEventListener('click', () => {
       const dlg = document.getElementById('why-now-dialog');
-      if (dlg) dlg.showModal();
+      if (dlg) {
+        const body = dlg.querySelector('#why-now-body');
+        if (body) body.textContent = `${advice.best}. ${t('advisor.why_now_content')}`;
+        dlg.showModal();
+      }
     });
   }
 }
