@@ -30,6 +30,27 @@ export function quality(device) {
   return 'valid';
 }
 
+// Both energy pages consume the same validity rules without changing raw data.
+export function energySnapshot(current) {
+  const raw = source(current, 'goodwe');
+  const result = {...raw};
+  for (const key of ['pv_w', 'house_w', 'grid_import_w', 'grid_export_w',
+    'battery_charge_w', 'battery_discharge_w', 'battery_soc']) {
+    const value = finite(raw[key]);
+    result[key] = value !== null && value >= 0 && (key !== 'battery_soc' || value <= 100) ? value : null;
+  }
+  for (const [a,b] of [['grid_import_w','grid_export_w'],['battery_charge_w','battery_discharge_w']]) {
+    if (result[a] === null || result[b] === null || (result[a] > 20 && result[b] > 20)) {
+      result[a] = null; result[b] = null;
+    }
+  }
+  return result;
+}
+
+export function heatpumpPower(shelly) {
+  return heatpumpQuality(shelly) === 'valid' ? finite(shelly.heatpump_power_w) : null;
+}
+
 export function heatpumpQuality(shelly) {
   if (shelly.heatpump_quality && shelly.heatpump_quality !== 'valid') return shelly.heatpump_quality;
   const meters = Object.values(shelly.devices || {}).filter(d => d.role === 'heatpump_meter');

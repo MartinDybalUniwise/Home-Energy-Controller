@@ -411,10 +411,22 @@
         "label": "Dodávka do sítě dnes",
         "explanation": "Energie dodaná do distribuční sítě od začátku aktuálního dne."
       },
-      "inverter_ac_import_day_kwh": {"label": "AC vstup měniče dnes", "explanation": "Energie přijatá na AC svorkách měniče; nejde o odběr ze sítě."},
-      "inverter_ac_export_day_kwh": {"label": "AC výstup měniče dnes", "explanation": "Energie dodaná z AC svorek měniče, včetně napájení domu z baterie; nejde o přetok do sítě."},
-      "grid_import_total_kwh": {"label": "Celkový odběr síťového měřidla", "explanation": "Celoživotní čítač odběru síťového měřidla; nejde o denní energii."},
-      "grid_export_total_kwh": {"label": "Celková dodávka síťového měřidla", "explanation": "Celoživotní čítač dodávky síťového měřidla; nejde o denní energii."},
+      "inverter_ac_import_day_kwh": {
+        "label": "AC vstup měniče dnes",
+        "explanation": "Energie přijatá na AC svorkách měniče; nejde o odběr ze sítě."
+      },
+      "inverter_ac_export_day_kwh": {
+        "label": "AC výstup měniče dnes",
+        "explanation": "Energie dodaná z AC svorek měniče, včetně napájení domu z baterie; nejde o přetok do sítě."
+      },
+      "grid_import_total_kwh": {
+        "label": "Celkový odběr síťového měřidla",
+        "explanation": "Celoživotní čítač odběru síťového měřidla; nejde o denní energii."
+      },
+      "grid_export_total_kwh": {
+        "label": "Celková dodávka síťového měřidla",
+        "explanation": "Celoživotní čítač dodávky síťového měřidla; nejde o denní energii."
+      },
       "grid_frequency_hz": {
         "label": "Frekvence sítě",
         "explanation": "Okamžitá frekvence střídavé distribuční sítě měřená měničem."
@@ -969,7 +981,8 @@
     "history": "Opravy času měření, doplňování historie a bezpečného pokračování importu.",
     "performance": "Inkrementální import SDG, menší checkpoint a omezení zbytečných výpisů.",
     "versioning": "Číslo verze a přehled změn s časem vydání.",
-    "settings": "Oprava ukládání volitelných číselných nastavení a jazyka rozhraní."
+    "settings": "Oprava ukládání volitelných číselných nastavení a jazyka rozhraní.",
+    "overview_accuracy": "Obnovený čitelný přehled se skutečným grafem výroby, spotřeby a cen; opravené datum, jednotky a kvalita měření."
   },
   "meter": {
     "valid": "Měřený příkon",
@@ -980,5 +993,25 @@
     "residual": "Dopočtený zbytek",
     "incomplete": "Nelze dopočítat: neúplné měření",
     "stale": "Zastaralé měření"
+  },
+  "today_chart": {
+    "title": "Výroba, spotřeba a cena",
+    "now": "Teď",
+    "range": "Rozsah historie",
+    "days_1": "Dnes",
+    "days_2": "2 dny",
+    "days_7": "7 dní",
+    "loading": "Načítám historii…",
+    "note": "Výkon: naměřená historie GoodWe. Cena: zveřejněné intervaly OTE. Hodinový odhad výroby a spotřeby není dostupný; denní odhad se nevydává za hodinovou křivku. Mezery znamenají chybějící měření. Čas Europe/Prague.",
+    "failed": "Historii se nepodařilo načíst. Zkuste rozsah znovu.",
+    "no_measurements": "V tomto období nejsou dostupná měření výkonu.",
+    "inspect": "Pohybem po grafu nebo šipkami zobrazíte hodnoty.",
+    "origin": "Původ",
+    "measured": "Měření GoodWe",
+    "published_price": "Zveřejněná cena OTE",
+    "price_current": "Cena v aktuálním intervalu OTE",
+    "measurement_note": "Spotřeba domu je údaj střídače GoodWe, nikoli součet měření spotřebičů. Čas střídače:",
+    "no_today_forecast": "Dnešní odhad není k dispozici.",
+    "ambiguous_price": "Nejednoznačné nebo neplatné cenové intervaly (například opakovaná hodina při změně času) jsou vynechány; cenu neodhadujeme."
   }
 }

@@ -411,10 +411,22 @@
         "label": "Grid export today",
         "explanation": "Energy exported to the distribution grid since the start of the current day."
       },
-      "inverter_ac_import_day_kwh": {"label": "Inverter AC input today", "explanation": "Energy received at the inverter AC terminals; not distribution-grid import."},
-      "inverter_ac_export_day_kwh": {"label": "Inverter AC output today", "explanation": "Energy delivered at the inverter AC terminals, including battery energy supplied to the house; not grid export."},
-      "grid_import_total_kwh": {"label": "Grid import meter total", "explanation": "Lifetime grid-meter import counter; not energy for a single day."},
-      "grid_export_total_kwh": {"label": "Grid export meter total", "explanation": "Lifetime grid-meter export counter; not energy for a single day."},
+      "inverter_ac_import_day_kwh": {
+        "label": "Inverter AC input today",
+        "explanation": "Energy received at the inverter AC terminals; not distribution-grid import."
+      },
+      "inverter_ac_export_day_kwh": {
+        "label": "Inverter AC output today",
+        "explanation": "Energy delivered at the inverter AC terminals, including battery energy supplied to the house; not grid export."
+      },
+      "grid_import_total_kwh": {
+        "label": "Grid import meter total",
+        "explanation": "Lifetime grid-meter import counter; not energy for a single day."
+      },
+      "grid_export_total_kwh": {
+        "label": "Grid export meter total",
+        "explanation": "Lifetime grid-meter export counter; not energy for a single day."
+      },
       "grid_frequency_hz": {
         "label": "Grid frequency",
         "explanation": "Instantaneous AC distribution-grid frequency measured by the inverter."
@@ -969,7 +981,8 @@
     "history": "Correct measurement timestamps, history backfill and restart-safe imports.",
     "performance": "Incremental SDG import, compact checkpoints and fewer routine messages.",
     "versioning": "Application version and changelog with fixed release times.",
-    "settings": "Fix saving optional numeric settings and the interface language."
+    "settings": "Fix saving optional numeric settings and the interface language.",
+    "overview_accuracy": "Restored readable overview with actual production, consumption and price charts; corrected dates, units and measurement quality."
   },
   "meter": {
     "valid": "Measured electrical input",
@@ -980,5 +993,25 @@
     "residual": "Calculated remainder",
     "incomplete": "Cannot calculate: incomplete measurements",
     "stale": "Outdated measurement"
+  },
+  "today_chart": {
+    "title": "Production, consumption and price",
+    "now": "Now",
+    "range": "History range",
+    "days_1": "Today",
+    "days_2": "2 days",
+    "days_7": "7 days",
+    "loading": "Loading history…",
+    "note": "Power: measured GoodWe history. Price: published OTE intervals. Hourly production and consumption forecasts are unavailable; daily estimates are not hourly curves. Gaps mean missing measurements. Time zone Europe/Prague.",
+    "failed": "History could not be loaded. Select a range to retry.",
+    "no_measurements": "No power measurements are available for this period.",
+    "inspect": "Move over the chart or use arrow keys to inspect values.",
+    "origin": "Source",
+    "measured": "GoodWe measurement",
+    "published_price": "Published OTE price",
+    "price_current": "Price for the current OTE interval",
+    "measurement_note": "House consumption comes from the GoodWe inverter, not the sum of appliance meters. Inverter reading:",
+    "no_today_forecast": "Today’s estimate is unavailable.",
+    "ambiguous_price": "Ambiguous or invalid price intervals (such as the repeated hour at a clock change) are omitted; prices are not guessed."
   }
 }
