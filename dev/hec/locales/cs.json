@@ -982,7 +982,8 @@
     "performance": "Inkrementální import SDG, menší checkpoint a omezení zbytečných výpisů.",
     "versioning": "Číslo verze a přehled změn s časem vydání.",
     "settings": "Oprava ukládání volitelných číselných nastavení a jazyka rozhraní.",
-    "overview_accuracy": "Obnovený čitelný přehled se skutečným grafem výroby, spotřeby a cen; opravené datum, jednotky a kvalita měření."
+    "overview_accuracy": "Obnovený čitelný přehled se skutečným grafem výroby, spotřeby a cen; opravené datum, jednotky a kvalita měření.",
+    "sdg_history": "Doplnění historie hlavního grafu z archivu SDG."
   },
   "meter": {
     "valid": "Měřený příkon",
@@ -1002,7 +1003,7 @@
     "days_2": "2 dny",
     "days_7": "7 dní",
     "loading": "Načítám historii…",
-    "note": "Výkon: naměřená historie GoodWe. Cena: zveřejněné intervaly OTE. Hodinový odhad výroby a spotřeby není dostupný; denní odhad se nevydává za hodinovou křivku. Mezery znamenají chybějící měření. Čas Europe/Prague.",
+    "note": "Výkon: měření GoodWe, chybějící hodnoty doplňuje archiv SDG. Původ je uveden v detailu a tabulce. Cena: zveřejněné intervaly OTE. Mezery bez měření se nedopočítávají. Čas Europe/Prague.",
     "failed": "Historii se nepodařilo načíst. Zkuste rozsah znovu.",
     "no_measurements": "V tomto období nejsou dostupná měření výkonu.",
     "inspect": "Pohybem po grafu nebo šipkami zobrazíte hodnoty.",
@@ -1012,6 +1013,8 @@
     "price_current": "Cena v aktuálním intervalu OTE",
     "measurement_note": "Spotřeba domu je údaj střídače GoodWe, nikoli součet měření spotřebičů. Čas střídače:",
     "no_today_forecast": "Dnešní odhad není k dispozici.",
-    "ambiguous_price": "Nejednoznačné nebo neplatné cenové intervaly (například opakovaná hodina při změně času) jsou vynechány; cenu neodhadujeme."
+    "ambiguous_price": "Nejednoznačné nebo neplatné cenové intervaly (například opakovaná hodina při změně času) jsou vynechány; cenu neodhadujeme.",
+    "measured_sdg": "Archiv SDG",
+    "partial": "Jeden zdroj historie není dostupný. Graf zobrazuje dostupná měření; rozsah můžete načíst znovu."
   }
 }

@@ -99,8 +99,9 @@ def test_chart_units_gaps_table_ranges_and_keyboard(page):
         page.locator(f'[data-days="{days}"]').click()
         expect(page.locator(f'[data-days="{days}"]')).to_have_attribute('aria-pressed','true')
     # Returning to Today reuses its minute cache instead of rereading the day.
-    assert len(requests)==3
-    assert all('fields=pv_w%2Chouse_w' in r for r in requests)
+    assert len(requests)==6
+    assert sum('source=goodwe' in r and 'fields=pv_w%2Chouse_w' in r for r in requests)==3
+    assert sum('source=sdg_history' in r and 'fields=ppvcelkem%2Ctotal__w' in r for r in requests)==3
     page.locator('#btn-why-now').click()
     expect(page.locator('#why-now-body')).to_contain_text('23')
     expect(page.locator('#why-now-body')).not_to_contain_text('pro dnešní den')

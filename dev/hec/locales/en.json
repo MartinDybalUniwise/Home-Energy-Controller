@@ -982,7 +982,8 @@
     "performance": "Incremental SDG import, compact checkpoints and fewer routine messages.",
     "versioning": "Application version and changelog with fixed release times.",
     "settings": "Fix saving optional numeric settings and the interface language.",
-    "overview_accuracy": "Restored readable overview with actual production, consumption and price charts; corrected dates, units and measurement quality."
+    "overview_accuracy": "Restored readable overview with actual production, consumption and price charts; corrected dates, units and measurement quality.",
+    "sdg_history": "Fill overview history gaps from the SDG archive."
   },
   "meter": {
     "valid": "Measured electrical input",
@@ -1002,7 +1003,7 @@
     "days_2": "2 days",
     "days_7": "7 days",
     "loading": "Loading history…",
-    "note": "Power: measured GoodWe history. Price: published OTE intervals. Hourly production and consumption forecasts are unavailable; daily estimates are not hourly curves. Gaps mean missing measurements. Time zone Europe/Prague.",
+    "note": "Power: GoodWe measurements, with missing values filled from the SDG archive. Sources are shown in the tooltip and table. Price: published OTE intervals. Unmeasured gaps are not estimated. Time zone Europe/Prague.",
     "failed": "History could not be loaded. Select a range to retry.",
     "no_measurements": "No power measurements are available for this period.",
     "inspect": "Move over the chart or use arrow keys to inspect values.",
@@ -1012,6 +1013,8 @@
     "price_current": "Price for the current OTE interval",
     "measurement_note": "House consumption comes from the GoodWe inverter, not the sum of appliance meters. Inverter reading:",
     "no_today_forecast": "Today’s estimate is unavailable.",
-    "ambiguous_price": "Ambiguous or invalid price intervals (such as the repeated hour at a clock change) are omitted; prices are not guessed."
+    "ambiguous_price": "Ambiguous or invalid price intervals (such as the repeated hour at a clock change) are omitted; prices are not guessed.",
+    "measured_sdg": "SDG archive",
+    "partial": "One history source is unavailable. Available measurements are shown; select the range to retry."
   }
 }
