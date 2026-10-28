@@ -1099,7 +1099,7 @@
     "heat_target": "Cíl topení",
     "boiler_target": "Cíl bojleru",
     "room_target": "Cíl pokoje",
-    "command_state": "Odeslání / potvrzení",
+    "command_state": "Potvrzení topení / bojler",
     "last_sent": "Poslední odeslání",
     "reported_heat": "TČ hlásí cíl topení",
     "reported_boiler": "TČ hlásí cíl bojleru",
@@ -1119,6 +1119,7 @@
     "sent_mode": "Odeslaný režim",
     "sent_heat": "Odeslaný cíl topení",
     "sent_boiler": "Odeslaný cíl bojleru",
-    "log_limit": "Denní limit záznamu dosažen"
+    "log_limit": "Denní limit záznamu dosažen",
+    "thermostat_state": "Potvrzení termostatu"
   }
 }

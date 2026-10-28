@@ -1099,7 +1099,7 @@
     "heat_target": "Heating target",
     "boiler_target": "DHW target",
     "room_target": "Room target",
-    "command_state": "Delivery / confirmation",
+    "command_state": "Heating / DHW confirmation",
     "last_sent": "Last sent",
     "reported_heat": "Reported heating target",
     "reported_boiler": "Reported DHW target",
@@ -1119,6 +1119,7 @@
     "sent_mode": "Sent mode",
     "sent_heat": "Sent heating target",
     "sent_boiler": "Sent DHW target",
-    "log_limit": "Daily trace limit reached"
+    "log_limit": "Daily trace limit reached",
+    "thermostat_state": "Thermostat confirmation"
   }
 }
