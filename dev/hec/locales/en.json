@@ -987,7 +987,8 @@
     "sdg_history": "Fill overview history gaps from the SDG archive.",
     "today_pv": "Today PV: measured production plus remaining estimate, date-limited schedules.",
     "thermal_status": "Overview temperatures, smooth refresh, absolute heat-pump power and exclusive heating rules.",
-    "consumption_plan": "Graphical house consumption plan with central estimate and uncertainty band."
+    "consumption_plan": "Graphical house consumption plan with central estimate and uncertainty band.",
+    "exclusive_mode": "Exclusive heating and DHW modes retain the inactive circuit setpoint."
   },
   "meter": {
     "valid": "Measured electrical input",

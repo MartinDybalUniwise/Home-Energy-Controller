@@ -987,7 +987,8 @@
     "sdg_history": "Doplnění historie hlavního grafu z archivu SDG.",
     "today_pv": "Dnešní výroba: měření a zbývající odhad, jednodenní rozvrhy.",
     "thermal_status": "Teploty na přehledu, plynulá obnova, absolutní příkon TČ a pravidla odděleného ohřevu.",
-    "consumption_plan": "Grafický plán spotřeby domu se středním odhadem a pásmem nejistoty."
+    "consumption_plan": "Grafický plán spotřeby domu se středním odhadem a pásmem nejistoty.",
+    "exclusive_mode": "Oddělené režimy topení a bojleru zachovávají teplotu vypnutého okruhu."
   },
   "meter": {
     "valid": "Měřený příkon",

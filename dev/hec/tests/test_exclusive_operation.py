@@ -2,7 +2,6 @@ from datetime import datetime
 from unittest.mock import patch
 
 import pytest
-
 from hec.readers.tng import scheduled_operation
 from test_readers_ote_tng import build_tng
 
@@ -34,8 +33,8 @@ def test_bounded_dhw_window_and_date_override():
 
 @pytest.mark.parametrize('watts', [-120, 120, 0])
 def test_only_heatpump_meter_uses_absolute_power(tmp_path,monkeypatch,watts):
-    from test_readers_devices import make_config
     from hec.readers.shelly import ShellyReader
+    from test_readers_devices import make_config
     config=make_config(tmp_path,shelly={'devices':[
         {'name':'HP','host':'test.invalid','role':'heatpump_meter'},
         {'name':'Other','host':'test.invalid','role':'appliance'}]})

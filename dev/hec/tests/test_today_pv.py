@@ -2,7 +2,6 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import pytest
-
 from hec.core.config import Config
 from hec.forecast.today import today_pv
 from hec.readers.tng import effective_schedule, scheduled_value

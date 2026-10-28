@@ -705,11 +705,15 @@ class TngReader(BaseReader):
                     matches = False
             if boiler.get("enabled"):
                 desired = scheduled_value(boiler, moment)
+                if mode is not None and mode != "boiler":
+                    desired = settings.get("boiler_set_temperature", desired)
                 payload["BoilerTemp"] = desired
                 if settings.get("boiler_set_temperature") != desired:
                     matches = False
             if heating.get("enabled"):
                 desired = scheduled_value(heating, moment)
+                if mode is not None and mode != "heating":
+                    desired = settings.get("heating_set_temperature", desired)
                 payload["HeatTemp_Const"] = desired
                 if settings.get("heating_set_temperature") != desired:
                     matches = False
