@@ -357,78 +357,19 @@ def test_today_screen_touchscreen_redesign(page: Page, viewport: tuple[int, int]
     expect(page.locator(".notice.error")).to_have_count(0)
 
 
-def test_today_cockpit_fits_full_hd_without_page_scroll(page: Page):
-        from playwright.sync_api import expect
+def test_today_readable_full_hd_uses_natural_vertical_scroll(page: Page):
+    from playwright.sync_api import expect
 
-        page.set_viewport_size({"width": 1920, "height": 1080})
-        page.goto("/")
-        expect(page.locator(".today-screen")).to_be_visible()
-
-        geometry = page.evaluate("""() => {
-            const root = document.documentElement;
-            const box = (selector) => document.querySelector(selector).getBoundingClientRect();
-            const selectors = [
-                '.today-header',
-                '.today-recommendation-panel',
-                '.today-kpi-strip',
-                '.rhythm-section',
-                '.today-workspace-grid',
-                '.appliances-card',
-                '.forecast-chart-card',
-            ];
-            const sidebar = box('#sidebar');
-            const cockpit = box('.today-screen');
-            const sections = selectors.slice(0, 5).map(box);
-            return {
-                viewportHeight: window.innerHeight,
-                pageHeight: root.scrollHeight,
-                pageWidth: root.scrollWidth,
-                viewportWidth: window.innerWidth,
-                cockpitBottom: cockpit.bottom,
-                sidebarWidth: sidebar.width,
-                headerHeight: box('.today-header').height,
-                recommendationHeight: box('.today-recommendation-panel').height,
-                kpiHeight: box('.today-kpi-strip').height,
-                rhythmHeight: box('.rhythm-section').height,
-                workspaceHeight: box('.today-workspace-grid').height,
-                clipped: selectors.filter((selector) => {
-                    const element = document.querySelector(selector);
-                    return element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1;
-                }),
-                clipDetails: selectors.map((selector) => {
-                    const element = document.querySelector(selector);
-                    return {
-                        selector,
-                        clientWidth: element.clientWidth,
-                        scrollWidth: element.scrollWidth,
-                        clientHeight: element.clientHeight,
-                        scrollHeight: element.scrollHeight,
-                    };
-                }),
-                recommendationDimensions: (() => {
-                    const element = document.querySelector('.today-recommendation-panel');
-                    return {
-                        clientWidth: element.clientWidth,
-                        scrollWidth: element.scrollWidth,
-                        clientHeight: element.clientHeight,
-                        scrollHeight: element.scrollHeight,
-                    };
-                })(),
-                overlap: sections.some((section, index) => index > 0 && section.top < sections[index - 1].bottom),
-            };
-        }""")
-
-        assert 190 <= geometry["sidebarWidth"] <= 210
-        assert geometry["pageHeight"] <= geometry["viewportHeight"]
-        assert geometry["pageWidth"] <= geometry["viewportWidth"]
-        assert geometry["cockpitBottom"] <= geometry["viewportHeight"]
-        assert 100 <= geometry["headerHeight"] <= 120
-        assert 90 <= geometry["recommendationHeight"] <= 110
-        assert 90 <= geometry["kpiHeight"] <= 105
-        assert 260 <= geometry["rhythmHeight"] <= 290
-        assert 300 <= geometry["workspaceHeight"] <= 330
-        assert geometry["clipped"] == [], geometry["recommendationDimensions"]
-        assert geometry["overlap"] is False
+    page.set_viewport_size({'width':1920,'height':1080})
+    page.goto('/')
+    expect(page.locator('.today-screen')).to_be_visible()
+    # Step33 deliberately replaces the old fit-everything-in-1080px requirement.
+    assert page.locator('.today-header').evaluate('e=>e.getBoundingClientRect().height') >= 150
+    assert page.locator('.kpi-value').first.evaluate('e=>parseFloat(getComputedStyle(e).fontSize)') >= 30
+    assert page.evaluate('document.documentElement.scrollWidth <= innerWidth+1')
+    assert page.evaluate('document.documentElement.scrollHeight > innerHeight')
+    page.locator('.forecast-chart-card').scroll_into_view_if_needed()
+    expect(page.locator('.forecast-chart-card')).to_be_visible()
 
 
 @pytest.mark.parametrize("viewport", [(1920, 1080), (1440, 900), (1280, 800), (1024, 768)])
@@ -452,7 +393,7 @@ def test_today_desktop_panels_use_full_content_width(page: Page, viewport: tuple
                 cockpit: cockpit.width,
                 rhythm: rhythm.width,
                 workspace: workspace.width,
-                lowerUsed: appliances.width + chart.width + Math.max(0, chart.left - appliances.right),
+                lowerUsed: Math.abs(appliances.top-chart.top)<2 ? appliances.width + chart.width + Math.max(0, chart.left-appliances.right) : Math.max(appliances.width,chart.width),
             };
         }""")
 
@@ -462,59 +403,17 @@ def test_today_desktop_panels_use_full_content_width(page: Page, viewport: tuple
 
 
 @pytest.mark.parametrize("viewport", [(1440, 900), (1280, 800)])
-def test_today_cockpit_fits_scaled_desktop_display(page: Page, viewport: tuple[int, int]):
-        from playwright.sync_api import expect
+def test_today_scaled_desktop_preserves_readability_and_reflow(page: Page, viewport: tuple[int, int]):
+    from playwright.sync_api import expect
 
-        page.set_viewport_size({"width": viewport[0], "height": viewport[1]})
-        page.goto("/")
-        expect(page.locator(".today-recommendation-panel")).to_be_visible()
-
-        geometry = page.evaluate("""() => {
-            const selectors = [
-                '.today-header',
-                '.today-recommendation-panel',
-                '.today-kpi-strip',
-                '.rhythm-section',
-                '.today-workspace-grid',
-                '.appliances-card',
-                '.forecast-chart-card',
-            ];
-            const sections = selectors.slice(0, 5).map((selector) => document.querySelector(selector).getBoundingClientRect());
-            return {
-                viewportHeight: window.innerHeight,
-                pageHeight: document.documentElement.scrollHeight,
-                cockpitBottom: document.querySelector('.today-screen').getBoundingClientRect().bottom,
-                clipped: selectors.filter((selector) => {
-                    const element = document.querySelector(selector);
-                    return element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1;
-                }),
-                clipDetails: selectors.map((selector) => {
-                    const element = document.querySelector(selector);
-                    return {
-                        selector,
-                        clientWidth: element.clientWidth,
-                        scrollWidth: element.scrollWidth,
-                        clientHeight: element.clientHeight,
-                        scrollHeight: element.scrollHeight,
-                    };
-                }),
-                recommendationDimensions: (() => {
-                    const element = document.querySelector('.today-recommendation-panel');
-                    return {
-                        clientWidth: element.clientWidth,
-                        scrollWidth: element.scrollWidth,
-                        clientHeight: element.clientHeight,
-                        scrollHeight: element.scrollHeight,
-                    };
-                })(),
-                overlap: sections.some((section, index) => index > 0 && section.top < sections[index - 1].bottom),
-            };
-        }""")
-
-        assert geometry["pageHeight"] <= geometry["viewportHeight"]
-        assert geometry["cockpitBottom"] <= geometry["viewportHeight"]
-        assert geometry["clipped"] == [], geometry["recommendationDimensions"]
-        assert geometry["overlap"] is False
+    page.set_viewport_size({'width':viewport[0],'height':viewport[1]})
+    page.goto('/')
+    expect(page.locator('.today-screen')).to_be_visible()
+    for zoom in [100,200]:
+        page.add_style_tag(content=f'html {{font-size:{zoom}% !important}}')
+        assert page.evaluate('document.documentElement.scrollWidth <= innerWidth+1')
+        for selector in ['.today-header','.hero-primary-card','.today-kpi-strip','.forecast-chart-card']:
+            assert page.locator(selector).evaluate('e=>e.scrollWidth<=e.clientWidth+1 && e.scrollHeight<=e.clientHeight+1'),selector
 
 
 def test_why_now_dialog_modal(page: Page):
