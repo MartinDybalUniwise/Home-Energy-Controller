@@ -54,6 +54,8 @@ export function heatpumpPanel(current, config, now = new Date()) {
   };
   const gate = source(current,'tng_gate').basic || {};
   const command = source(current,'tng_command');
+  const thermostatGate = source(current,'tng_gate').thermostat || {};
+  const thermostatPhase = thermostatGate.last_post_at ? thermostatGate.awaiting_confirmation ? 'pending' : 'confirmed' : 'none';
   const sent = command.kind === 'BASIC_SETTINGS' ? command.requested || {} : {};
   const sentMode = sent.BoilerSet?.Boiler === true ? 'boiler' : sent.HeatSet?.Heat === true ? 'heating' :
     sent.BoilerSet?.Boiler === false && sent.HeatSet?.Heat === false ? 'off' : 'unknown';
@@ -71,6 +73,7 @@ export function heatpumpPanel(current, config, now = new Date()) {
   const commandRows = [[t('hp.plan_mode'),esc(t(`hp.mode_${desiredMode}`))],
     [t('hp.heat_target'),esc(target('heating'))],[t('hp.boiler_target'),esc(target('boiler'))],
     [t('hp.room_target'),esc(target('thermostat'))], [t('hp.command_state'),esc(t(`hp.phase_${phase}`))],
+    [t('hp.thermostat_state'),esc(t(`hp.phase_${thermostatPhase}`))],
     [t('hp.last_sent'),gate.last_post_at ? esc(siteDateTime(gate.last_post_at)) : '—'],
     [t('hp.sent_mode'),esc(t(`hp.mode_${sentMode}`))],
     [t('hp.sent_heat'),sentTemp('HeatTemp_Const','heating_temperature')],

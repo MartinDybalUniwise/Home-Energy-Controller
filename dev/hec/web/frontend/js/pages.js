@@ -1,5 +1,5 @@
 import {renderDayPlan} from './day-plan.js?v=37';
-import {heatpumpPanel} from './heatpump-panel.js?v=38';
+import {heatpumpPanel} from './heatpump-panel.js?v=38b';
 import { rulesPage } from './rules.js?v=36';
 import {patchDOM} from './patch-dom.js?v=36';
 import { mountTodayChart, siteDateTime } from './today-chart.js?v=36';
