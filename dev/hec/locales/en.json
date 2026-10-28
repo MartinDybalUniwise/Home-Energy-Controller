@@ -986,7 +986,8 @@
     "overview_accuracy": "Restored readable overview with actual production, consumption and price charts; corrected dates, units and measurement quality.",
     "sdg_history": "Fill overview history gaps from the SDG archive.",
     "today_pv": "Today PV: measured production plus remaining estimate, date-limited schedules.",
-    "thermal_status": "Overview temperatures, smooth refresh, absolute heat-pump power and exclusive heating rules."
+    "thermal_status": "Overview temperatures, smooth refresh, absolute heat-pump power and exclusive heating rules.",
+    "consumption_plan": "Graphical house consumption plan with central estimate and uncertainty band."
   },
   "meter": {
     "valid": "Measured electrical input",
@@ -1044,6 +1045,12 @@
     "title": "Today’s plan",
     "inactive": "disabled in this window",
     "now": "Now",
-    "saved": "saved plan · tap for details"
+    "saved": "saved plan · tap for details",
+    "consumption": "House consumption plan",
+    "middle": "Central estimate",
+    "range": "Range",
+    "measured": "Measured",
+    "remaining": "Estimated remaining consumption",
+    "estimate_info": "Whole-day estimate from historical consumption, not an exact calculation of the new TNG schedule. The central estimate is the model median; the band indicates uncertainty."
   }
 }

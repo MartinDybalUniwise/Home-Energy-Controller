@@ -189,14 +189,6 @@ export function renderToday(view, { current, weather, prices, prediction }) {
 
   view.innerHTML = `
   <div class="today-screen">
-    <section class="thermal-status" aria-label="${t('thermal.title')}">
-      <div class="thermal-status-grid">
-        <div class="thermal-card" data-temperature="room"><span class="thermal-label">${t('thermal.room')}</span><strong>${num(thermal.room,1)} <small>°C</small></strong><span class="thermal-detail">${t('thermal.room_sensor')}</span></div>
-        <div class="thermal-card" data-temperature="boiler"><span class="thermal-label">${t('thermal.boiler')}</span><strong>${num(thermal.boiler,1)} <small>°C</small></strong><span class="thermal-detail">${t('thermal.target',{value:num(thermal.boilerTarget,1)})}</span></div>
-        <div class="thermal-card" data-temperature="water"><span class="thermal-label">${t('thermal.water')}</span><strong>${num(thermal.water,1)} <small>°C</small></strong><span class="thermal-detail">${t('thermal.target',{value:num(thermal.waterTarget,1)})} · ${t(thermal.heatingEnabled === true ? 'flow.heating_enabled' : thermal.heatingEnabled === false ? 'flow.heating_disabled' : 'meter.missing')}</span></div>
-      </div>
-      <div class="thermal-measurement"><span>${thermal.fresh ? t('overview.last_data_update') : t('thermal.stale')}${thermal.timestamp && Number.isFinite(Date.parse(thermal.timestamp)) ? ' · '+siteDateTime(thermal.timestamp) : ''}</span><details class="explanation-info"><summary aria-label="${t('thermal.info')}">ⓘ</summary><p>${t('thermal.measured_at')}</p></details></div>
-    </section>
     <!-- 1. HORNÍ PANEL: Pozdrav a Integrovaná meteostanice -->
     <header class="today-header">
       <div class="greeting-box">
@@ -207,6 +199,15 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         <p class="greeting-date">${formatDateFull(now)}</p>
         <p class="greeting-sub">${t('overview.last_data_update')}: ${current.last_measurement_at ? siteDateTime(current.last_measurement_at) : '–'}</p>
       </div>
+
+    <section class="thermal-status" aria-label="${t('thermal.title')}">
+      <div class="thermal-status-grid">
+        <div class="thermal-card" data-temperature="room"><span class="thermal-label">${t('thermal.room')}</span><strong>${num(thermal.room,1)} <small>°C</small></strong><span class="thermal-detail">${t('thermal.room_sensor')}</span></div>
+        <div class="thermal-card" data-temperature="boiler"><span class="thermal-label">${t('thermal.boiler')}</span><strong>${num(thermal.boiler,1)} <small>°C</small></strong><span class="thermal-detail">${t('thermal.target',{value:num(thermal.boilerTarget,1)})}</span></div>
+        <div class="thermal-card" data-temperature="water"><span class="thermal-label">${t('thermal.water')}</span><strong>${num(thermal.water,1)} <small>°C</small></strong><span class="thermal-detail">${t('thermal.target',{value:num(thermal.waterTarget,1)})} · ${t(thermal.heatingEnabled === true ? 'flow.heating_enabled' : thermal.heatingEnabled === false ? 'flow.heating_disabled' : 'meter.missing')}</span></div>
+      </div>
+      <div class="thermal-measurement"><span>${thermal.fresh ? t('overview.last_data_update') : t('thermal.stale')}${thermal.timestamp && Number.isFinite(Date.parse(thermal.timestamp)) ? ' · '+siteDateTime(thermal.timestamp) : ''}</span><details class="explanation-info"><summary aria-label="${t('thermal.info')}">ⓘ</summary><p>${t('thermal.measured_at')}</p></details></div>
+    </section>
 
       <div class="weather-station-widget">
         <div class="weather-main-temp">

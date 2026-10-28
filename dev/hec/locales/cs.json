@@ -986,7 +986,8 @@
     "overview_accuracy": "Obnovený čitelný přehled se skutečným grafem výroby, spotřeby a cen; opravené datum, jednotky a kvalita měření.",
     "sdg_history": "Doplnění historie hlavního grafu z archivu SDG.",
     "today_pv": "Dnešní výroba: měření a zbývající odhad, jednodenní rozvrhy.",
-    "thermal_status": "Teploty na přehledu, plynulá obnova, absolutní příkon TČ a pravidla odděleného ohřevu."
+    "thermal_status": "Teploty na přehledu, plynulá obnova, absolutní příkon TČ a pravidla odděleného ohřevu.",
+    "consumption_plan": "Grafický plán spotřeby domu se středním odhadem a pásmem nejistoty."
   },
   "meter": {
     "valid": "Měřený příkon",
@@ -1044,6 +1045,12 @@
     "title": "Dnešní plán",
     "inactive": "vypnuto v tomto okně",
     "now": "Nyní",
-    "saved": "uložený plán · kliknutím detail"
+    "saved": "uložený plán · kliknutím detail",
+    "consumption": "Plán spotřeby domu",
+    "middle": "Střední odhad",
+    "range": "Rozmezí",
+    "measured": "Naměřeno",
+    "remaining": "Odhad zbývající spotřeby",
+    "estimate_info": "Odhad celého dne z historické spotřeby, nikoli přesný výpočet nového rozvrhu TNG. Střední hodnota je medián modelu; pásmo vyjadřuje nejistotu."
   }
 }

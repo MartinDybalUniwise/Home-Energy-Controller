@@ -1,4 +1,4 @@
-import {renderDayPlan} from './day-plan.js?v=36';
+import {renderDayPlan} from './day-plan.js?v=36b';
 import { rulesPage } from './rules.js?v=36';
 import {patchDOM} from './patch-dom.js?v=36';
 import { mountTodayChart, siteDateTime } from './today-chart.js?v=36';
@@ -156,7 +156,7 @@ export async function overview(view, { api, motion, state }) {
   if (existing) {
     const fresh = document.createElement('div');
     renderToday(fresh, {current, weather, prices, prediction:predictionPayload, motion});
-    renderDayPlan(fresh.querySelector('#today-day-plan'),configPayload.config);
+    renderDayPlan(fresh.querySelector('#today-day-plan'),configPayload.config,new Date(),predictionPayload,current);
     patchDOM(existing,fresh.querySelector('.today-screen'),new Set(['today-energy-chart']));
     const history = overviewHistory.get(view);
     if (history && Date.now()-history.at >= 60000) {
@@ -165,7 +165,7 @@ export async function overview(view, { api, motion, state }) {
     }
   } else {
     renderToday(view, {current, weather, prices, prediction:predictionPayload, motion});
-    renderDayPlan(view.querySelector('#today-day-plan'),configPayload.config);
+    renderDayPlan(view.querySelector('#today-day-plan'),configPayload.config,new Date(),predictionPayload,current);
     const refresh = await mountTodayChart(view.querySelector('#today-energy-chart'), {api, prices});
     overviewHistory.set(view,{at:Date.now(),refresh});
   }
