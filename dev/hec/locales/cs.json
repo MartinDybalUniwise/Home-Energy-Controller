@@ -983,7 +983,8 @@
     "versioning": "Číslo verze a přehled změn s časem vydání.",
     "settings": "Oprava ukládání volitelných číselných nastavení a jazyka rozhraní.",
     "overview_accuracy": "Obnovený čitelný přehled se skutečným grafem výroby, spotřeby a cen; opravené datum, jednotky a kvalita měření.",
-    "sdg_history": "Doplnění historie hlavního grafu z archivu SDG."
+    "sdg_history": "Doplnění historie hlavního grafu z archivu SDG.",
+    "today_pv": "Dnešní výroba: měření a zbývající odhad, jednodenní rozvrhy."
   },
   "meter": {
     "valid": "Měřený příkon",
@@ -1015,6 +1016,7 @@
     "no_today_forecast": "Dnešní odhad není k dispozici.",
     "ambiguous_price": "Nejednoznačné nebo neplatné cenové intervaly (například opakovaná hodina při změně času) jsou vynechány; cenu neodhadujeme.",
     "measured_sdg": "Archiv SDG",
-    "partial": "Jeden zdroj historie není dostupný. Graf zobrazuje dostupná měření; rozsah můžete načíst znovu."
+    "partial": "Jeden zdroj historie není dostupný. Graf zobrazuje dostupná měření; rozsah můžete načíst znovu.",
+    "pv_breakdown": "Naměřeno {measured} kWh + odhad do konce dne {remaining} kWh. Přepočet po 15 minutách."
   }
 }

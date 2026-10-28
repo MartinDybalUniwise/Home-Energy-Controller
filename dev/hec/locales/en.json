@@ -983,7 +983,8 @@
     "versioning": "Application version and changelog with fixed release times.",
     "settings": "Fix saving optional numeric settings and the interface language.",
     "overview_accuracy": "Restored readable overview with actual production, consumption and price charts; corrected dates, units and measurement quality.",
-    "sdg_history": "Fill overview history gaps from the SDG archive."
+    "sdg_history": "Fill overview history gaps from the SDG archive.",
+    "today_pv": "Today PV: measured production plus remaining estimate, date-limited schedules."
   },
   "meter": {
     "valid": "Measured electrical input",
@@ -1015,6 +1016,7 @@
     "no_today_forecast": "Today’s estimate is unavailable.",
     "ambiguous_price": "Ambiguous or invalid price intervals (such as the repeated hour at a clock change) are omitted; prices are not guessed.",
     "measured_sdg": "SDG archive",
-    "partial": "One history source is unavailable. Available measurements are shown; select the range to retry."
+    "partial": "One history source is unavailable. Available measurements are shown; select the range to retry.",
+    "pv_breakdown": "Measured {measured} kWh + remaining-day estimate {remaining} kWh. Recalculated every 15 minutes."
   }
 }

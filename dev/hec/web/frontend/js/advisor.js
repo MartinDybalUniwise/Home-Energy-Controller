@@ -314,7 +314,8 @@ export function renderToday(view, { current, weather, prices, prediction }) {
           <div class="rhythm-production-summary">
             <span>${t('advisor.daily_pv_estimate_title')}</span>
             <strong>${formatRange(advice.today?.pv_kwh_low, advice.today?.pv_kwh_high, 1, 'unit.kwh')}</strong>
-            <small>${advice.today ? (prediction.generated_at ? siteDateTime(prediction.generated_at) : '–') : t('today_chart.no_today_forecast')}</small>
+            <small>${advice.today ? siteDateTime(advice.today.generated_at || prediction.generated_at) : t('today_chart.no_today_forecast')}</small>
+            ${advice.today?.estimate_kind ? `<small class="today-pv-breakdown">${t('today_chart.pv_breakdown', {measured:num(advice.today.pv_measured_kwh,1),remaining:num(advice.today.pv_remaining_kwh,1)})}</small>` : ''}
           </div>
           <div class="rhythm-legend-tags">
             <span class="legend-tag legend-tag--best">● ${t('advisor.best')}</span>

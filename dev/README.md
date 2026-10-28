@@ -89,3 +89,7 @@ Viz [`step16/DEVELOPMENT_PLAN.md`](step16/DEVELOPMENT_PLAN.md)
 ## Step34 — SDG history fallback
 
 See [step34/PLAN.md](step34/PLAN.md). Owner authorized implementation and deployment on 2026-10-27.
+
+## Step35 — today PV and one-day schedules
+
+See [step35/PLAN.md](step35/PLAN.md). Owner authorized implementation, deployment and today plan on 2026-10-28.

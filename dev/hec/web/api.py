@@ -161,7 +161,7 @@ def prediction(app) -> tuple[int, dict]:
     # o přípravu na sdílení a další zdroje predikcí (fáze D+).
     generated_at = forecast.get("generated_at")
     for day in forecast.get("days", []):
-        day["forecast_pv"] = forecast_pv(day, generated_at).to_dict()
+        day["forecast_pv"] = forecast_pv(day, day.get("generated_at") or generated_at).to_dict()
         day["forecast_consumption"] = forecast_household_consumption(day, generated_at).to_dict()
     return 200, forecast
 

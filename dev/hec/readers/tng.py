@@ -40,8 +40,15 @@ WANTED_WORDS = ("temp", "heat", "boiler", "thermostat", "outside", "outdoor", "r
 HEATPUMP_RE = re.compile(r'HeatPump\s*=\s*(\{.*?\});\s*CurrentHeatPumpHash', re.S)
 
 
+def effective_schedule(section: dict, moment: datetime) -> dict:
+    """Date-limited owner override; ordinary schedule resumes automatically."""
+    override = (section.get("date_overrides") or {}).get(moment.date().isoformat())
+    return {**section, **override} if isinstance(override, dict) else section
+
+
 def scheduled_value(section: dict, moment: datetime):
     """Teplota podle rozvrhu. Poslední vyhovující okno vyhrává."""
+    section = effective_schedule(section, moment)
     value = section.get("default_temperature")
     for window in section.get("schedule", []) or []:
         if in_window(moment, window["from"], window["to"]):
@@ -116,7 +123,7 @@ class TngReader(BaseReader):
         probuzení readeru přesně na hranici okna."""
         boundaries: set[str] = set()
         for name in ("boiler", "heating", "thermostat"):
-            section = self.config.get(f"tng.{name}", {})
+            section = effective_schedule(self.config.get(f"tng.{name}", {}), now_local())
             if not section.get("enabled"):
                 continue
             for window in section.get("schedule", []) or []:
@@ -492,6 +499,8 @@ class TngReader(BaseReader):
         return "READY"
 
     def _next_schedule_target(self, section: dict, moment: datetime) -> str | None:
+        original_section = section
+        section = effective_schedule(section, moment)
         if not section or not section.get("enabled"):
             return None
         schedule = section.get("schedule") or []
@@ -526,7 +535,7 @@ class TngReader(BaseReader):
             return None
 
         time_str = nearest_dt.strftime("%H:%M")
-        temp_after = scheduled_value(section, nearest_dt + timedelta(seconds=1))
+        temp_after = scheduled_value(original_section, nearest_dt + timedelta(seconds=1))
         if temp_after is None:
             return None
         return f"{time_str}->{_fmt_temp(temp_after)}"
