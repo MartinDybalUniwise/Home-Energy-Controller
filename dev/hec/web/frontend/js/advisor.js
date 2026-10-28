@@ -1,4 +1,4 @@
-import {thermalSnapshot} from './thermal-status.js?v=36d';
+import {thermalSnapshot} from './thermal-status.js?v=38';
 import { siteDate, siteClock, siteMoment, siteTime, siteDateTime, uniqueSiteMoment, priceInterval } from './today-chart.js';
 import { source, finite, energySnapshot, heatpumpPower, heatpumpReportedPower, batteryText, heatpumpText, heatingPermission } from './telemetry.js?v=37';
 // Rozhodovací vrstva pro domovskou stránku (Step 18 Touchscreen Redesign).
@@ -370,6 +370,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
 
     </section>
 
+    <div id="heatpump-panel-slot"></div>
     <!-- 5. SPODNÍ PRACOVNÍ PLOCHA: spotřebiče + graf -->
     <section class="today-workspace-grid">
       <!-- Panel 1: Doporučení spotřebičů -->

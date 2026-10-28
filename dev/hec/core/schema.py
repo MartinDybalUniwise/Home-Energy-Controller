@@ -159,6 +159,15 @@ SCHEMA: dict[str, Any] = {
         "basic_settings_template": F("dict", BASIC_SETTINGS_TEMPLATE),
         "thermostat_settings_template": F("dict", THERMOSTAT_SETTINGS_TEMPLATE),
     },
+    "tng_wire": {
+        "enabled": F("bool", False, restart=True),
+        "bind": F("str", "0.0.0.0", restart=True),
+        "port": F("int", 37008, minimum=1024, maximum=65535, restart=True),
+        "tc_ip": F("str", "192.168.2.100", restart=True),
+        "router_ip": F("str", "192.168.2.1", restart=True),
+        "retention_days": F("int", 30, minimum=7, maximum=365),
+        "max_daily_bytes": F("int", 50_000_000, minimum=1_000_000, maximum=100_000_000),
+    },
     "ote": {
         "enabled": F("bool", True),
         "eur_czk_rate": F("float", 25.0, minimum=1, maximum=100),

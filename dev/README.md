@@ -101,3 +101,7 @@ See [step36/PLAN.md](step36/PLAN.md).
 ## Step37 — partial heat-pump reading
 
 See [step37/PLAN.md](step37/PLAN.md).
+
+## Step38 — passive TNG evidence
+
+See [step38/PLAN.md](step38/PLAN.md).
