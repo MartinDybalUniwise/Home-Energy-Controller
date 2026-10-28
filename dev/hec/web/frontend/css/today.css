@@ -131,3 +131,8 @@
 
 .today-header .thermal-detail:empty{display:none}.today-header .thermal-label{overflow-wrap:anywhere}.today-header .weather-details{gap:12px}.today-header .weather-detail-item{display:flex;flex-direction:column;gap:4px}.today-header .thermal-measurement{gap:8px}.today-header .thermal-card strong{white-space:normal}
 @media(max-width:720px){.today-header .thermal-status-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,5rem),1fr))}.today-header .thermal-card{min-width:0}.today-header .thermal-card strong{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px}}
+
+.today-header .thermal-status-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:720px){.today-header .thermal-status-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,7rem),1fr))}}
+
+.today-header .greeting-box{min-width:0}.today-header .greeting-title{flex-wrap:wrap}.today-header .greeting-title h2{min-width:0;overflow-wrap:anywhere}

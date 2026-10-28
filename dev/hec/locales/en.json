@@ -989,7 +989,8 @@
     "thermal_status": "Overview temperatures, smooth refresh, absolute heat-pump power and exclusive heating rules.",
     "consumption_plan": "Graphical house consumption plan with central estimate and uncertainty band.",
     "exclusive_mode": "Exclusive heating and DHW modes retain the inactive circuit setpoint.",
-    "sensor_semantics": "Explicit heat-pump outlet sensor, cleaner header and exclusive modes for one-off requests."
+    "sensor_semantics": "Explicit heat-pump outlet sensor, cleaner header and exclusive modes for one-off requests.",
+    "buffer_status": "Separate buffer tank status; missing readings are never replaced by HP outlet temperature."
   },
   "meter": {
     "valid": "Measured electrical input",
@@ -1032,12 +1033,15 @@
     "water": "HP outlet",
     "room_sensor": "TNG room sensor",
     "target": "Setpoint {value} °C",
-    "measured_at": "TNG sensors: room, DHW tank and heat-pump outlet. Floor-loop water and floor surface are not measured. The HP setting is a requested value, not another sensor.",
+    "measured_at": "TNG sensors: room, DHW tank and heat-pump outlet. Floor-loop water and floor surface are not measured. The HP setting is a requested value, not another sensor. A buffer sensor exists on the physical panel, but the current cloud API does not provide it. HP outlet is not a substitute.",
     "stale": "Current measurement unavailable",
     "info": "More information",
     "reading": "Temperatures at",
     "disabled": "Heating disabled",
-    "heating_setting": "HP setting {value} °C"
+    "heating_setting": "HP setting {value} °C",
+    "buffer": "Buffer tank",
+    "buffer_unavailable": "Sensor not connected to HEC",
+    "buffer_sensor": "Buffer tank sensor"
   },
   "rules": {
     "title": "HEC rules",

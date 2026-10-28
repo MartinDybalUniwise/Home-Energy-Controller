@@ -989,7 +989,8 @@
     "thermal_status": "Teploty na přehledu, plynulá obnova, absolutní příkon TČ a pravidla odděleného ohřevu.",
     "consumption_plan": "Grafický plán spotřeby domu se středním odhadem a pásmem nejistoty.",
     "exclusive_mode": "Oddělené režimy topení a bojleru zachovávají teplotu vypnutého okruhu.",
-    "sensor_semantics": "Upřesnění výstupního čidla TČ, přehlednější hlavička a zachování oddělených režimů i při jednorázových požadavcích."
+    "sensor_semantics": "Upřesnění výstupního čidla TČ, přehlednější hlavička a zachování oddělených režimů i při jednorázových požadavcích.",
+    "buffer_status": "Samostatná AKU nádrž oddělená od výstupu TČ; neznámý údaj se nezaměňuje za jiné čidlo."
   },
   "meter": {
     "valid": "Měřený příkon",
@@ -1032,12 +1033,15 @@
     "water": "Výstup TČ",
     "room_sensor": "Pokojové čidlo TNG",
     "target": "Požadavek {value} °C",
-    "measured_at": "Čidla TNG: pokoj, bojler a výstup z tepelného čerpadla. Teplotu vody v podlahovém okruhu ani povrch podlahy neměříme. Nastavení TČ je požadovaná hodnota, nikoli další čidlo.",
+    "measured_at": "Čidla TNG: pokoj, bojler a výstup z tepelného čerpadla. Teplotu vody v podlahovém okruhu ani povrch podlahy neměříme. Nastavení TČ je požadovaná hodnota, nikoli další čidlo. AKU nádrž na fyzickém panelu existuje, její údaj ale současné cloudové API neposílá. Výstup TČ ji nenahrazuje.",
     "stale": "Aktuální měření není dostupné",
     "info": "Více informací",
     "reading": "Teploty v",
     "disabled": "Ohřev vypnutý",
-    "heating_setting": "Nastavení TČ {value} °C"
+    "heating_setting": "Nastavení TČ {value} °C",
+    "buffer": "AKU nádrž",
+    "buffer_unavailable": "Čidlo zatím nenačítáme",
+    "buffer_sensor": "Čidlo akumulační nádrže"
   },
   "rules": {
     "title": "Pravidla HEC",

@@ -166,8 +166,22 @@
         "en": "HP outlet is not the floor loop"
       },
       "text": {
-        "cs": "water_output_temperature (TNG tw) je teplota na výstupu TČ. Nesmí být vydávána za teplotu podlahového okruhu, akumulace ani povrchu podlahy. heating_set_temperature je požadavek. Při plánování a zhodnocení přiznat chybějící podlahové čidlo; pokles výstupu sám neprokazuje chladnutí podlahy.",
-        "en": "water_output_temperature (TNG tw) measures the heat-pump outlet, not the floor loop, buffer tank or floor surface. heating_set_temperature is a setpoint. Planning and assessment must acknowledge the missing floor-loop sensor; falling outlet temperature alone does not prove a cooling floor."
+        "cs": "water_output_temperature (TNG tw) je teplota na výstupu TČ. Nesmí být vydávána za teplotu podlahového okruhu, akumulace ani povrchu podlahy. heating_set_temperature je požadavek. Při plánování a zhodnocení přiznat chybějící podlahové čidlo; pokles výstupu sám neprokazuje chladnutí podlahy. Samostatné čidlo AKU na panelu bylo doloženo fotografií (40,2 °C); jeho živý přenos do HEC se dohledává. Fotografie není živé měření.",
+        "en": "water_output_temperature (TNG tw) measures the heat-pump outlet, not the floor loop, buffer tank or floor surface. heating_set_temperature is a setpoint. Planning and assessment must acknowledge the missing floor-loop sensor; falling outlet temperature alone does not prove a cooling floor. The physical panel confirms a separate buffer sensor (40.2 °C in an owner photo); live acquisition into HEC is being investigated. A photo is not live telemetry."
+      }
+    },
+    {
+      "id": "TNG-003",
+      "status": "active",
+      "recorded_on": "2026-10-28",
+      "source": "owner",
+      "title": {
+        "cs": "Lokální TNG pouze číst",
+        "en": "Local TNG is read-only"
+      },
+      "text": {
+        "cs": "Přímé lokální spojení TNG smí pouze číst, nikdy zapisovat ani měnit nastavení. Původní cloudové API ovládání zůstává povolené s ochrannými bránami. Zkoumání lokálního rozhraní je dočasně pozastavené na pokyn vlastníka, dokud nedodá další informace.",
+        "en": "Direct local TNG access may only read; never write or change settings. Existing cloud API control remains enabled with its guards. Local-interface investigation is paused at owner request until further information is provided."
       }
     }
   ],

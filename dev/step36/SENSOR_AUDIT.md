@@ -43,3 +43,7 @@ provided by the current reader. No outlet-to-floor conversion is justified.
 controllers. Browser checks cover integrated temperatures, one timestamp,
 day-plan median, rules, mobile/desktop widths and preserved DOM on refresh.
 API field names remain compatible; historical records are unchanged.
+
+## Physical AKU evidence and cloud probe
+
+The owner supplied a physical panel photo showing a distinct buffer/AKU sensor at 40.2 C. This corrects any interpretation that the hardware lacks that sensor. Authenticated GET probes of HeatPumpData returned only time/t/tw/tb/tt. The installation object and official client scripts exposed no buffer measurement endpoint. Local regulator connectivity is required for further investigation; its LAN IP is not in project configuration or existing neighbour/DNS cache. The UI explicitly shows buffer unavailable rather than relabelling tw or replaying a photo as live data.

@@ -12,6 +12,7 @@ export function thermalSnapshot(current, now = new Date()) {
   return {timestamp:stamp, fresh,
     room:temperature('room_temperature',-20,60),
     boiler:temperature('boiler_temperature',0,100),
+    buffer:temperature('buffer_temperature',0,90),
     water:temperature('water_output_temperature',0,90),
     boilerTarget:temperature('boiler_set_temperature',0,100),
     waterTarget:temperature('heating_set_temperature',0,90),

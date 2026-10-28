@@ -1,4 +1,4 @@
-import {thermalSnapshot} from './thermal-status.js?v=36';
+import {thermalSnapshot} from './thermal-status.js?v=36d';
 import { siteDate, siteClock, siteMoment, siteTime, siteDateTime, uniqueSiteMoment, priceInterval } from './today-chart.js';
 import { source, finite, energySnapshot, heatpumpPower, batteryText, heatpumpText, heatingPermission } from './telemetry.js';
 // Rozhodovací vrstva pro domovskou stránku (Step 18 Touchscreen Redesign).
@@ -203,6 +203,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
       <div class="thermal-status-grid">
         <div class="thermal-card" data-temperature="room"><span class="thermal-label">${t('thermal.room')}</span><strong>${num(thermal.room,1)} <small>°C</small></strong><span class="thermal-detail"></span></div>
         <div class="thermal-card" data-temperature="boiler"><span class="thermal-label">${t('thermal.boiler')}</span><strong>${num(thermal.boiler,1)} <small>°C</small></strong><span class="thermal-detail">${thermal.boilerEnabled === false ? t('thermal.disabled') : t('thermal.target',{value:num(thermal.boilerTarget,1)})}</span></div>
+        <div class="thermal-card" data-temperature="buffer"><span class="thermal-label">${t('thermal.buffer')}</span><strong>${num(thermal.buffer,1)} <small>°C</small></strong><span class="thermal-detail">${thermal.buffer === null ? t('thermal.buffer_unavailable') : t('thermal.buffer_sensor')}</span></div>
         <div class="thermal-card" data-temperature="water"><span class="thermal-label">${t('thermal.water')}</span><strong>${num(thermal.water,1)} <small>°C</small></strong><span class="thermal-detail">${thermal.heatingEnabled === false ? t('thermal.disabled') : t('thermal.heating_setting',{value:num(thermal.waterTarget,1)})}</span></div>
       </div>
       <div class="thermal-measurement"><span>${thermal.fresh ? t('thermal.reading') : t('thermal.stale')}${thermal.timestamp && Number.isFinite(Date.parse(thermal.timestamp)) ? ' '+siteClock(new Date(thermal.timestamp)) : ''}</span><details class="explanation-info"><summary aria-label="${t('thermal.info')}">ⓘ</summary><p>${t('thermal.measured_at')}</p></details></div>
