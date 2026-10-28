@@ -110,8 +110,8 @@
         "en": "Heat-pump meter orientation"
       },
       "text": {
-        "cs": "Pro Shelly TČ používat absolutní hodnotu příkonu při obou orientacích; uchovat původní znaménko v raw polích. Ostatní měřidla a nezávislé chyby fází tím nepotlačovat.",
-        "en": "Use absolute heat-pump Shelly power for either orientation; retain signed raw fields. Preserve other meters and independent phase faults."
+        "cs": "Pro Shelly TČ používat absolutní hodnotu příkonu při obou orientacích; uchovat původní znaménko v raw polích. Ostatní měřidla a nezávislé chyby fází tím nepotlačovat. Kladný normalizovaný odečet lze zobrazit i při chybě fáze, ale musí být označen jako neúplný; pro spotřebu, COP a řízení zůstává neplatný.",
+        "en": "Use absolute heat-pump Shelly power for either orientation; retain signed raw fields. Preserve other meters and independent phase faults. The positive normalised diagnostic reading may be displayed during a phase fault, explicitly marked partial; it remains invalid for energy, COP and control."
       }
     },
     {

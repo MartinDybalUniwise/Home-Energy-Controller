@@ -990,7 +990,8 @@
     "consumption_plan": "Graphical house consumption plan with central estimate and uncertainty band.",
     "exclusive_mode": "Exclusive heating and DHW modes retain the inactive circuit setpoint.",
     "sensor_semantics": "Explicit heat-pump outlet sensor, cleaner header and exclusive modes for one-off requests.",
-    "buffer_status": "Separate buffer tank status; missing readings are never replaced by HP outlet temperature."
+    "buffer_status": "Separate buffer tank status; missing readings are never replaced by HP outlet temperature.",
+    "partial_meter": "Show the positive HP reading alongside a partial-phase warning."
   },
   "meter": {
     "valid": "Measured electrical input",
@@ -1000,7 +1001,9 @@
     "offline": "Device unavailable",
     "residual": "Calculated remainder",
     "incomplete": "Cannot calculate: incomplete measurements",
-    "stale": "Outdated measurement"
+    "stale": "Outdated measurement",
+    "partial_phase": "Partial reading · phase fault",
+    "reading_info": "This is the absolute heat-pump meter reading. A phase fault may omit part of the total power; the reading remains invalid for energy, COP and control. Other meters are unchanged."
   },
   "today_chart": {
     "title": "Production, consumption and price",

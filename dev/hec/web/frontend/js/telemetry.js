@@ -51,6 +51,20 @@ export function heatpumpPower(shelly) {
   return heatpumpQuality(shelly) === 'valid' ? finite(shelly.heatpump_power_w) : null;
 }
 
+// A diagnostic reading may be visible without being valid for energy/COP.
+export function heatpumpReportedPower(shelly) {
+  const q = heatpumpQuality(shelly);
+  if (q === 'valid') return heatpumpPower(shelly);
+  if (q !== 'phase') return null;
+  const meters = Object.values(shelly.devices || {}).filter(d => d.role === 'heatpump_meter');
+  const unavailable = Object.values(shelly.device_status || {}).some(d =>
+    d.role === 'heatpump_meter' && ['offline','stale','missing'].includes(d.quality));
+  if (unavailable || !meters.length || meters.some(d =>
+    d.power_normalization !== 'absolute-v1' || finite(d.power_w) === null || finite(d.power_w) < 0)) return null;
+  const watts = finite(shelly.heatpump_power_w);
+  return watts === null ? null : Math.abs(watts);
+}
+
 export function heatpumpQuality(shelly) {
   if (shelly.heatpump_quality && shelly.heatpump_quality !== 'valid') return shelly.heatpump_quality;
   const meters = Object.values(shelly.devices || {}).filter(d => d.role === 'heatpump_meter');
