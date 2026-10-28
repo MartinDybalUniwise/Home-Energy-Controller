@@ -55,6 +55,8 @@ Operational rules are maintained in dev/hec/web/frontend/hec-rules.json and show
 
 Sensor invariant: water_output_temperature is the TNG heat-pump outlet (tw), not floor-loop water, buffer storage or floor surface. No separate floor-loop sensor is currently provided. Never infer floor temperature/comfort or stored heat from that field alone; heating_set_temperature is a requested setpoint.
 
-The owner confirmed the desired heating-store reading is AKU/buffer temperature. The physical panel has a distinct buffer sensor (owner photo 40.2 C); current cloud history exposes only t/tw/tb/tt. Do not claim the hardware lacks an AKU sensor. Live acquisition needs a verified separate source; do not substitute outlet or a photo as current telemetry.
+The owner confirmed the desired heating-store reading is AKU/buffer temperature. The physical panel has a distinct buffer sensor (owner photo 40.2 C); current cloud history exposes only t/tw/tb/tt. Do not claim the hardware lacks an AKU sensor. Live AKU is now provided by the independent receive-only tng_wire source. Require sample_time <= 180 seconds old and field_quality not outside_verified_range; never substitute outlet or a photo. Keep cloud tng as fallback for common temperatures only.
 
 Owner clarification 2026-10-28: Direct LAN TNG access is READ-ONLY. Existing cloud API control remains authorised and enabled. Local investigation is explicitly paused until the owner supplies further information/credentials; do not probe the LAN controller while paused.
+
+For wire/command analysis read ../../dev/hec/docs/TNG_WIRE.md. The passive mirror is integrated in HEC; do not restart the old standalone logger on UDP 37008. Inspect both source timestamps and tng_wire_receiver counters. Candidate bits and unresolved temperature branches remain observational only. Cloud confirmation of heating/boiler and thermostat are separate gates; neither proves physical compressor operation.

@@ -166,8 +166,8 @@
         "en": "HP outlet is not the floor loop"
       },
       "text": {
-        "cs": "water_output_temperature (TNG tw) je teplota na výstupu TČ. Nesmí být vydávána za teplotu podlahového okruhu, akumulace ani povrchu podlahy. heating_set_temperature je požadavek. Při plánování a zhodnocení přiznat chybějící podlahové čidlo; pokles výstupu sám neprokazuje chladnutí podlahy. Samostatné čidlo AKU na panelu bylo doloženo fotografií (40,2 °C); jeho živý přenos do HEC se dohledává. Fotografie není živé měření.",
-        "en": "water_output_temperature (TNG tw) measures the heat-pump outlet, not the floor loop, buffer tank or floor surface. heating_set_temperature is a setpoint. Planning and assessment must acknowledge the missing floor-loop sensor; falling outlet temperature alone does not prove a cooling floor. The physical panel confirms a separate buffer sensor (40.2 °C in an owner photo); live acquisition into HEC is being investigated. A photo is not live telemetry."
+        "cs": "water_output_temperature (TNG tw) je teplota na výstupu TČ. Nesmí být vydávána za teplotu podlahového okruhu, akumulace ani povrchu podlahy. heating_set_temperature je požadavek. Při plánování a zhodnocení přiznat chybějící podlahové čidlo; pokles výstupu sám neprokazuje chladnutí podlahy. Samostatné čidlo AKU na panelu bylo doloženo fotografií (40,2 °C); živý přenos je nyní v samostatném pasivním zdroji tng_wire. Používat pouze čerstvý vzorek do 180 s s ověřeným rozsahem; při výpadku AKU neznámá. Fotografie není živé měření.",
+        "en": "water_output_temperature (TNG tw) measures the heat-pump outlet, not the floor loop, buffer tank or floor surface. heating_set_temperature is a setpoint. Planning and assessment must acknowledge the missing floor-loop sensor; falling outlet temperature alone does not prove a cooling floor. The physical panel confirms a separate buffer sensor (40.2 °C in an owner photo); live acquisition is now available as the independent passive tng_wire source. Require a sample no older than 180 s and valid field quality; missing AKU remains unknown. A photo is not live telemetry."
       }
     },
     {
