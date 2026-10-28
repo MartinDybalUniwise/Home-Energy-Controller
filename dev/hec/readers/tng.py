@@ -18,6 +18,7 @@ import re
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from urllib.parse import urljoin
+from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 import requests
@@ -477,12 +478,14 @@ class TngReader(BaseReader):
                 gate["seen_pending"] = True
                 self._save_state()
                 self.log.info("TNG_CONFIRM | phase=TRUE | gate=WAITING_FALSE")
+                self._confirmation_audit(kind, 'pending_seen')
             return
         if pending_flag is False and gate["seen_pending"]:
             gate["awaiting_confirmation"] = False
             gate["seen_pending"] = False
             self._save_state()
             self.log.info("TNG_CONFIRM | phase=FALSE | confirmed=true | gate=GUARD")
+            self._confirmation_audit(kind, 'confirmed_cycle')
         elif pending_flag is False:
             # Restart procesu mohl fázi TRUE minout; po uplynutí guardu stačí FALSE.
             elapsed = self._seconds_since_last_post(kind)
@@ -491,6 +494,7 @@ class TngReader(BaseReader):
                 gate["awaiting_confirmation"] = False
                 self._save_state()
                 self.log.info("TNG_CONFIRM_RECOVERY | pending=false | elapsed=%ds | confirmed=true", int(elapsed))
+                self._confirmation_audit(kind, 'confirmed_recovery')
 
     def _gate_status(self, kind: str, pending_flag: bool | None) -> str:
         gate = self.change_gate[kind]
@@ -658,7 +662,53 @@ class TngReader(BaseReader):
         self._save_state()
 
     # --- zápis --------------------------------------------------------------
+    def command_status(self) -> dict:
+        return {kind: {key: gate.get(key) for key in
+                       ('last_post_at', 'awaiting_confirmation', 'seen_pending', 'last_requested')}
+                for kind, gate in self.change_gate.items()}
+
+    def _confirmation_audit(self, kind, phase):
+        if self.storage:
+            try:
+                self.storage.append('tng_commands', {'timestamp': to_iso(now_local()),
+                    'source': 'tng_commands', 'kind': kind, 'phase': phase,
+                    'last_post_at': self.change_gate[kind]['last_post_at'],
+                    'requested': self.change_gate[kind]['last_requested']})
+            except OSError as exc:
+                self.log.warning('command_audit_failed | error=%s', type(exc).__name__)
+
+    def _command_audit(self, record: dict) -> None:
+        if self.storage is None:
+            return
+        try:
+            self.storage.append('tng_commands', record)
+            self.storage.write_current('tng_command', record)
+        except Exception as exc:  # noqa: BLE001 - diagnostics cannot change control
+            # An audit failure must not change the established device gate.
+            self.log.warning('command_audit_failed | error=%s', type(exc).__name__)
+
     def post_json(self, endpoint: str, payload: dict, kind: str) -> int:
+        # Persist only known setting fields, never URL/hash/cookies/credentials.
+        allowed = {'HeatSet', 'HeatTemp_Const', 'BoilerSet', 'BoilerTemp', 'PoolSet', 'PoolTemp',
+                   'HeatTempEqCustom_P20', 'HeatTempEqCustom_P10', 'HeatTempEqCustom_P0',
+                   'HeatTempEqCustom_M10', 'HeatTempEqCustom_M20', 'AccSecure', 'DayTemperature'}
+        record = {'timestamp': to_iso(now_local()), 'source': 'tng_commands',
+                  'command_id': uuid4().hex, 'kind': kind, 'endpoint': endpoint,
+                  'requested': {k: copy.deepcopy(v) for k, v in payload.items() if k in allowed},
+                  'write_enabled': bool(self.config.get('tng.write_enabled', False)),
+                  'phase': 'requested'}
+        self._command_audit(record)
+        try:
+            status = self._post_json_http(endpoint, payload, kind)
+        except Exception as exc:  # noqa: BLE001 - audit and re-raise original behavior
+            self._command_audit({**record, 'timestamp': to_iso(now_local()),
+                                 'phase': 'failed', 'error_type': type(exc).__name__})
+            raise
+        self._command_audit({**record, 'timestamp': to_iso(now_local()), 'http_status': status,
+                             'phase': 'sent' if record['write_enabled'] else 'dry_run'})
+        return status
+
+    def _post_json_http(self, endpoint: str, payload: dict, kind: str) -> int:
         self.ensure_login()
         headers = copy.deepcopy(self.tng.get("headers", {}))
         headers["Content-Type"] = "application/json; charset=UTF-8"

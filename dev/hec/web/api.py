@@ -108,6 +108,21 @@ def sources(app) -> tuple[int, dict]:
     return 200, {"sources": app.storage.sources()}
 
 
+def tng_wire_events(app, params: dict) -> tuple[int, dict]:
+    """Bounded raw audit view, under the same authentication as all other APIs."""
+    try:
+        hours = max(1, min(24, int(params.get('hours', 1))))
+        limit = max(1, min(500, int(params.get('limit', 100))))
+    except (ValueError, TypeError):
+        return 400, {'error': 'invalid_range'}
+    end = now_local()
+    start = end-timedelta(hours=hours)
+    records = app.storage.query('tng_wire_events', start, end)
+    commands = app.storage.query('tng_commands', start, end)
+    return 200, {'from': to_iso(start), 'to': to_iso(end),
+                 'events': records[-limit:], 'commands': commands[-limit:]}
+
+
 def log_days(app, params: dict) -> tuple[int, dict]:
     source = params.get("source")
     if not source:

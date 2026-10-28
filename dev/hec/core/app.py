@@ -81,7 +81,7 @@ class Application:
             return
         with self._lock:
             self.snapshot[sample.source] = sample.to_dict()
-        if self.controller is not None:
+        if self.controller is not None and sample.source != 'tng_wire':
             self.controller.on_sample(sample)
 
     def current(self, include_status: bool = True) -> dict[str, Any]:
@@ -91,6 +91,16 @@ class Application:
             data['goodwe'] = project_energy(data['goodwe'])
         if "ote" in data:
             data["ote"] = cached_price_snapshot(self.config, data["ote"])
+        # A separate source: never overwrite the cloud reader or its gate state.
+        command = self.storage.latest('tng_command') if hasattr(self, 'storage') else None
+        if command:
+            data['tng_command'] = command
+        cloud = next((r for r in getattr(self, 'readers', []) if r.name == 'tng'), None)
+        if cloud is not None and hasattr(cloud, 'command_status'):
+            data['tng_gate'] = cloud.command_status()
+        wire = next((r for r in getattr(self, 'readers', []) if r.name == 'tng_wire'), None)
+        if wire is not None:
+            data['tng_wire_receiver'] = wire.status_snapshot()
         last_measurement = None
         for sample in data.values():
             stamp = parse_iso(sample.get("timestamp"))
@@ -134,6 +144,7 @@ class Application:
                 "verification": self.goodwe_authorization_evidence,
             },
             "sdg_diagnostics": diagnostics.get("sdg_history", {}),
+            "tng_wire_diagnostics": diagnostics.get("tng_wire", {}),
             "stale_sources": stale,
             "controller": controller_state,
             "site_name": self.config.get("system.site_name"),
@@ -167,4 +178,7 @@ class Application:
 
     def stop(self) -> None:
         self.scheduler.stop()
+        for reader in self.readers:
+            if hasattr(reader, 'close'):
+                reader.close()
         self.maintenance.stop()

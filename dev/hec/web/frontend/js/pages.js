@@ -1,4 +1,5 @@
 import {renderDayPlan} from './day-plan.js?v=37';
+import {heatpumpPanel} from './heatpump-panel.js?v=38';
 import { rulesPage } from './rules.js?v=36';
 import {patchDOM} from './patch-dom.js?v=36';
 import { mountTodayChart, siteDateTime } from './today-chart.js?v=36';
@@ -6,7 +7,7 @@ import { source, finite, energySnapshot, heatpumpText, heatingPermission, batter
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 
 import { renderChart, renderGoodWeHistoryChart, renderTable } from './chart.js?v=4';
-import { renderForecastStory, renderToday } from './advisor.js?v=37';
+import { renderForecastStory, renderToday } from './advisor.js?v=38';
 import { renderFlow } from './flow.js?v=3';
 import { availableLanguages, currentLanguage, dateTime, duration, num, power, t, time, weekday } from './i18n.js';
 import { weatherIcon } from './icons.js';
@@ -157,6 +158,7 @@ export async function overview(view, { api, motion, state }) {
     const fresh = document.createElement('div');
     renderToday(fresh, {current, weather, prices, prediction:predictionPayload, motion});
     renderDayPlan(fresh.querySelector('#today-day-plan'),configPayload.config,new Date(),predictionPayload,current);
+    fresh.querySelector('#heatpump-panel-slot').innerHTML = heatpumpPanel(current,configPayload.config);
     patchDOM(existing,fresh.querySelector('.today-screen'),new Set(['today-energy-chart']));
     const history = overviewHistory.get(view);
     if (history && Date.now()-history.at >= 60000) {
@@ -166,6 +168,7 @@ export async function overview(view, { api, motion, state }) {
   } else {
     renderToday(view, {current, weather, prices, prediction:predictionPayload, motion});
     renderDayPlan(view.querySelector('#today-day-plan'),configPayload.config,new Date(),predictionPayload,current);
+    view.querySelector('#heatpump-panel-slot').innerHTML = heatpumpPanel(current,configPayload.config);
     const refresh = await mountTodayChart(view.querySelector('#today-energy-chart'), {api, prices});
     overviewHistory.set(view,{at:Date.now(),refresh});
   }

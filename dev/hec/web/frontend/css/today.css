@@ -1,4 +1,23 @@
 /* Step33: readable cards and natural vertical flow, independent of screen height. */
+.hp-panel { padding:20px; }
+.hp-panels { display:grid; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr); gap:28px; }
+.hp-panels article { min-width:0; }
+.hp-panels h5 { margin:12px 0; font-size:1rem; }
+.hp-display { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:22px; }
+.hp-rows { margin:0 0 14px; }
+.hp-rows > div { display:flex; gap:12px; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--panel-border); }
+.hp-rows dt { color:var(--ink-secondary); overflow-wrap:anywhere; }
+.hp-rows dd { margin:0; font-variant-numeric:tabular-nums; text-align:right; overflow-wrap:anywhere; }
+.hp-rows dd small { font-size:.75rem; color:var(--ink-secondary); }
+.hp-buffer dd { color:var(--series-heatpump); font-weight:700; }
+.hp-hot dd { color:var(--state-warning); font-weight:700; }
+.hp-badge { display:inline-block; padding:4px 8px; border-radius:6px; font-size:.8rem; background:var(--bg-card-highlight); }
+.hp-badge.is-fresh { color:var(--state-good); }
+.hp-badge.is-stale { color:var(--state-warning); }
+.hp-panel details { margin-top:12px; color:var(--ink-secondary); font-size:.85rem; }
+.hp-panel details p { margin:8px 0; }
+@media(max-width:1100px) { .hp-panels { grid-template-columns:1fr; gap:12px; } }
+@media(max-width:480px) { .hp-display { grid-template-columns:1fr; gap:0; } .hp-panel { padding:14px; } }
 .view:has(.today-screen) { padding: 24px; background: var(--bg-app); }
 .today-screen { width: min(100%, 1760px); gap: 22px; }
 .today-screen .today-header { height: auto; min-height: 150px; padding: 26px 30px; border-radius: 18px; background: var(--bg-card-highlight); flex-wrap: wrap; }
