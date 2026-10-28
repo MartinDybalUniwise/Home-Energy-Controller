@@ -1,3 +1,4 @@
+import {thermalSnapshot} from './thermal-status.js?v=36d';
 import { siteDate, siteClock, siteMoment, siteTime, siteDateTime, uniqueSiteMoment, priceInterval } from './today-chart.js';
 import { source, finite, energySnapshot, heatpumpPower, batteryText, heatpumpText, heatingPermission } from './telemetry.js';
 // Rozhodovací vrstva pro domovskou stránku (Step 18 Touchscreen Redesign).
@@ -154,6 +155,7 @@ function formatDateFull(now) {
 export function renderToday(view, { current, weather, prices, prediction }) {
   const goodwe = energySnapshot(current);
   const tng = source(current, 'tng');
+  const thermal = thermalSnapshot(current);
   const controller = current?.status?.controller || {};
   const advice = bestAdvice(prediction, prices);
   const now = new Date();
@@ -195,8 +197,17 @@ export function renderToday(view, { current, weather, prices, prediction }) {
           <h2>${getGreeting(now)}</h2>
         </div>
         <p class="greeting-date">${formatDateFull(now)}</p>
-        <p class="greeting-sub">${t('overview.last_data_update')}: ${current.last_measurement_at ? siteDateTime(current.last_measurement_at) : '–'}</p>
       </div>
+
+    <section class="thermal-status" aria-label="${t('thermal.title')}">
+      <div class="thermal-status-grid">
+        <div class="thermal-card" data-temperature="room"><span class="thermal-label">${t('thermal.room')}</span><strong>${num(thermal.room,1)} <small>°C</small></strong><span class="thermal-detail"></span></div>
+        <div class="thermal-card" data-temperature="boiler"><span class="thermal-label">${t('thermal.boiler')}</span><strong>${num(thermal.boiler,1)} <small>°C</small></strong><span class="thermal-detail">${thermal.boilerEnabled === false ? t('thermal.disabled') : t('thermal.target',{value:num(thermal.boilerTarget,1)})}</span></div>
+        <div class="thermal-card" data-temperature="buffer"><span class="thermal-label">${t('thermal.buffer')}</span><strong>${num(thermal.buffer,1)} <small>°C</small></strong><span class="thermal-detail">${thermal.buffer === null ? t('thermal.buffer_unavailable') : t('thermal.buffer_sensor')}</span></div>
+        <div class="thermal-card" data-temperature="water"><span class="thermal-label">${t('thermal.water')}</span><strong>${num(thermal.water,1)} <small>°C</small></strong><span class="thermal-detail">${thermal.heatingEnabled === false ? t('thermal.disabled') : t('thermal.heating_setting',{value:num(thermal.waterTarget,1)})}</span></div>
+      </div>
+      <div class="thermal-measurement"><span>${thermal.fresh ? t('thermal.reading') : t('thermal.stale')}${thermal.timestamp && Number.isFinite(Date.parse(thermal.timestamp)) ? ' '+siteClock(new Date(thermal.timestamp)) : ''}</span><details class="explanation-info"><summary aria-label="${t('thermal.info')}">ⓘ</summary><p>${t('thermal.measured_at')}</p></details></div>
+    </section>
 
       <div class="weather-station-widget">
         <div class="weather-main-temp">
@@ -304,7 +315,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
       </article>
     </section>
 
-    <p class="today-source-note">${t('today_chart.measurement_note')} ${goodwe.timestamp ? siteDateTime(goodwe.timestamp) : t('meter.missing')}</p>
+    <details class="explanation-info today-source-note"><summary aria-label="${t('thermal.info')}">ⓘ</summary><p>${t('today_chart.measurement_note')} ${goodwe.timestamp ? siteDateTime(goodwe.timestamp) : t('meter.missing')}</p></details>
 
     <!-- 4. ENERGETICKÝ RYTMUS DNE (24h timeline) -->
     <section class="rhythm-section" aria-labelledby="rhythm-title">
@@ -314,7 +325,8 @@ export function renderToday(view, { current, weather, prices, prediction }) {
           <div class="rhythm-production-summary">
             <span>${t('advisor.daily_pv_estimate_title')}</span>
             <strong>${formatRange(advice.today?.pv_kwh_low, advice.today?.pv_kwh_high, 1, 'unit.kwh')}</strong>
-            <small>${advice.today ? (prediction.generated_at ? siteDateTime(prediction.generated_at) : '–') : t('today_chart.no_today_forecast')}</small>
+            <small>${advice.today ? siteDateTime(advice.today.generated_at || prediction.generated_at) : t('today_chart.no_today_forecast')}</small>
+            ${advice.today?.estimate_kind ? `<small class="today-pv-breakdown">${t('today_chart.pv_breakdown', {measured:num(advice.today.pv_measured_kwh,1),remaining:num(advice.today.pv_remaining_kwh,1)})}</small>` : ''}
           </div>
           <div class="rhythm-legend-tags">
             <span class="legend-tag legend-tag--best">● ${t('advisor.best')}</span>
@@ -373,20 +385,23 @@ export function renderToday(view, { current, weather, prices, prediction }) {
 
       <article class="workspace-card forecast-chart-card"><header class="workspace-card-header"><h4>${t('today_chart.title')}</h4></header>
         <div id="today-energy-chart"></div>
+        <header class="workspace-card-header"><h4>${t('plan.title')}</h4></header>
+        <div id="today-day-plan"></div>
       </article>
     </section>
   </div>`;
 
   const btnWhyNow = view.querySelector('#btn-why-now');
   if (btnWhyNow) {
-    btnWhyNow.addEventListener('click', () => {
+    btnWhyNow.dataset.advice = advice.best;
+    btnWhyNow.onclick = () => {
       const dlg = document.getElementById('why-now-dialog');
       if (dlg) {
         const body = dlg.querySelector('#why-now-body');
-        if (body) body.textContent = `${advice.best}. ${t('advisor.why_now_content')}`;
+        if (body) body.textContent = `${btnWhyNow.dataset.advice}. ${t('advisor.why_now_content')}`;
         dlg.showModal();
       }
-    });
+    };
   }
 }
 

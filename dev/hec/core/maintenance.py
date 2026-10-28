@@ -7,6 +7,7 @@ měniče. Chyba údržby nikdy neshodí sběr dat.
 from __future__ import annotations
 
 import threading
+import time
 
 from ..analysis.appliances import ApplianceAnalyser
 from ..analysis.summaries import Summaries
@@ -54,10 +55,20 @@ class Maintenance:
         return len(forecast["days"])
 
     def _loop(self) -> None:
-        # První běh hned po startu: po výpadku systému se dopočítá, co chybí.
+        next_maintenance = next_forecast = 0.0
         while not self._stop.is_set():
-            self.run_once()
-            self._stop.wait(self.interval_seconds())
+            moment = time.monotonic()
+            if moment >= next_maintenance:
+                self.run_once()
+                next_maintenance = time.monotonic() + self.interval_seconds()
+                next_forecast = time.monotonic() + 900
+            elif moment >= next_forecast:
+                try:
+                    self._store_forecast()
+                except Exception as exc:
+                    error_event(self.log, "maintenance_step_failed", step="forecast", error=type(exc).__name__)
+                next_forecast = time.monotonic() + 900
+            self._stop.wait(max(0.1, min(next_maintenance, next_forecast) - time.monotonic()))
 
     def start(self) -> None:
         self._thread = threading.Thread(target=self._loop, name="maintenance", daemon=True)

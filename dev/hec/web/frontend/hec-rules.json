@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-10-28",
+  "rules": [
+    {
+      "id": "TNG-001",
+      "status": "active",
+      "recorded_on": "2026-10-28",
+      "source": "owner",
+      "title": {
+        "cs": "Oddělený ohřev",
+        "en": "Separate heating modes"
+      },
+      "text": {
+        "cs": "Nikdy nepožadovat ohřev bojleru a topení současně. TNG umí jednu činnost; bojler má přednost. V okně bojleru topení vypnout a po časovém limitu obnovit, i když bojler nedosáhl cíle.",
+        "en": "Never request space heating and DHW together. TNG prioritises DHW. Disable space heating during a bounded DHW window and restore it when the window ends, even below the DHW target."
+      }
+    },
+    {
+      "id": "COMFORT-001",
+      "status": "active",
+      "recorded_on": "2026-10-28",
+      "source": "owner",
+      "title": {
+        "cs": "Komfort bez přetápění",
+        "en": "Comfort without overheating"
+      },
+      "text": {
+        "cs": "Pokud je doma příjemně, nepřetápět kvůli přebytkům FVE. Prioritou je komfort topné vody; pokojová teplota slouží jako pojistka. Výstup TNG není čidlo povrchu podlahy.",
+        "en": "Do not overheat a comfortable house to absorb PV. Prioritise heating-water comfort; use room temperature as a comfort guard. TNG outlet is not floor-surface temperature."
+      }
+    },
+    {
+      "id": "DHW-001",
+      "status": "active",
+      "recorded_on": "2026-10-28",
+      "source": "owner",
+      "title": {
+        "cs": "Teplá voda ze slunce",
+        "en": "Solar hot water"
+      },
+      "text": {
+        "cs": "Preferovat zásobu bojleru ze slunce na den a večerní sprchování. Cíl volit realisticky podle výkonu a času, běžně 50–55 °C, nejvýše 55 °C; nečekat bez časového omezení na nedosažitelný cíl. Zachovat hygienická pravidla.",
+        "en": "Prefer solar storage for the day and evening showers. Choose a realistic target for available power and time, usually 50–55 °C and at most 55 °C. Bound the window and preserve hygiene rules."
+      }
+    },
+    {
+      "id": "DHW-002",
+      "status": "active",
+      "recorded_on": "2026-10-28",
+      "source": "owner",
+      "title": {
+        "cs": "Večerní pojistka",
+        "en": "Evening fallback"
+      },
+      "text": {
+        "cs": "Při nedostatku slunce zajistit potřebný večerní dohřev i ze sítě, v samostatném omezeném okně. Bez znalosti zásobníku neslibovat objem dostupné teplé vody.",
+        "en": "If solar is insufficient, provide necessary evening reheating from the grid in a separate bounded window. Do not promise available hot-water volume without tank parameters."
+      }
+    },
+    {
+      "id": "PLAN-001",
+      "status": "active",
+      "recorded_on": "2026-10-28",
+      "source": "owner",
+      "title": {
+        "cs": "Dočasné denní plány",
+        "en": "Date-limited plans"
+      },
+      "text": {
+        "cs": "Denní změny ukládat jako datované výjimky, zachovat běžné rozvrhy. Každé dvě hodiny kontrolovat stav a podle čerstvých dat případně upravit zbytek dne; vždy poslat stručný grafický report.",
+        "en": "Save daily changes as date overrides, preserving normal schedules. Review every two hours and adjust the remaining day when fresh data warrants it; always send a concise graphical report."
+      }
+    },
+    {
+      "id": "TNG-002",
+      "status": "active",
+      "recorded_on": "2026-10-28",
+      "source": "owner",
+      "title": {
+        "cs": "Ochrana zápisů",
+        "en": "Write protection"
+      },
+      "text": {
+        "cs": "Neobcházet potvrzení TNG false → true → false ani minimální interval zápisů 900 s. Uložený plán, čekající požadavek a potvrzený stav nejsou totéž.",
+        "en": "Preserve the TNG false → true → false acknowledgement cycle and 900-second write guard. Saved plans, pending requests and confirmed device state are distinct."
+      }
+    },
+    {
+      "id": "DATA-001",
+      "status": "active",
+      "recorded_on": "2026-10-28",
+      "source": "owner",
+      "title": {
+        "cs": "Čerstvá data a odhady",
+        "en": "Fresh data and estimates"
+      },
+      "text": {
+        "cs": "Chybějící nebo staré měření není nula. Při neplatných vstupech neoptimalizovat. Dnešní odhad FVE = naměřená výroba + odhad zbytku dne, přepočet po 15 minutách; uvádět nejistotu.",
+        "en": "Missing or stale data is not zero. Do not optimise from invalid inputs. Today PV estimate is measured production plus remaining-day forecast, refreshed every 15 minutes with uncertainty."
+      }
+    },
+    {
+      "id": "METER-001",
+      "status": "active",
+      "recorded_on": "2026-10-28",
+      "source": "owner",
+      "title": {
+        "cs": "Orientace Shelly TČ",
+        "en": "Heat-pump meter orientation"
+      },
+      "text": {
+        "cs": "Pro Shelly TČ používat absolutní hodnotu příkonu při obou orientacích; uchovat původní znaménko v raw polích. Ostatní měřidla a nezávislé chyby fází tím nepotlačovat.",
+        "en": "Use absolute heat-pump Shelly power for either orientation; retain signed raw fields. Preserve other meters and independent phase faults."
+      }
+    },
+    {
+      "id": "OPS-001",
+      "status": "active",
+      "recorded_on": "2026-10-28",
+      "source": "owner",
+      "title": {
+        "cs": "Obnovení HEC",
+        "en": "HEC recovery"
+      },
+      "text": {
+        "cs": "HEC provozovat jako službu s automatickým startem a obnovou. Kontrola může spustit správnou zastavenou službu po vyloučení jiné instance. Běžící nefunkční službu nepovažovat automaticky za zastavenou.",
+        "en": "Run HEC as an automatically started, recoverable service. A check may start the correct stopped service after excluding another instance. An unhealthy running service is not a stopped service."
+      }
+    },
+    {
+      "id": "REPORT-001",
+      "status": "active",
+      "recorded_on": "2026-10-28",
+      "source": "owner",
+      "title": {
+        "cs": "Stručný mobilní stav",
+        "en": "Compact mobile status"
+      },
+      "text": {
+        "cs": "Primárně kompaktní barevná grafika: aktuální stav, vývoj a plán na dnes, nebo výslovně zítra či pozítří. Vždy aktuální stav. Pod grafikou dva krátké sloupce Zhodnocení a Doporučení; ne dlouhé texty.",
+        "en": "Lead with compact colourful graphics: current state, trends and today’s plan, or an explicitly requested future day. Always retain current state. Below, two short columns: Assessment and Recommendation."
+      }
+    },
+    {
+      "id": "UI-001",
+      "status": "active",
+      "recorded_on": "2026-10-28",
+      "source": "owner",
+      "title": {
+        "cs": "Klidné rozhraní",
+        "en": "Calm interface"
+      },
+      "text": {
+        "cs": "Obnovovat obsah bez blikání celé stránky. Běžné vysvětlivky schovat pod klikatelné ⓘ. Je-li nutné skutečné schválení, výrazné grafické upozornění do mobilního chatu s důvodem a krokem uživatele.",
+        "en": "Refresh content without whole-page flashing. Put routine explanations behind clickable info. Show unavoidable approval as a prominent mobile chat notice with the reason and user action."
+      }
+    },
+    {
+      "id": "SENSOR-001",
+      "status": "active",
+      "recorded_on": "2026-10-28",
+      "source": "owner",
+      "title": {
+        "cs": "Výstup TČ není podlahový okruh",
+        "en": "HP outlet is not the floor loop"
+      },
+      "text": {
+        "cs": "water_output_temperature (TNG tw) je teplota na výstupu TČ. Nesmí být vydávána za teplotu podlahového okruhu, akumulace ani povrchu podlahy. heating_set_temperature je požadavek. Při plánování a zhodnocení přiznat chybějící podlahové čidlo; pokles výstupu sám neprokazuje chladnutí podlahy. Samostatné čidlo AKU na panelu bylo doloženo fotografií (40,2 °C); jeho živý přenos do HEC se dohledává. Fotografie není živé měření.",
+        "en": "water_output_temperature (TNG tw) measures the heat-pump outlet, not the floor loop, buffer tank or floor surface. heating_set_temperature is a setpoint. Planning and assessment must acknowledge the missing floor-loop sensor; falling outlet temperature alone does not prove a cooling floor. The physical panel confirms a separate buffer sensor (40.2 °C in an owner photo); live acquisition into HEC is being investigated. A photo is not live telemetry."
+      }
+    },
+    {
+      "id": "TNG-003",
+      "status": "active",
+      "recorded_on": "2026-10-28",
+      "source": "owner",
+      "title": {
+        "cs": "Lokální TNG pouze číst",
+        "en": "Local TNG is read-only"
+      },
+      "text": {
+        "cs": "Přímé lokální spojení TNG smí pouze číst, nikdy zapisovat ani měnit nastavení. Původní cloudové API ovládání zůstává povolené s ochrannými bránami. Zkoumání lokálního rozhraní je dočasně pozastavené na pokyn vlastníka, dokud nedodá další informace.",
+        "en": "Direct local TNG access may only read; never write or change settings. Existing cloud API control remains enabled with its guards. Local-interface investigation is paused at owner request until further information is provided."
+      }
+    }
+  ],
+  "history": [
+    {
+      "date": "2026-10-28",
+      "rule_id": "TNG-001",
+      "change": {
+        "cs": "Výslovně zakázán souběh topení a bojleru; bojler má prioritu a nesmí blokovat celý den.",
+        "en": "Owner prohibited concurrent heating and DHW; priority DHW must not block space heating all day."
+      }
+    },
+    {
+      "date": "2026-10-28",
+      "rule_id": "REPORT-001",
+      "change": {
+        "cs": "Doplněn kompaktní barevný mobilní report.",
+        "en": "Added compact colourful mobile reports."
+      }
+    },
+    {
+      "date": "2026-10-28",
+      "rule_id": "SENSOR-001",
+      "change": {
+        "cs": "Opraveno zavádějící označení Topná voda; kontrola čidel napříč systémem.",
+        "en": "Corrected ambiguous heating-water label; audited sensor use throughout HEC."
+      }
+    }
+  ]
+}

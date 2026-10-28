@@ -91,8 +91,9 @@ def test_partial_device_failure_is_visible_and_raw_power_retained(tmp_path, monk
 
     monkeypatch.setattr(reader, 'read_device', read_device)
     result = reader.read()
-    assert result['heatpump_power_w'] == -8
-    assert result['heatpump_quality'] == 'negative'
+    assert result['heatpump_power_w'] == 8
+    assert result['devices']['hp']['raw_power_w'] == -8
+    assert result['heatpump_quality'] == 'phase'
     assert result['device_status']['fridge']['quality'] == 'offline'
     assert result['device_status']['fridge']['appliance_type'] == 'fridge'
 

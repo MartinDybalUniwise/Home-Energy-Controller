@@ -116,6 +116,13 @@ class ShellyReader(BaseReader):
             values["role"] = device.get("role", "appliance")
             values["appliance_type"] = device.get("appliance_type", "other")
             values["name"] = device.get("name", key)
+            if values["role"] == "heatpump_meter":
+                for field in ("power_w", "l1_w", "l2_w", "l3_w"):
+                    number = numeric(values.get(field))
+                    if number is not None:
+                        values[f"raw_{field}"] = values[field]
+                        values[field] = abs(number)
+                values["power_normalization"] = "absolute-v1"
             values["measurement_quality"] = meter_quality(values)
             device_status[key] = {"name": values["name"], "role": values["role"],
                                   "appliance_type": values["appliance_type"],

@@ -40,13 +40,34 @@ WANTED_WORDS = ("temp", "heat", "boiler", "thermostat", "outside", "outdoor", "r
 HEATPUMP_RE = re.compile(r'HeatPump\s*=\s*(\{.*?\});\s*CurrentHeatPumpHash', re.S)
 
 
+def effective_schedule(section: dict, moment: datetime) -> dict:
+    """Date-limited owner override; ordinary schedule resumes automatically."""
+    override = (section.get("date_overrides") or {}).get(moment.date().isoformat())
+    return {**section, **override} if isinstance(override, dict) else section
+
+
 def scheduled_value(section: dict, moment: datetime):
     """Teplota podle rozvrhu. Poslední vyhovující okno vyhrává."""
+    section = effective_schedule(section, moment)
     value = section.get("default_temperature")
     for window in section.get("schedule", []) or []:
         if in_window(moment, window["from"], window["to"]):
             value = window["temperature"]
     return value
+
+
+def scheduled_operation(section: dict, moment: datetime) -> str | None:
+    """Optional exclusive TNG mode; a bounded DHW window cannot starve heating."""
+    if not section:
+        return None
+    section = effective_schedule(section, moment)
+    mode = section.get("default_mode", "heating")
+    for window in section.get("schedule", []) or []:
+        if in_window(moment, window["from"], window["to"]):
+            mode = window["mode"]
+    if mode not in ("heating", "boiler", "off"):
+        raise ValueError("Invalid exclusive TNG operation mode")
+    return mode
 
 
 def _fmt_temp(val: float | int | None) -> str:
@@ -116,7 +137,7 @@ class TngReader(BaseReader):
         probuzení readeru přesně na hranici okna."""
         boundaries: set[str] = set()
         for name in ("boiler", "heating", "thermostat"):
-            section = self.config.get(f"tng.{name}", {})
+            section = effective_schedule(self.config.get(f"tng.{name}", {}), now_local())
             if not section.get("enabled"):
                 continue
             for window in section.get("schedule", []) or []:
@@ -492,6 +513,8 @@ class TngReader(BaseReader):
         return "READY"
 
     def _next_schedule_target(self, section: dict, moment: datetime) -> str | None:
+        original_section = section
+        section = effective_schedule(section, moment)
         if not section or not section.get("enabled"):
             return None
         schedule = section.get("schedule") or []
@@ -526,7 +549,7 @@ class TngReader(BaseReader):
             return None
 
         time_str = nearest_dt.strftime("%H:%M")
-        temp_after = scheduled_value(section, nearest_dt + timedelta(seconds=1))
+        temp_after = scheduled_value(original_section, nearest_dt + timedelta(seconds=1))
         if temp_after is None:
             return None
         return f"{time_str}->{_fmt_temp(temp_after)}"
@@ -671,13 +694,26 @@ class TngReader(BaseReader):
         if boiler.get("enabled") or heating.get("enabled"):
             payload = copy.deepcopy(self.config.get("tng.basic_settings_template", {}))
             matches = True
+            mode = scheduled_operation(self.config.get("tng.operation", {}), moment)
+            if mode is not None:
+                heat_on = mode == "heating" and bool(heating.get("enabled"))
+                boiler_on = mode == "boiler" and bool(boiler.get("enabled"))
+                payload.setdefault("HeatSet", {})["Heat"] = heat_on
+                payload.setdefault("BoilerSet", {})["Boiler"] = boiler_on
+                if (settings.get("heating_on") != heat_on
+                        or settings.get("boiler_on") != boiler_on):
+                    matches = False
             if boiler.get("enabled"):
                 desired = scheduled_value(boiler, moment)
+                if mode is not None and mode != "boiler":
+                    desired = settings.get("boiler_set_temperature", desired)
                 payload["BoilerTemp"] = desired
                 if settings.get("boiler_set_temperature") != desired:
                     matches = False
             if heating.get("enabled"):
                 desired = scheduled_value(heating, moment)
+                if mode is not None and mode != "heating":
+                    desired = settings.get("heating_set_temperature", desired)
                 payload["HeatTemp_Const"] = desired
                 if settings.get("heating_set_temperature") != desired:
                     matches = False
@@ -786,6 +822,9 @@ class TngReader(BaseReader):
         """Jednorázový požadavek controlleru na teplotu TUV – prochází stejným gate."""
         settings = (state or {}).get("settings") or {}
         heatpump = (state or {}).get("heatpump") or {}
+        mode = scheduled_operation(self.config.get("tng.operation", {}), now_local())
+        if mode is not None and mode != "boiler":
+            return False, "exclusive_operation_window"
         if settings.get("boiler_set_temperature") == temperature:
             return False, "already_set"
         allowed, reason = self.can_post("basic", settings.get("last_settings_not_confirmed"))
@@ -811,6 +850,11 @@ class TngReader(BaseReader):
 
         payload = copy.deepcopy(self.config.get("tng.basic_settings_template", {}))
         payload["BoilerTemp"] = temperature
+        if mode is not None:
+            payload.setdefault("HeatSet", {})["Heat"] = False
+            payload.setdefault("BoilerSet", {})["Boiler"] = True
+            if settings.get("heating_set_temperature") is not None:
+                payload["HeatTemp_Const"] = settings["heating_set_temperature"]
         self.post_json("basic_settings", payload, "BASIC_SETTINGS")
         self._mark_posted("basic", {"boiler_temperature": temperature})
 
@@ -823,6 +867,9 @@ class TngReader(BaseReader):
         """Jednorázový požadavek controlleru na konstantní teplotu topení – prochází stejným gate."""
         settings = (state or {}).get("settings") or {}
         heatpump = (state or {}).get("heatpump") or {}
+        mode = scheduled_operation(self.config.get("tng.operation", {}), now_local())
+        if mode is not None and mode != "heating":
+            return False, "exclusive_operation_window"
         if settings.get("heating_set_temperature") == temperature:
             return False, "already_set"
         allowed, reason = self.can_post("basic", settings.get("last_settings_not_confirmed"))
@@ -848,6 +895,11 @@ class TngReader(BaseReader):
 
         payload = copy.deepcopy(self.config.get("tng.basic_settings_template", {}))
         payload["HeatTemp_Const"] = temperature
+        if mode is not None:
+            payload.setdefault("HeatSet", {})["Heat"] = True
+            payload.setdefault("BoilerSet", {})["Boiler"] = False
+            if settings.get("boiler_set_temperature") is not None:
+                payload["BoilerTemp"] = settings["boiler_set_temperature"]
         self.post_json("basic_settings", payload, "BASIC_SETTINGS")
         self._mark_posted("basic", {"heating_temperature": temperature})
 

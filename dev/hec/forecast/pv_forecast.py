@@ -20,6 +20,6 @@ def forecast_pv(day: dict, generated_at: str | None = None) -> Forecast:
         value=value,
         range=range_,
         confidence=day.get("confidence", "low"),
-        model_version=MODEL_VERSION,
+        model_version="today-measured-remaining-v1" if day.get("estimate_kind") else MODEL_VERSION,
         generated_at=parse_iso(generated_at) or now_local(),
     )

@@ -85,3 +85,15 @@ Vychází z dokumentu `HEC_FTE_READER_WRITER_UPRAVA.md`.
 **Odhad:** 11–17 dní vývoje + hardware test
 
 Viz [`step16/DEVELOPMENT_PLAN.md`](step16/DEVELOPMENT_PLAN.md)
+
+## Step34 — SDG history fallback
+
+See [step34/PLAN.md](step34/PLAN.md). Owner authorized implementation and deployment on 2026-10-27.
+
+## Step35 — today PV and one-day schedules
+
+See [step35/PLAN.md](step35/PLAN.md). Owner authorized implementation, deployment and today plan on 2026-10-28.
+
+## Step36 — current temperatures
+
+See [step36/PLAN.md](step36/PLAN.md).

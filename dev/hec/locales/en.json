@@ -24,7 +24,8 @@
     "forecast": "Forecast",
     "flow": "Energy flow",
     "more": "More",
-    "advanced": "Service & diagnostics"
+    "advanced": "Service & diagnostics",
+    "rules": "HEC rules"
   },
   "unit": {
     "w": "W",
@@ -62,7 +63,7 @@
     "heating": "Heating",
     "outside": "Outdoor temperature",
     "room": "Room temperature",
-    "water_out": "Flow temperature",
+    "water_out": "Heat-pump outlet",
     "weather": "Weather",
     "dishwasher": "Dishwasher",
     "washing_machine": "Washing machine",
@@ -871,7 +872,7 @@
   },
   "reason": {
     "pv_surplus_high_soc": "PV surplus {pv_kw} kW, battery {soc} %, low price {price} CZK/kWh",
-    "price_high_use_inertia": "High price {price} CZK/kWh, using the floor's thermal inertia",
+    "price_high_use_inertia": "High price {price} CZK/kWh, limiting DHW reheating",
     "cheap_window_preheat": "Cheap window until {until}, gentle preheating within comfort limits",
     "comfort_limit_reached": "Comfort limit {limit} °C reached",
     "safe_mode_stale_data": "Data from {source} is older than {age} s",
@@ -982,7 +983,14 @@
     "performance": "Incremental SDG import, compact checkpoints and fewer routine messages.",
     "versioning": "Application version and changelog with fixed release times.",
     "settings": "Fix saving optional numeric settings and the interface language.",
-    "overview_accuracy": "Restored readable overview with actual production, consumption and price charts; corrected dates, units and measurement quality."
+    "overview_accuracy": "Restored readable overview with actual production, consumption and price charts; corrected dates, units and measurement quality.",
+    "sdg_history": "Fill overview history gaps from the SDG archive.",
+    "today_pv": "Today PV: measured production plus remaining estimate, date-limited schedules.",
+    "thermal_status": "Overview temperatures, smooth refresh, absolute heat-pump power and exclusive heating rules.",
+    "consumption_plan": "Graphical house consumption plan with central estimate and uncertainty band.",
+    "exclusive_mode": "Exclusive heating and DHW modes retain the inactive circuit setpoint.",
+    "sensor_semantics": "Explicit heat-pump outlet sensor, cleaner header and exclusive modes for one-off requests.",
+    "buffer_status": "Separate buffer tank status; missing readings are never replaced by HP outlet temperature."
   },
   "meter": {
     "valid": "Measured electrical input",
@@ -1002,7 +1010,7 @@
     "days_2": "2 days",
     "days_7": "7 days",
     "loading": "Loading history…",
-    "note": "Power: measured GoodWe history. Price: published OTE intervals. Hourly production and consumption forecasts are unavailable; daily estimates are not hourly curves. Gaps mean missing measurements. Time zone Europe/Prague.",
+    "note": "Power: GoodWe measurements, with missing values filled from the SDG archive. Sources are shown in the tooltip and table. Price: published OTE intervals. Unmeasured gaps are not estimated. Time zone Europe/Prague.",
     "failed": "History could not be loaded. Select a range to retry.",
     "no_measurements": "No power measurements are available for this period.",
     "inspect": "Move over the chart or use arrow keys to inspect values.",
@@ -1012,6 +1020,47 @@
     "price_current": "Price for the current OTE interval",
     "measurement_note": "House consumption comes from the GoodWe inverter, not the sum of appliance meters. Inverter reading:",
     "no_today_forecast": "Today’s estimate is unavailable.",
-    "ambiguous_price": "Ambiguous or invalid price intervals (such as the repeated hour at a clock change) are omitted; prices are not guessed."
+    "ambiguous_price": "Ambiguous or invalid price intervals (such as the repeated hour at a clock change) are omitted; prices are not guessed.",
+    "measured_sdg": "SDG archive",
+    "partial": "One history source is unavailable. Available measurements are shown; select the range to retry.",
+    "pv_breakdown": "Measured {measured} kWh + remaining-day estimate {remaining} kWh.",
+    "info": "More information"
+  },
+  "thermal": {
+    "title": "Current temperatures",
+    "room": "Indoors",
+    "boiler": "Hot water tank",
+    "water": "HP outlet",
+    "room_sensor": "TNG room sensor",
+    "target": "Setpoint {value} °C",
+    "measured_at": "TNG sensors: room, DHW tank and heat-pump outlet. Floor-loop water and floor surface are not measured. The HP setting is a requested value, not another sensor. A buffer sensor exists on the physical panel, but the current cloud API does not provide it. HP outlet is not a substitute.",
+    "stale": "Current measurement unavailable",
+    "info": "More information",
+    "reading": "Temperatures at",
+    "disabled": "Heating disabled",
+    "heating_setting": "HP setting {value} °C",
+    "buffer": "Buffer tank",
+    "buffer_unavailable": "Sensor not connected to HEC",
+    "buffer_sensor": "Buffer tank sensor"
+  },
+  "rules": {
+    "title": "HEC rules",
+    "intro": "Agreed rules for configuration and reviews. Recording a rule alone does not change configuration.",
+    "history": "Change log",
+    "updated": "Updated",
+    "source": "Owner instruction"
+  },
+  "plan": {
+    "title": "Today’s plan",
+    "inactive": "disabled in this window",
+    "now": "Now",
+    "saved": "saved plan · tap for details",
+    "consumption": "House consumption plan",
+    "middle": "Central estimate",
+    "range": "Range",
+    "measured": "Measured",
+    "remaining": "Estimated remaining consumption",
+    "estimate_info": "Whole-day estimate from historical consumption, not an exact calculation of the new TNG schedule. The central estimate is the model median; the band indicates uncertainty. The timeline shows requested HP settings, not measured floor temperature.",
+    "heating": "Heating · HP setting"
   }
 }

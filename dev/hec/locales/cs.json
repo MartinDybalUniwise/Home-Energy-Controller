@@ -24,7 +24,8 @@
     "forecast": "Výhled",
     "flow": "Tok energie",
     "more": "Více",
-    "advanced": "Servis a diagnostika"
+    "advanced": "Servis a diagnostika",
+    "rules": "Pravidla HEC"
   },
   "unit": {
     "w": "W",
@@ -62,7 +63,7 @@
     "heating": "Topení",
     "outside": "Venkovní teplota",
     "room": "Teplota v místnosti",
-    "water_out": "Výstupní voda",
+    "water_out": "Výstup TČ",
     "weather": "Počasí",
     "dishwasher": "Myčka",
     "washing_machine": "Pračka",
@@ -871,7 +872,7 @@
   },
   "reason": {
     "pv_surplus_high_soc": "Přebytek FVE {pv_kw} kW, baterie {soc} %, nízká cena {price} Kč/kWh",
-    "price_high_use_inertia": "Vysoká cena {price} Kč/kWh, využívá se setrvačnost podlahy",
+    "price_high_use_inertia": "Vysoká cena {price} Kč/kWh, omezení dohřevu bojleru",
     "cheap_window_preheat": "Levné okno do {until}, mírné předtopení v mezích komfortu",
     "comfort_limit_reached": "Dosažena komfortní mez {limit} °C",
     "safe_mode_stale_data": "Data ze zdroje {source} jsou starší než {age} s",
@@ -982,7 +983,14 @@
     "performance": "Inkrementální import SDG, menší checkpoint a omezení zbytečných výpisů.",
     "versioning": "Číslo verze a přehled změn s časem vydání.",
     "settings": "Oprava ukládání volitelných číselných nastavení a jazyka rozhraní.",
-    "overview_accuracy": "Obnovený čitelný přehled se skutečným grafem výroby, spotřeby a cen; opravené datum, jednotky a kvalita měření."
+    "overview_accuracy": "Obnovený čitelný přehled se skutečným grafem výroby, spotřeby a cen; opravené datum, jednotky a kvalita měření.",
+    "sdg_history": "Doplnění historie hlavního grafu z archivu SDG.",
+    "today_pv": "Dnešní výroba: měření a zbývající odhad, jednodenní rozvrhy.",
+    "thermal_status": "Teploty na přehledu, plynulá obnova, absolutní příkon TČ a pravidla odděleného ohřevu.",
+    "consumption_plan": "Grafický plán spotřeby domu se středním odhadem a pásmem nejistoty.",
+    "exclusive_mode": "Oddělené režimy topení a bojleru zachovávají teplotu vypnutého okruhu.",
+    "sensor_semantics": "Upřesnění výstupního čidla TČ, přehlednější hlavička a zachování oddělených režimů i při jednorázových požadavcích.",
+    "buffer_status": "Samostatná AKU nádrž oddělená od výstupu TČ; neznámý údaj se nezaměňuje za jiné čidlo."
   },
   "meter": {
     "valid": "Měřený příkon",
@@ -1002,7 +1010,7 @@
     "days_2": "2 dny",
     "days_7": "7 dní",
     "loading": "Načítám historii…",
-    "note": "Výkon: naměřená historie GoodWe. Cena: zveřejněné intervaly OTE. Hodinový odhad výroby a spotřeby není dostupný; denní odhad se nevydává za hodinovou křivku. Mezery znamenají chybějící měření. Čas Europe/Prague.",
+    "note": "Výkon: měření GoodWe, chybějící hodnoty doplňuje archiv SDG. Původ je uveden v detailu a tabulce. Cena: zveřejněné intervaly OTE. Mezery bez měření se nedopočítávají. Čas Europe/Prague.",
     "failed": "Historii se nepodařilo načíst. Zkuste rozsah znovu.",
     "no_measurements": "V tomto období nejsou dostupná měření výkonu.",
     "inspect": "Pohybem po grafu nebo šipkami zobrazíte hodnoty.",
@@ -1012,6 +1020,47 @@
     "price_current": "Cena v aktuálním intervalu OTE",
     "measurement_note": "Spotřeba domu je údaj střídače GoodWe, nikoli součet měření spotřebičů. Čas střídače:",
     "no_today_forecast": "Dnešní odhad není k dispozici.",
-    "ambiguous_price": "Nejednoznačné nebo neplatné cenové intervaly (například opakovaná hodina při změně času) jsou vynechány; cenu neodhadujeme."
+    "ambiguous_price": "Nejednoznačné nebo neplatné cenové intervaly (například opakovaná hodina při změně času) jsou vynechány; cenu neodhadujeme.",
+    "measured_sdg": "Archiv SDG",
+    "partial": "Jeden zdroj historie není dostupný. Graf zobrazuje dostupná měření; rozsah můžete načíst znovu.",
+    "pv_breakdown": "Naměřeno {measured} kWh + odhad do konce dne {remaining} kWh.",
+    "info": "Více informací"
+  },
+  "thermal": {
+    "title": "Aktuální teploty",
+    "room": "Doma",
+    "boiler": "Bojler",
+    "water": "Výstup TČ",
+    "room_sensor": "Pokojové čidlo TNG",
+    "target": "Požadavek {value} °C",
+    "measured_at": "Čidla TNG: pokoj, bojler a výstup z tepelného čerpadla. Teplotu vody v podlahovém okruhu ani povrch podlahy neměříme. Nastavení TČ je požadovaná hodnota, nikoli další čidlo. AKU nádrž na fyzickém panelu existuje, její údaj ale současné cloudové API neposílá. Výstup TČ ji nenahrazuje.",
+    "stale": "Aktuální měření není dostupné",
+    "info": "Více informací",
+    "reading": "Teploty v",
+    "disabled": "Ohřev vypnutý",
+    "heating_setting": "Nastavení TČ {value} °C",
+    "buffer": "AKU nádrž",
+    "buffer_unavailable": "Čidlo zatím nenačítáme",
+    "buffer_sensor": "Čidlo akumulační nádrže"
+  },
+  "rules": {
+    "title": "Pravidla HEC",
+    "intro": "Dohodnutá pravidla pro nastavení a kontroly. Záznam pravidla sám nemění konfiguraci.",
+    "history": "Záznam změn",
+    "updated": "Aktualizováno",
+    "source": "Pokyn vlastníka"
+  },
+  "plan": {
+    "title": "Dnešní plán",
+    "inactive": "vypnuto v tomto okně",
+    "now": "Nyní",
+    "saved": "uložený plán · kliknutím detail",
+    "consumption": "Plán spotřeby domu",
+    "middle": "Střední odhad",
+    "range": "Rozmezí",
+    "measured": "Naměřeno",
+    "remaining": "Odhad zbývající spotřeby",
+    "estimate_info": "Odhad celého dne z historické spotřeby, nikoli přesný výpočet nového rozvrhu TNG. Střední hodnota je medián modelu; pásmo vyjadřuje nejistotu. Časová osa ukazuje požadované nastavení TČ, nikoli změřenou teplotu podlahy.",
+    "heating": "Topení · nastavení TČ"
   }
 }

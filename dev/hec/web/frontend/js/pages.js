@@ -1,9 +1,12 @@
-import { mountTodayChart, siteDateTime } from './today-chart.js';
+import {renderDayPlan} from './day-plan.js?v=36d';
+import { rulesPage } from './rules.js?v=36';
+import {patchDOM} from './patch-dom.js?v=36';
+import { mountTodayChart, siteDateTime } from './today-chart.js?v=36';
 import { source, finite, energySnapshot, heatpumpText, heatingPermission, batteryText, batteryReason } from './telemetry.js';
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 
 import { renderChart, renderGoodWeHistoryChart, renderTable } from './chart.js?v=4';
-import { renderForecastStory, renderToday } from './advisor.js?v=33';
+import { renderForecastStory, renderToday } from './advisor.js?v=36d';
 import { renderFlow } from './flow.js?v=3';
 import { availableLanguages, currentLanguage, dateTime, duration, num, power, t, time, weekday } from './i18n.js';
 import { weatherIcon } from './icons.js';
@@ -141,13 +144,31 @@ const card = (titleKey, inner) => `<div class="card"><h3>${t(titleKey)}</h3>${in
 
 // --- Přehled ---------------------------------------------------------------
 
-export async function overview(view, { api, motion }) {
-  const [current, weather, prices, predictionPayload] = await Promise.all([
+const overviewHistory = new WeakMap();
+
+export async function overview(view, { api, motion, state }) {
+  const [current, weather, prices, predictionPayload, configPayload] = await Promise.all([
     api.current({ fast: 1 }), api.weather().catch(() => ({})), api.prices().catch(() => ({})),
-    api.prediction().catch(() => ({})),
+    api.prediction().catch(() => ({})), api.config().catch(() => ({})),
   ]);
-  renderToday(view, { current, weather, prices, prediction: predictionPayload, motion });
-  await mountTodayChart(view.querySelector('#today-energy-chart'), {api, prices});
+  if (state && state.page !== 'overview') return;
+  const existing = view.querySelector('.today-screen');
+  if (existing) {
+    const fresh = document.createElement('div');
+    renderToday(fresh, {current, weather, prices, prediction:predictionPayload, motion});
+    renderDayPlan(fresh.querySelector('#today-day-plan'),configPayload.config,new Date(),predictionPayload,current);
+    patchDOM(existing,fresh.querySelector('.today-screen'),new Set(['today-energy-chart']));
+    const history = overviewHistory.get(view);
+    if (history && Date.now()-history.at >= 60000) {
+      await history.refresh(prices);
+      history.at=Date.now();
+    }
+  } else {
+    renderToday(view, {current, weather, prices, prediction:predictionPayload, motion});
+    renderDayPlan(view.querySelector('#today-day-plan'),configPayload.config,new Date(),predictionPayload,current);
+    const refresh = await mountTodayChart(view.querySelector('#today-energy-chart'), {api, prices});
+    overviewHistory.set(view,{at:Date.now(),refresh});
+  }
 }
 
 function phaseTile(goodwe) {
@@ -1526,6 +1547,7 @@ export async function financeManual(view, { api }) {
 }
 
 export const pages = {
+  rules: rulesPage,
   overview,
   history,
   prediction,

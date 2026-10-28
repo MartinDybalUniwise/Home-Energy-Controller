@@ -1,6 +1,8 @@
+import {patchDOM} from './patch-dom.js?v=36';
 // Observations and published prices share a time axis, never a unit scale.
 import { finite } from './telemetry.js';
 import { time, num, t } from './i18n.js';
+import { mergeEnergyHistory } from './history-fallback.js?v=34';
 
 const ZONE = 'Europe/Prague';
 const clockFormatter = new Intl.DateTimeFormat('en-CA', {
@@ -69,7 +71,7 @@ export function chartRows(history, prices, range, now = new Date()) {
   }).map(r => ({timestamp: r.timestamp,
     pv: finite(r.pv_w) !== null && finite(r.pv_w) >= 0 ? Number(r.pv_w) / 1000 : null,
     house: finite(r.house_w) !== null && finite(r.house_w) >= 0 ? Number(r.house_w) / 1000 : null,
-    price: null, kind: 'measured'}));
+    price: null, kind: 'measured', sources:r.sources || {pv_w:'goodwe',house_w:'goodwe'}}));
   for (const day of [prices?.today, prices?.tomorrow]) {
     for (const period of day?.periods || []) {
       const interval = priceInterval(day.date,period);
@@ -132,23 +134,42 @@ let tableOpen = false;
 const historyCache = new Map();
 const rangeLabels = {1:'today_chart.days_1',2:'today_chart.days_2',7:'today_chart.days_7'};
 
+function origin(row) {
+  if (row.kind !== 'measured') return t('today_chart.'+row.kind);
+  const sources = row.sources || {};
+  const pv = row.pv !== null ? sources.pv_w : null;
+  const house = row.house !== null ? sources.house_w : null;
+  const label = source => source === 'sdg_history' ? t('today_chart.measured_sdg') : t('today_chart.measured');
+  if (!pv && !house) return t('meter.missing');
+  if (!pv || !house || pv === house) return label(pv || house);
+  return `${t('entity.pv')}: ${label(pv)} · ${t('entity.house')}: ${label(house)}`;
+}
+
 export async function mountTodayChart(container, {api, prices, now = new Date()}) {
   let generation = 0;
-  const draw = async days => {
+  const draw = async (days, background = false) => {
     selectedDays = days;
     const ticket = ++generation;
     const range = chartRange(days, now);
-    container.innerHTML = `<p role="status">${t('today_chart.loading')}</p>`;
-    let history, failed = false;
+    if (!background) container.innerHTML = `<p role="status">${t('today_chart.loading')}</p>`;
+    let history, failed = false, partial = false;
     try {
       const key = `${range.from.toISOString()}/${days}`;
       const cached = historyCache.get(key);
       if (cached && Date.now() - cached.fetched < 60000) history = cached.history;
       else {
-        history = await api.history({source:'goodwe', from:range.from.toISOString(), to:new Date(Math.min(+now,+range.to)).toISOString(),
-          fields:'pv_w,house_w', bucket:days === 1 ? 300 : days === 2 ? 600 : 1800});
+        const bucket = days === 1 ? 300 : days === 2 ? 600 : 1800;
+        const params = {from:range.from.toISOString(), to:new Date(Math.min(+now,+range.to)).toISOString(), bucket};
+        const results = await Promise.allSettled([
+          api.history({...params,source:'goodwe',fields:'pv_w,house_w'}),
+          api.history({...params,source:'sdg_history',fields:'ppvcelkem,total__w'}),
+        ]);
+        const [goodwe, sdg] = results.map(result=>result.status === 'fulfilled' ? result.value : null);
+        if (!goodwe && !sdg) throw new Error('History unavailable');
+        partial = results.some(result=>result.status === 'rejected');
+        history = mergeEnergyHistory(goodwe,sdg,bucket);
         if (historyCache.size > 6) historyCache.clear();
-        historyCache.set(key,{history,fetched:Date.now()});
+        if (!partial) historyCache.set(key,{history,fetched:Date.now()});
       }
     } catch {history = {rows:[]}; failed = true;}
     if (ticket !== generation || !container.isConnected) return;
@@ -160,24 +181,34 @@ export async function mountTodayChart(container, {api, prices, now = new Date()}
     const width = Math.max(240,container.clientWidth);
     const missingPrices = [prices?.today,prices?.tomorrow].some(day=>
       (day?.periods || []).some(period=>!priceInterval(day.date,period)));
-    container.innerHTML = `<div class="today-chart-controls" role="group" aria-label="${t('today_chart.range')}">${[1,2,7].map(d=>`<button type="button" data-days="${d}" aria-pressed="${days===d}">${t(rangeLabels[d])}</button>`).join('')}<button type="button" data-table aria-expanded="false">${t('history.table')}</button></div>
-      <p class="today-chart-note">${t('today_chart.note')}</p>
+    const target = background ? document.createElement('div') : container;
+    target.innerHTML = `<div class="today-chart-controls" role="group" aria-label="${t('today_chart.range')}">${[1,2,7].map(d=>`<button type="button" data-days="${d}" aria-pressed="${days===d}">${t(rangeLabels[d])}</button>`).join('')}<button type="button" data-table aria-expanded="false">${t('history.table')}</button></div>
+      <details class="explanation-info"><summary aria-label="${t('today_chart.info')}">ⓘ</summary><p class="today-chart-note">${t('today_chart.note')}</p><p>${t('today_chart.inspect')}</p></details>
       ${missingPrices?`<p class="today-chart-note">${t('today_chart.ambiguous_price')}</p>`:''}
       ${failed?`<p role="alert">${t('today_chart.failed')}</p>`:''}
+      ${partial?`<p role="alert">${t('today_chart.partial')}</p>`:''}
       ${!rows.some(r=>r.pv!==null||r.house!==null)?`<p>${t('today_chart.no_measurements')}</p>`:''}
       <div class="today-chart-legend">${[...measured,...price].map(f=>`<span style="--series:${f.color}">${f.label}</span>`).join('')}</div>
       <div class="today-chart-panels">${panel(rows, measured,t('unit.kw'),range,now,gap,width)}${panel(rows,price,t('unit.czk_kwh'),range,now,gap,width)}</div>
-      <output class="today-chart-tooltip" aria-live="polite">${t('today_chart.inspect')}</output>
-      <div class="today-chart-table table-wrap" hidden><table><thead><tr><th>${t('history.time')}</th><th>${t('entity.pv')} (kW)</th><th>${t('entity.house')} (kW)</th><th>${t('entity.price')} (${t('unit.czk_kwh')})</th><th>${t('today_chart.origin')}</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${siteDateTime(r.timestamp)}</td><td>${num(r.pv,2)}</td><td>${num(r.house,2)}</td><td>${num(r.price,2)}</td><td>${t('today_chart.'+r.kind)}</td></tr>`).join('')}</tbody></table></div>`;
-    container.querySelectorAll('[data-days]').forEach(b=>b.addEventListener('click',()=>draw(Number(b.dataset.days))));
+      <output class="today-chart-tooltip" aria-live="polite"></output>
+      <div class="today-chart-table table-wrap" hidden><table><thead><tr><th>${t('history.time')}</th><th>${t('entity.pv')} (kW)</th><th>${t('entity.house')} (kW)</th><th>${t('entity.price')} (${t('unit.czk_kwh')})</th><th>${t('today_chart.origin')}</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${siteDateTime(r.timestamp)}</td><td>${num(r.pv,2)}</td><td>${num(r.house,2)}</td><td>${num(r.price,2)}</td><td>${origin(r)}</td></tr>`).join('')}</tbody></table></div>`;
+    if (background) {
+      for (const selector of ['.today-chart-panels','.today-chart-table']) {
+        patchDOM(container.querySelector(selector),target.querySelector(selector));
+      }
+      const oldAlerts=[...container.querySelectorAll('[role="alert"]')];
+      oldAlerts.forEach(alert=>alert.remove());
+      target.querySelectorAll('[role="alert"]').forEach(alert=>container.prepend(alert));
+    }
+    container.querySelectorAll('[data-days]').forEach(b=>{b.onclick=()=>draw(Number(b.dataset.days));});
     container.querySelector('.today-chart-table').hidden = !tableOpen;
     container.querySelector('[data-table]').setAttribute('aria-expanded',String(tableOpen));
-    container.querySelector('[data-table]').addEventListener('click',event=>{
+    container.querySelector('[data-table]').onclick=event=>{
       const table = container.querySelector('.today-chart-table');
       table.hidden = !table.hidden;
       tableOpen = !table.hidden;
       event.currentTarget.setAttribute('aria-expanded',String(!table.hidden));
-    });
+    };
     const panels = container.querySelector('.today-chart-panels');
     panels.tabIndex = 0;
     panels.setAttribute('role','group');
@@ -189,23 +220,24 @@ export async function mountTodayChart(container, {api, prices, now = new Date()}
       const nearest = observations.reduce((best,r)=>Math.abs(Date.parse(r.timestamp)-stamp)<Math.abs(Date.parse(best.timestamp)-stamp)?r:best,observations[0]);
       const near = nearest && Math.abs(Date.parse(nearest.timestamp)-stamp)<=gap/2 ? nearest : null;
       const tariff = rows.find(r=>r.kind==='published_price' && Date.parse(r.timestamp)<=stamp && Date.parse(r.end_at)>stamp);
-      container.querySelector('output').textContent = `${siteDateTime(new Date(stamp))} · ${t('entity.pv')}: ${num(near?.pv,2)} kW · ${t('entity.house')}: ${num(near?.house,2)} kW · ${t('entity.price')}: ${num(tariff?.price,2)} ${t('unit.czk_kwh')}`;
+      container.querySelector('output').textContent = `${siteDateTime(new Date(stamp))} · ${t('entity.pv')}: ${num(near?.pv,2)} kW · ${t('entity.house')}: ${num(near?.house,2)} kW · ${near ? origin(near)+' · ' : ''}${t('entity.price')}: ${num(tariff?.price,2)} ${t('unit.czk_kwh')}`;
       panels.querySelectorAll('.today-crosshair').forEach(line=>{
         line.removeAttribute('hidden');
         const x = 54 + (stamp-+range.from)/(+range.to-+range.from)*(width-72);
         line.setAttribute('x1',x);line.setAttribute('x2',x);
       });
     };
-    panels.addEventListener('pointermove',event=>{
+    panels.onpointermove=event=>{
       const svg = event.target.closest('svg'); if (!svg) return;
       const b = svg.getBoundingClientRect();
       inspect(+range.from+Math.max(0,Math.min(1,((event.clientX-b.left)/b.width*width-54)/(width-72)))*(+range.to-+range.from));
-    });
-    panels.addEventListener('keydown',event=>{
+    };
+    panels.onkeydown=event=>{
       if (!['ArrowLeft','ArrowRight'].includes(event.key)||!rows.length) return;
       event.preventDefault(); selected=Math.max(0,Math.min(rows.length-1,selected+(event.key==='ArrowRight'?1:-1)));
       inspect(Date.parse(rows[selected].timestamp));
-    });
+    };
   };
   await draw(selectedDays);
+  return async nextPrices => { prices=nextPrices || prices; now=new Date(); await draw(selectedDays,true); };
 }

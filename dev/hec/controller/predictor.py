@@ -12,6 +12,7 @@ from statistics import median
 
 from ..core.logging_setup import get_logger
 from ..core.timeutil import now_local, parse_iso, to_iso
+from ..forecast.today import today_pv
 from ..storage.base import read_json
 
 # Šířka intervalu podle množství naučených dat.
@@ -211,6 +212,28 @@ class Predictor:
                                  "heat": slope_samples},
             })
 
+        moment = now_local()
+        if any(row.get("date") == today.isoformat() for row in weather.get("forecast_daily", [])):
+            key = (int(moment.timestamp()) // 900, weather.get("fetched_at"))
+            cached = getattr(self, "_today_cache", None)
+            if cached and cached[0] == key:
+                current = dict(cached[1])
+            else:
+                current = today_pv(self.storage, self.config, weather, factor,
+                                   CONFIDENCE_BANDS[self.confidence_for(factor_samples)], moment)
+                if current["pv_kwh"] is not None:
+                    self._today_cache = (key, dict(current))
+            future_prices = [p for p in self._prices_for(today) if p["start"] >= moment.strftime("%H:%M")]
+            consumption, samples = self.consumption_estimate(today, history)
+            current.update(date=today.isoformat(), confidence=self.confidence_for(factor_samples),
+                           consumption_kwh=consumption, heat_kwh=None, grid_balance_kwh=None,
+                           cost_czk=None, battery_soc_min_pct=None,
+                           mean_temperature_c=self._mean_temperature(weather, today),
+                           best_appliance_window=self._format_window(self.cheapest_window(future_prices, APPLIANCE_WINDOW_HOURS)),
+                           best_dhw_window=self._format_window(self.cheapest_window(future_prices, DHW_WINDOW_HOURS, between=("08:00", "17:00"))),
+                           prices_known=bool(future_prices), learned_days={"pv":factor_samples,"consumption":samples,"heat":0})
+            out_days.insert(0, current)
+
         return {
             "available": bool(out_days),
             "generated_at": to_iso(now_local()),
@@ -266,7 +289,7 @@ class Predictor:
         start = now_local() - timedelta(days=int(self.config.get("prediction.learning_days", 30)))
         for record in self.storage.query(self.source, start, now_local()):
             # Poslední predikce pro daný den vyhrává (je nejlépe informovaná).
-            if record.get("date") and record.get("pv_kwh"):
+            if record.get("date") and record.get("pv_kwh") and not record.get("estimate_kind"):
                 predicted[record["date"]] = record["pv_kwh"]
 
         pairs = [(actual[day], predicted[day]) for day in predicted if day in actual and actual[day] > 0]
