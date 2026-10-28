@@ -128,3 +128,6 @@
 @media(max-width:720px){.today-header .greeting-box{flex-basis:100%}.today-header .thermal-status{flex-basis:100%}.today-header .weather-station-widget{flex-basis:100%}.today-header .thermal-card strong{font-size:1.7rem}.today-header .thermal-label{font-size:.8rem}.today-header .thermal-detail{font-size:.7rem}.today-header .thermal-card[data-temperature="room"] .thermal-detail{display:none}}
 
 #today-day-plan svg{width:100%;max-height:90px;display:block}
+
+.today-header .thermal-detail:empty{display:none}.today-header .thermal-label{overflow-wrap:anywhere}.today-header .weather-details{gap:12px}.today-header .weather-detail-item{display:flex;flex-direction:column;gap:4px}.today-header .thermal-measurement{gap:8px}.today-header .thermal-card strong{white-space:normal}
+@media(max-width:720px){.today-header .thermal-status-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,5rem),1fr))}.today-header .thermal-card{min-width:0}.today-header .thermal-card strong{display:flex;align-items:baseline;flex-wrap:wrap;gap:3px}}

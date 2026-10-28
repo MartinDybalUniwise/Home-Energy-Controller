@@ -31,6 +31,30 @@ def test_bounded_dhw_window_and_date_override():
     assert scheduled_operation({},datetime.now()) is None
 
 
+@pytest.mark.parametrize('mode', ['heating','boiler'])
+def test_one_off_requests_preserve_exclusivity_and_reject_other_window(tmp_path,tng_connect,mode):
+    reader,_,_=build_tng(tmp_path,tng_connect,write_enabled=True,operation={'default_mode':mode})
+    state=reader.read_state()
+    request=reader.request_boiler_temperature if mode=='boiler' else reader.request_heating_temperature
+    other=reader.request_heating_temperature if mode=='boiler' else reader.request_boiler_temperature
+    assert other(48,state)==(False,'exclusive_operation_window')
+    with patch.object(reader,'post_json',return_value=204) as post:
+        assert request(48,state)==(True,'ok')
+        payload=post.call_args.args[1]
+        assert payload['HeatSet']['Heat'] is (mode=='heating')
+        assert payload['BoilerSet']['Boiler'] is (mode=='boiler')
+
+
+def test_tng_four_sensors_have_distinct_mapping(tmp_path,tng_connect):
+    reader,_,_=build_tng(tmp_path,tng_connect)
+    values=reader.read()
+    assert values['outside_temperature']==23.4
+    assert values['water_output_temperature']==30.9
+    assert values['boiler_temperature']==51.4
+    assert values['room_temperature']==24.9
+    assert 'floor_temperature' not in values
+
+
 @pytest.mark.parametrize('watts', [-120, 120, 0])
 def test_only_heatpump_meter_uses_absolute_power(tmp_path,monkeypatch,watts):
     from hec.readers.shelly import ShellyReader

@@ -155,6 +155,20 @@
         "cs": "Obnovovat obsah bez blikání celé stránky. Běžné vysvětlivky schovat pod klikatelné ⓘ. Je-li nutné skutečné schválení, výrazné grafické upozornění do mobilního chatu s důvodem a krokem uživatele.",
         "en": "Refresh content without whole-page flashing. Put routine explanations behind clickable info. Show unavoidable approval as a prominent mobile chat notice with the reason and user action."
       }
+    },
+    {
+      "id": "SENSOR-001",
+      "status": "active",
+      "recorded_on": "2026-10-28",
+      "source": "owner",
+      "title": {
+        "cs": "Výstup TČ není podlahový okruh",
+        "en": "HP outlet is not the floor loop"
+      },
+      "text": {
+        "cs": "water_output_temperature (TNG tw) je teplota na výstupu TČ. Nesmí být vydávána za teplotu podlahového okruhu, akumulace ani povrchu podlahy. heating_set_temperature je požadavek. Při plánování a zhodnocení přiznat chybějící podlahové čidlo; pokles výstupu sám neprokazuje chladnutí podlahy.",
+        "en": "water_output_temperature (TNG tw) measures the heat-pump outlet, not the floor loop, buffer tank or floor surface. heating_set_temperature is a setpoint. Planning and assessment must acknowledge the missing floor-loop sensor; falling outlet temperature alone does not prove a cooling floor."
+      }
     }
   ],
   "history": [
@@ -172,6 +186,14 @@
       "change": {
         "cs": "Doplněn kompaktní barevný mobilní report.",
         "en": "Added compact colourful mobile reports."
+      }
+    },
+    {
+      "date": "2026-10-28",
+      "rule_id": "SENSOR-001",
+      "change": {
+        "cs": "Opraveno zavádějící označení Topná voda; kontrola čidel napříč systémem.",
+        "en": "Corrected ambiguous heating-water label; audited sensor use throughout HEC."
       }
     }
   ]

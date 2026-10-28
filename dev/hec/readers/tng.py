@@ -822,6 +822,9 @@ class TngReader(BaseReader):
         """Jednorázový požadavek controlleru na teplotu TUV – prochází stejným gate."""
         settings = (state or {}).get("settings") or {}
         heatpump = (state or {}).get("heatpump") or {}
+        mode = scheduled_operation(self.config.get("tng.operation", {}), now_local())
+        if mode is not None and mode != "boiler":
+            return False, "exclusive_operation_window"
         if settings.get("boiler_set_temperature") == temperature:
             return False, "already_set"
         allowed, reason = self.can_post("basic", settings.get("last_settings_not_confirmed"))
@@ -847,6 +850,11 @@ class TngReader(BaseReader):
 
         payload = copy.deepcopy(self.config.get("tng.basic_settings_template", {}))
         payload["BoilerTemp"] = temperature
+        if mode is not None:
+            payload.setdefault("HeatSet", {})["Heat"] = False
+            payload.setdefault("BoilerSet", {})["Boiler"] = True
+            if settings.get("heating_set_temperature") is not None:
+                payload["HeatTemp_Const"] = settings["heating_set_temperature"]
         self.post_json("basic_settings", payload, "BASIC_SETTINGS")
         self._mark_posted("basic", {"boiler_temperature": temperature})
 
@@ -859,6 +867,9 @@ class TngReader(BaseReader):
         """Jednorázový požadavek controlleru na konstantní teplotu topení – prochází stejným gate."""
         settings = (state or {}).get("settings") or {}
         heatpump = (state or {}).get("heatpump") or {}
+        mode = scheduled_operation(self.config.get("tng.operation", {}), now_local())
+        if mode is not None and mode != "heating":
+            return False, "exclusive_operation_window"
         if settings.get("heating_set_temperature") == temperature:
             return False, "already_set"
         allowed, reason = self.can_post("basic", settings.get("last_settings_not_confirmed"))
@@ -884,6 +895,11 @@ class TngReader(BaseReader):
 
         payload = copy.deepcopy(self.config.get("tng.basic_settings_template", {}))
         payload["HeatTemp_Const"] = temperature
+        if mode is not None:
+            payload.setdefault("HeatSet", {})["Heat"] = True
+            payload.setdefault("BoilerSet", {})["Boiler"] = False
+            if settings.get("boiler_set_temperature") is not None:
+                payload["BoilerTemp"] = settings["boiler_set_temperature"]
         self.post_json("basic_settings", payload, "BASIC_SETTINGS")
         self._mark_posted("basic", {"heating_temperature": temperature})
 

@@ -15,5 +15,6 @@ export function thermalSnapshot(current, now = new Date()) {
     water:temperature('water_output_temperature',0,90),
     boilerTarget:temperature('boiler_set_temperature',0,100),
     waterTarget:temperature('heating_set_temperature',0,90),
-    heatingEnabled:fresh ? data.heating_on : null};
+    heatingEnabled:fresh ? data.heating_on : null,
+    boilerEnabled:fresh ? data.boiler_on : null};
 }

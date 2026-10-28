@@ -1,4 +1,4 @@
-import {renderDayPlan} from './day-plan.js?v=36b';
+import {renderDayPlan} from './day-plan.js?v=36c';
 import { rulesPage } from './rules.js?v=36';
 import {patchDOM} from './patch-dom.js?v=36';
 import { mountTodayChart, siteDateTime } from './today-chart.js?v=36';
@@ -6,7 +6,7 @@ import { source, finite, energySnapshot, heatpumpText, heatingPermission, batter
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 
 import { renderChart, renderGoodWeHistoryChart, renderTable } from './chart.js?v=4';
-import { renderForecastStory, renderToday } from './advisor.js?v=36';
+import { renderForecastStory, renderToday } from './advisor.js?v=36c';
 import { renderFlow } from './flow.js?v=3';
 import { availableLanguages, currentLanguage, dateTime, duration, num, power, t, time, weekday } from './i18n.js';
 import { weatherIcon } from './icons.js';

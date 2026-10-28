@@ -35,7 +35,7 @@ export function renderDayPlan(container, config, now = new Date(), prediction = 
   const axis=document.createElement('div');axis.className='plan-axis';
   for (const hour of ['00','06','12','18','24']) {const label=document.createElement('span');label.textContent=hour;axis.append(label);}
   container.append(axis);
-  for (const [mode,key,field] of [['heating','entity.heatpump','heat'],['boiler','entity.dhw','boiler']]) {
+  for (const [mode,key,field] of [['heating','plan.heating','heat'],['boiler','entity.dhw','boiler']]) {
     const label=document.createElement('div');label.className='meta';label.textContent=t(key);container.append(label);
     const lane=document.createElement('div');lane.className=`plan-lane plan-lane--${mode}`;
     for (const block of segments) {

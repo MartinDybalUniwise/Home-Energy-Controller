@@ -63,7 +63,7 @@
     "heating": "Heating",
     "outside": "Outdoor temperature",
     "room": "Room temperature",
-    "water_out": "Flow temperature",
+    "water_out": "Heat-pump outlet",
     "weather": "Weather",
     "dishwasher": "Dishwasher",
     "washing_machine": "Washing machine",
@@ -872,7 +872,7 @@
   },
   "reason": {
     "pv_surplus_high_soc": "PV surplus {pv_kw} kW, battery {soc} %, low price {price} CZK/kWh",
-    "price_high_use_inertia": "High price {price} CZK/kWh, using the floor's thermal inertia",
+    "price_high_use_inertia": "High price {price} CZK/kWh, limiting DHW reheating",
     "cheap_window_preheat": "Cheap window until {until}, gentle preheating within comfort limits",
     "comfort_limit_reached": "Comfort limit {limit} °C reached",
     "safe_mode_stale_data": "Data from {source} is older than {age} s",
@@ -988,7 +988,8 @@
     "today_pv": "Today PV: measured production plus remaining estimate, date-limited schedules.",
     "thermal_status": "Overview temperatures, smooth refresh, absolute heat-pump power and exclusive heating rules.",
     "consumption_plan": "Graphical house consumption plan with central estimate and uncertainty band.",
-    "exclusive_mode": "Exclusive heating and DHW modes retain the inactive circuit setpoint."
+    "exclusive_mode": "Exclusive heating and DHW modes retain the inactive circuit setpoint.",
+    "sensor_semantics": "Explicit heat-pump outlet sensor, cleaner header and exclusive modes for one-off requests."
   },
   "meter": {
     "valid": "Measured electrical input",
@@ -1028,12 +1029,15 @@
     "title": "Current temperatures",
     "room": "Indoors",
     "boiler": "Hot water tank",
-    "water": "Heating water",
+    "water": "HP outlet",
     "room_sensor": "TNG room sensor",
     "target": "Setpoint {value} °C",
-    "measured_at": "TNG measurement · heating water is the heat-pump outlet",
+    "measured_at": "TNG sensors: room, DHW tank and heat-pump outlet. Floor-loop water and floor surface are not measured. The HP setting is a requested value, not another sensor.",
     "stale": "Current measurement unavailable",
-    "info": "More information"
+    "info": "More information",
+    "reading": "Temperatures at",
+    "disabled": "Heating disabled",
+    "heating_setting": "HP setting {value} °C"
   },
   "rules": {
     "title": "HEC rules",
@@ -1052,6 +1056,7 @@
     "range": "Range",
     "measured": "Measured",
     "remaining": "Estimated remaining consumption",
-    "estimate_info": "Whole-day estimate from historical consumption, not an exact calculation of the new TNG schedule. The central estimate is the model median; the band indicates uncertainty."
+    "estimate_info": "Whole-day estimate from historical consumption, not an exact calculation of the new TNG schedule. The central estimate is the model median; the band indicates uncertainty. The timeline shows requested HP settings, not measured floor temperature.",
+    "heating": "Heating · HP setting"
   }
 }

@@ -63,7 +63,7 @@
     "heating": "Topení",
     "outside": "Venkovní teplota",
     "room": "Teplota v místnosti",
-    "water_out": "Výstupní voda",
+    "water_out": "Výstup TČ",
     "weather": "Počasí",
     "dishwasher": "Myčka",
     "washing_machine": "Pračka",
@@ -872,7 +872,7 @@
   },
   "reason": {
     "pv_surplus_high_soc": "Přebytek FVE {pv_kw} kW, baterie {soc} %, nízká cena {price} Kč/kWh",
-    "price_high_use_inertia": "Vysoká cena {price} Kč/kWh, využívá se setrvačnost podlahy",
+    "price_high_use_inertia": "Vysoká cena {price} Kč/kWh, omezení dohřevu bojleru",
     "cheap_window_preheat": "Levné okno do {until}, mírné předtopení v mezích komfortu",
     "comfort_limit_reached": "Dosažena komfortní mez {limit} °C",
     "safe_mode_stale_data": "Data ze zdroje {source} jsou starší než {age} s",
@@ -988,7 +988,8 @@
     "today_pv": "Dnešní výroba: měření a zbývající odhad, jednodenní rozvrhy.",
     "thermal_status": "Teploty na přehledu, plynulá obnova, absolutní příkon TČ a pravidla odděleného ohřevu.",
     "consumption_plan": "Grafický plán spotřeby domu se středním odhadem a pásmem nejistoty.",
-    "exclusive_mode": "Oddělené režimy topení a bojleru zachovávají teplotu vypnutého okruhu."
+    "exclusive_mode": "Oddělené režimy topení a bojleru zachovávají teplotu vypnutého okruhu.",
+    "sensor_semantics": "Upřesnění výstupního čidla TČ, přehlednější hlavička a zachování oddělených režimů i při jednorázových požadavcích."
   },
   "meter": {
     "valid": "Měřený příkon",
@@ -1028,12 +1029,15 @@
     "title": "Aktuální teploty",
     "room": "Doma",
     "boiler": "Bojler",
-    "water": "Topná voda",
+    "water": "Výstup TČ",
     "room_sensor": "Pokojové čidlo TNG",
     "target": "Požadavek {value} °C",
-    "measured_at": "Měření TNG · topná voda je výstup čerpadla",
+    "measured_at": "Čidla TNG: pokoj, bojler a výstup z tepelného čerpadla. Teplotu vody v podlahovém okruhu ani povrch podlahy neměříme. Nastavení TČ je požadovaná hodnota, nikoli další čidlo.",
     "stale": "Aktuální měření není dostupné",
-    "info": "Více informací"
+    "info": "Více informací",
+    "reading": "Teploty v",
+    "disabled": "Ohřev vypnutý",
+    "heating_setting": "Nastavení TČ {value} °C"
   },
   "rules": {
     "title": "Pravidla HEC",
@@ -1052,6 +1056,7 @@
     "range": "Rozmezí",
     "measured": "Naměřeno",
     "remaining": "Odhad zbývající spotřeby",
-    "estimate_info": "Odhad celého dne z historické spotřeby, nikoli přesný výpočet nového rozvrhu TNG. Střední hodnota je medián modelu; pásmo vyjadřuje nejistotu."
+    "estimate_info": "Odhad celého dne z historické spotřeby, nikoli přesný výpočet nového rozvrhu TNG. Střední hodnota je medián modelu; pásmo vyjadřuje nejistotu. Časová osa ukazuje požadované nastavení TČ, nikoli změřenou teplotu podlahy.",
+    "heating": "Topení · nastavení TČ"
   }
 }
