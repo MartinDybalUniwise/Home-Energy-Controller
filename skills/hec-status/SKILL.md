@@ -5,10 +5,12 @@ description: Vytvoř stručný grafický mobilní přehled HEC při dotazu na st
 
 # Stav HEC
 
-Odpovídej česky. Primárním výstupem je přehledná grafika do chatu pro mobil,
-nikoli dlouhé vysvětlení. Pro inline grafiku načti úplné aktuální instrukce
-dostupného skillu visualize. Při nedostupném vykreslení použij stručný mobilní
-Markdown a přiznej omezení.
+Odpovídej česky. Mobilní a pravidelné zprávy posílej jako přehledný nativní
+Markdown s barevnými stavovými emoji, krátkými bloky a časovou osou plánu.
+Telefon vlastníka nevykresluje lokální visualize HTML: nikdy v těchto zprávách
+neposílej interní visualize značky, lokální HTML odkazy ani cesty C:/. Celý
+přehled musí být čitelný přímo ve zprávě. Interaktivní vizualizaci používej
+jen na výslovně vyžádaném podporovaném klientu; tehdy načti skill visualize.
 
 ## Obsah a pořadí
 
