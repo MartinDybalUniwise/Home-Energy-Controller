@@ -97,3 +97,7 @@ See [step35/PLAN.md](step35/PLAN.md). Owner authorized implementation, deploymen
 ## Step36 — current temperatures
 
 See [step36/PLAN.md](step36/PLAN.md).
+
+## Step37 — partial heat-pump reading
+
+See [step37/PLAN.md](step37/PLAN.md).

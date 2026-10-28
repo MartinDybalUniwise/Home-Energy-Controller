@@ -1,6 +1,6 @@
 import {thermalSnapshot} from './thermal-status.js?v=36d';
 import { siteDate, siteClock, siteMoment, siteTime, siteDateTime, uniqueSiteMoment, priceInterval } from './today-chart.js';
-import { source, finite, energySnapshot, heatpumpPower, batteryText, heatpumpText, heatingPermission } from './telemetry.js';
+import { source, finite, energySnapshot, heatpumpPower, heatpumpReportedPower, batteryText, heatpumpText, heatingPermission } from './telemetry.js?v=37';
 // Rozhodovací vrstva pro domovskou stránku (Step 18 Touchscreen Redesign).
 // Pracuje výhradně s daty, která rozhraní dostává z API: cenou, předpovědí počasí,
 // predikcí výroby a okamžitým stavem.
@@ -309,8 +309,8 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         <div class="kpi-icon-wrap" aria-hidden="true">♨️</div>
         <div class="kpi-body">
           <span class="kpi-label">${t('entity.heatpump')}</span>
-          <div class="kpi-value">${power(heatpumpPower(source(current, 'shelly'))).value} <span class="kpi-unit">${power(heatpumpPower(source(current, 'shelly'))).unit}</span></div>
-          <span class="kpi-trend kpi-trend--neutral">${heatpumpText(source(current, 'shelly'))}</span>
+          <div class="kpi-value">${power(heatpumpReportedPower(source(current, 'shelly'))).value} <span class="kpi-unit">${power(heatpumpReportedPower(source(current, 'shelly'))).unit}</span></div>
+          <span class="kpi-trend kpi-trend--neutral">${heatpumpPower(source(current,'shelly')) === null && heatpumpReportedPower(source(current,'shelly')) !== null ? t('meter.partial_phase') : heatpumpText(source(current,'shelly'))}</span><details class="explanation-info"><summary aria-label="${t('meter.reading_info')}">ⓘ</summary><p>${t('meter.reading_info')}</p></details>
         </div>
       </article>
     </section>

@@ -990,7 +990,8 @@
     "consumption_plan": "Grafický plán spotřeby domu se středním odhadem a pásmem nejistoty.",
     "exclusive_mode": "Oddělené režimy topení a bojleru zachovávají teplotu vypnutého okruhu.",
     "sensor_semantics": "Upřesnění výstupního čidla TČ, přehlednější hlavička a zachování oddělených režimů i při jednorázových požadavcích.",
-    "buffer_status": "Samostatná AKU nádrž oddělená od výstupu TČ; neznámý údaj se nezaměňuje za jiné čidlo."
+    "buffer_status": "Samostatná AKU nádrž oddělená od výstupu TČ; neznámý údaj se nezaměňuje za jiné čidlo.",
+    "partial_meter": "Kladný odečet TČ je viditelný i při chybě fáze, s označením neúplného měření."
   },
   "meter": {
     "valid": "Měřený příkon",
@@ -1000,7 +1001,9 @@
     "offline": "Zařízení nedostupné",
     "residual": "Dopočtený zbytek",
     "incomplete": "Nelze dopočítat: neúplné měření",
-    "stale": "Zastaralé měření"
+    "stale": "Zastaralé měření",
+    "partial_phase": "Neúplné měření · chyba fáze",
+    "reading_info": "Zobrazen je absolutní odečet měřidla TČ. Při chybě fáze nemusí zahrnovat celý příkon; nepoužívá se jako platný vstup pro spotřebu, COP ani řízení. Ostatní měřidla se neupravují."
   },
   "today_chart": {
     "title": "Výroba, spotřeba a cena",
