@@ -56,6 +56,20 @@ def scheduled_value(section: dict, moment: datetime):
     return value
 
 
+def scheduled_operation(section: dict, moment: datetime) -> str | None:
+    """Optional exclusive TNG mode; a bounded DHW window cannot starve heating."""
+    if not section:
+        return None
+    section = effective_schedule(section, moment)
+    mode = section.get("default_mode", "heating")
+    for window in section.get("schedule", []) or []:
+        if in_window(moment, window["from"], window["to"]):
+            mode = window["mode"]
+    if mode not in ("heating", "boiler", "off"):
+        raise ValueError("Invalid exclusive TNG operation mode")
+    return mode
+
+
 def _fmt_temp(val: float | int | None) -> str:
     if val is None:
         return "-"
@@ -680,6 +694,15 @@ class TngReader(BaseReader):
         if boiler.get("enabled") or heating.get("enabled"):
             payload = copy.deepcopy(self.config.get("tng.basic_settings_template", {}))
             matches = True
+            mode = scheduled_operation(self.config.get("tng.operation", {}), moment)
+            if mode is not None:
+                heat_on = mode == "heating" and bool(heating.get("enabled"))
+                boiler_on = mode == "boiler" and bool(boiler.get("enabled"))
+                payload.setdefault("HeatSet", {})["Heat"] = heat_on
+                payload.setdefault("BoilerSet", {})["Boiler"] = boiler_on
+                if (settings.get("heating_on") != heat_on
+                        or settings.get("boiler_on") != boiler_on):
+                    matches = False
             if boiler.get("enabled"):
                 desired = scheduled_value(boiler, moment)
                 payload["BoilerTemp"] = desired

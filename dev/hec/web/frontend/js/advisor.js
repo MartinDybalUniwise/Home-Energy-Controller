@@ -1,3 +1,4 @@
+import {thermalSnapshot} from './thermal-status.js?v=36';
 import { siteDate, siteClock, siteMoment, siteTime, siteDateTime, uniqueSiteMoment, priceInterval } from './today-chart.js';
 import { source, finite, energySnapshot, heatpumpPower, batteryText, heatpumpText, heatingPermission } from './telemetry.js';
 // Rozhodovací vrstva pro domovskou stránku (Step 18 Touchscreen Redesign).
@@ -154,6 +155,7 @@ function formatDateFull(now) {
 export function renderToday(view, { current, weather, prices, prediction }) {
   const goodwe = energySnapshot(current);
   const tng = source(current, 'tng');
+  const thermal = thermalSnapshot(current);
   const controller = current?.status?.controller || {};
   const advice = bestAdvice(prediction, prices);
   const now = new Date();
@@ -187,6 +189,14 @@ export function renderToday(view, { current, weather, prices, prediction }) {
 
   view.innerHTML = `
   <div class="today-screen">
+    <section class="thermal-status" aria-label="${t('thermal.title')}">
+      <div class="thermal-status-grid">
+        <div class="thermal-card" data-temperature="room"><span class="thermal-label">${t('thermal.room')}</span><strong>${num(thermal.room,1)} <small>°C</small></strong><span class="thermal-detail">${t('thermal.room_sensor')}</span></div>
+        <div class="thermal-card" data-temperature="boiler"><span class="thermal-label">${t('thermal.boiler')}</span><strong>${num(thermal.boiler,1)} <small>°C</small></strong><span class="thermal-detail">${t('thermal.target',{value:num(thermal.boilerTarget,1)})}</span></div>
+        <div class="thermal-card" data-temperature="water"><span class="thermal-label">${t('thermal.water')}</span><strong>${num(thermal.water,1)} <small>°C</small></strong><span class="thermal-detail">${t('thermal.target',{value:num(thermal.waterTarget,1)})} · ${t(thermal.heatingEnabled === true ? 'flow.heating_enabled' : thermal.heatingEnabled === false ? 'flow.heating_disabled' : 'meter.missing')}</span></div>
+      </div>
+      <div class="thermal-measurement"><span>${thermal.fresh ? t('overview.last_data_update') : t('thermal.stale')}${thermal.timestamp && Number.isFinite(Date.parse(thermal.timestamp)) ? ' · '+siteDateTime(thermal.timestamp) : ''}</span><details class="explanation-info"><summary aria-label="${t('thermal.info')}">ⓘ</summary><p>${t('thermal.measured_at')}</p></details></div>
+    </section>
     <!-- 1. HORNÍ PANEL: Pozdrav a Integrovaná meteostanice -->
     <header class="today-header">
       <div class="greeting-box">
@@ -304,7 +314,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
       </article>
     </section>
 
-    <p class="today-source-note">${t('today_chart.measurement_note')} ${goodwe.timestamp ? siteDateTime(goodwe.timestamp) : t('meter.missing')}</p>
+    <details class="explanation-info today-source-note"><summary aria-label="${t('thermal.info')}">ⓘ</summary><p>${t('today_chart.measurement_note')} ${goodwe.timestamp ? siteDateTime(goodwe.timestamp) : t('meter.missing')}</p></details>
 
     <!-- 4. ENERGETICKÝ RYTMUS DNE (24h timeline) -->
     <section class="rhythm-section" aria-labelledby="rhythm-title">
@@ -374,20 +384,23 @@ export function renderToday(view, { current, weather, prices, prediction }) {
 
       <article class="workspace-card forecast-chart-card"><header class="workspace-card-header"><h4>${t('today_chart.title')}</h4></header>
         <div id="today-energy-chart"></div>
+        <header class="workspace-card-header"><h4>${t('plan.title')}</h4></header>
+        <div id="today-day-plan"></div>
       </article>
     </section>
   </div>`;
 
   const btnWhyNow = view.querySelector('#btn-why-now');
   if (btnWhyNow) {
-    btnWhyNow.addEventListener('click', () => {
+    btnWhyNow.dataset.advice = advice.best;
+    btnWhyNow.onclick = () => {
       const dlg = document.getElementById('why-now-dialog');
       if (dlg) {
         const body = dlg.querySelector('#why-now-body');
-        if (body) body.textContent = `${advice.best}. ${t('advisor.why_now_content')}`;
+        if (body) body.textContent = `${btnWhyNow.dataset.advice}. ${t('advisor.why_now_content')}`;
         dlg.showModal();
       }
-    });
+    };
   }
 }
 

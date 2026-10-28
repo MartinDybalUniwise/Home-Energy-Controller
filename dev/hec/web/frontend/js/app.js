@@ -3,12 +3,12 @@
 import { api } from './api.js';
 import { applyScene } from './background.js';
 import { applyTranslations, setLanguage, t, time } from './i18n.js';
-import { pages } from './pages.js?v=35-17';
+import { pages } from './pages.js?v=36-17';
 import { setupReleases } from './releases.js';
 
 const REFRESH_MS = 10000;
 const STARTUP_STATUS_TIMEOUT_MS = 1500;
-const ALL_PAGES = ['overview', 'prediction', 'flow', 'history', 'finance', 'finance/manual', 'control-plan', 'status', 'logs', 'settings'];
+const ALL_PAGES = ['overview', 'prediction', 'flow', 'history', 'finance', 'finance/manual', 'control-plan', 'rules', 'status', 'logs', 'settings'];
 
 const state = {
   page: 'overview',

@@ -93,3 +93,7 @@ See [step34/PLAN.md](step34/PLAN.md). Owner authorized implementation and deploy
 ## Step35 — today PV and one-day schedules
 
 See [step35/PLAN.md](step35/PLAN.md). Owner authorized implementation, deployment and today plan on 2026-10-28.
+
+## Step36 — current temperatures
+
+See [step36/PLAN.md](step36/PLAN.md).

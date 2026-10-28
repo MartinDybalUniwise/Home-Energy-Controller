@@ -95,3 +95,30 @@
   .today-screen .rhythm-section { padding: 18px; }
   .today-plot { min-height: 180px; }
 }
+
+/* Current TNG measurements appear before the weather header. */
+.thermal-status { padding: 18px; border: 1px solid var(--panel-border); border-radius: 16px; background: var(--bg-card); }
+.thermal-status-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 16px; }
+.thermal-card { display: flex; flex-direction: column; gap: 7px; min-width: 0; padding: 12px; color: var(--ink-primary); }
+.thermal-label { font-weight: 600; }
+.thermal-card strong { font-family: 'Barlow Semi Condensed',sans-serif; font-size: 2.4rem; font-variant-numeric: tabular-nums; }
+.thermal-card strong small { font-size: 1rem; font-weight: 400; }
+.thermal-detail, .thermal-measurement { color: var(--ink-secondary); font-size: .85rem; overflow-wrap: anywhere; }
+.thermal-measurement { margin: 10px 12px 0; }
+@media (max-width: 560px) {
+ .thermal-status-grid { grid-template-columns: minmax(0,1fr); gap: 8px; }
+ .thermal-card { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; padding: 8px; }
+ .thermal-card strong { grid-column: 2; grid-row: 1 / span 2; font-size: 2rem; }
+ .thermal-detail { grid-column: 1; }
+}
+
+.explanation-info { color: var(--ink-secondary); font-size: .85rem; }
+.explanation-info summary { cursor: pointer; list-style: none; width: max-content; padding: 6px 10px; font-size: 1.1rem; }
+.explanation-info summary::-webkit-details-marker { display: none; }
+.explanation-info p { margin: 8px 10px; }
+.thermal-measurement { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.thermal-measurement .explanation-info[open] { flex-basis: 100%; }
+
+.today-chart-tooltip:empty { display: none; }
+
+#today-day-plan{padding:0 14px 8px}.plan-axis{display:flex;justify-content:space-between;color:var(--ink-secondary);font-size:.75rem}.plan-lane{position:relative;height:32px;margin:4px 0 10px;background:var(--bg-card-subtle);border-radius:5px;overflow:hidden}.plan-block{position:absolute;top:0;height:32px;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;font-size:.75rem!important;color:var(--ink-primary)!important}.plan-block[data-active="true"]{background:color-mix(in srgb,var(--series-heatpump) 45%,transparent)!important}.plan-lane--boiler .plan-block[data-active="true"]{background:color-mix(in srgb,var(--series-grid-import) 45%,transparent)!important}.plan-now{position:absolute;height:100%;width:2px;top:0;background:var(--ink-primary);pointer-events:none}.plan-detail{min-height:2em}

@@ -24,7 +24,8 @@
     "forecast": "Výhled",
     "flow": "Tok energie",
     "more": "Více",
-    "advanced": "Servis a diagnostika"
+    "advanced": "Servis a diagnostika",
+    "rules": "Pravidla HEC"
   },
   "unit": {
     "w": "W",
@@ -984,7 +985,8 @@
     "settings": "Oprava ukládání volitelných číselných nastavení a jazyka rozhraní.",
     "overview_accuracy": "Obnovený čitelný přehled se skutečným grafem výroby, spotřeby a cen; opravené datum, jednotky a kvalita měření.",
     "sdg_history": "Doplnění historie hlavního grafu z archivu SDG.",
-    "today_pv": "Dnešní výroba: měření a zbývající odhad, jednodenní rozvrhy."
+    "today_pv": "Dnešní výroba: měření a zbývající odhad, jednodenní rozvrhy.",
+    "thermal_status": "Teploty na přehledu, plynulá obnova, absolutní příkon TČ a pravidla odděleného ohřevu."
   },
   "meter": {
     "valid": "Měřený příkon",
@@ -1017,6 +1019,31 @@
     "ambiguous_price": "Nejednoznačné nebo neplatné cenové intervaly (například opakovaná hodina při změně času) jsou vynechány; cenu neodhadujeme.",
     "measured_sdg": "Archiv SDG",
     "partial": "Jeden zdroj historie není dostupný. Graf zobrazuje dostupná měření; rozsah můžete načíst znovu.",
-    "pv_breakdown": "Naměřeno {measured} kWh + odhad do konce dne {remaining} kWh. Přepočet po 15 minutách."
+    "pv_breakdown": "Naměřeno {measured} kWh + odhad do konce dne {remaining} kWh.",
+    "info": "Více informací"
+  },
+  "thermal": {
+    "title": "Aktuální teploty",
+    "room": "Doma",
+    "boiler": "Bojler",
+    "water": "Topná voda",
+    "room_sensor": "Pokojové čidlo TNG",
+    "target": "Požadavek {value} °C",
+    "measured_at": "Měření TNG · topná voda je výstup čerpadla",
+    "stale": "Aktuální měření není dostupné",
+    "info": "Více informací"
+  },
+  "rules": {
+    "title": "Pravidla HEC",
+    "intro": "Dohodnutá pravidla pro nastavení a kontroly. Záznam pravidla sám nemění konfiguraci.",
+    "history": "Záznam změn",
+    "updated": "Aktualizováno",
+    "source": "Pokyn vlastníka"
+  },
+  "plan": {
+    "title": "Dnešní plán",
+    "inactive": "vypnuto v tomto okně",
+    "now": "Nyní",
+    "saved": "uložený plán · kliknutím detail"
   }
 }
