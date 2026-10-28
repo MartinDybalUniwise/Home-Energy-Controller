@@ -15,11 +15,13 @@ from .sdg_history_reader import SDGHistoryReader
 from .sharing_reader import SharingReader
 from .shelly import ShellyReader
 from .tng import TngReader
+from .tng_wire import TngWireReader
 from .weather import WeatherReader
 
 READER_CLASSES: dict[str, type[BaseReader]] = {
     "goodwe": FTEReader,
     "tng": TngReader,
+    "tng_wire": TngWireReader,
     "ote": OteReader,
     "weather": WeatherReader,
     "shelly": ShellyReader,

@@ -287,6 +287,15 @@
       ]
     }
   },
+  "tng_wire": {
+    "enabled": false,
+    "bind": "0.0.0.0",
+    "port": 37008,
+    "tc_ip": "192.168.2.100",
+    "router_ip": "192.168.2.1",
+    "retention_days": 30,
+    "max_daily_bytes": 50000000
+  },
   "ote": {
     "enabled": true,
     "eur_czk_rate": 25.0,
