@@ -52,6 +52,29 @@ def test_auto_bucket_grows_with_range():
     assert api.auto_bucket(30 * 86400) == 3600
 
 
+def test_tng_history_adds_only_valid_distinct_wire_temperatures(tmp_path):
+    app = FakeApp(tmp_path)
+    stamp = "2026-10-29T08:01:00+01:00"
+    app.storage.append("tng", {"timestamp": stamp, "room_temperature": 22.1,
+                               "water_output_temperature": 36.5})
+    for quality, value in [("photo_validated_provisional", 40.5),
+                           ("outside_verified_range", 200)]:
+        app.storage.append("tng_wire", {"timestamp": stamp, "buffer_temperature": value,
+            "water_input_temperature": 38.1, "water_output_temperature": 99,
+            "field_quality": {"buffer_temperature": quality,
+                              "water_input_temperature": "photo_validated_provisional"}})
+    params = {"source": "tng", "from": "2026-10-29T08:00:00+01:00",
+              "to": "2026-10-29T08:05:00+01:00", "bucket": "300"}
+    status, payload = api.history(app, params)
+    assert status == 200
+    assert payload["rows"][0]["buffer_temperature"] == 40.5
+    assert payload["rows"][0]["water_input_temperature"] == 38.1
+    assert payload["rows"][0]["water_output_temperature"] == 36.5
+    _, restricted = api.history(app, {**params, "fields": "room_temperature"})
+    assert restricted["fields"] == ["room_temperature"]
+    assert "buffer_temperature" not in restricted["rows"][0]
+
+
 def test_history_requires_source(tmp_path):
     status, payload = api.history(FakeApp(tmp_path), {})
     assert status == 400 and payload["error"] == "missing_source"
