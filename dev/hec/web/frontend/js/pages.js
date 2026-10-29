@@ -1,4 +1,5 @@
 import {renderDayPlan} from './day-plan.js?v=37';
+import {mountMcpSetup} from './mcp-setup.js?v=1';
 import {heatpumpPanel} from './heatpump-panel.js?v=40';
 import { rulesPage } from './rules.js?v=36';
 import {patchDOM} from './patch-dom.js?v=36';
@@ -986,6 +987,7 @@ export async function settings(view, { api, onUiChange }) {
     });
   });
 
+  void mountMcpSetup(view);
   const hostInput = view.querySelector('[data-path="goodwe.host"]');
   hostInput?.addEventListener('input', async () => {
     const auth = await api.goodweAuthorization().catch(() => ({}));

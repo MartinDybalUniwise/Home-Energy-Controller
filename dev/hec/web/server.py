@@ -20,7 +20,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 from .. import RELEASES
 from ..core.logging_setup import get_logger
-from . import api
+from . import api, mcp_setup
 
 FRONTEND = Path(__file__).resolve().parent / "frontend"
 SESSION_HOURS = 24 * 30
@@ -164,6 +164,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(401, {"error": "unauthorised"})
 
         routes = {
+            "/api/mcp/setup": lambda: mcp_setup.status(self.app),
             "/api/releases": lambda: (200, RELEASES),
             "/api/current": lambda: api.current(self.app, params),
             "/api/status": lambda: api.status(self.app),
@@ -207,6 +208,11 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(200, {"authorised": True}, headers={"Set-Cookie": cookie})
         if not self._authorised():
             return self._send(401, {"error": "unauthorised"})
+        if route == "/api/mcp/setup":
+            return self._send(*mcp_setup.save(
+                self.app, self._body(), origin=self.headers.get("Origin", ""),
+                host=self.headers.get("Host", ""), content_type=self.headers.get("Content-Type", ""),
+            ), headers={"Cache-Control": "no-store"})
         if route == "/api/goodwe/authorization/verify":
             return self._send(*api.goodwe_authorization_verify(self.app))
         if route == "/api/goodwe/authorization/approve":
