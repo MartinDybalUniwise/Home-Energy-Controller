@@ -73,13 +73,13 @@ def reassemble(segments):
 
 BIT_MAP = (5, 3, 4, 1, 7, 6, 2, 0)
 FIELDS = {
-    "aku_c": (80, 256, 35.2, 41.3),
+    "aku_c": (80, 256, 34.2, 41.3),
     "outlet_c": (85, 256, 26.2, 46.1),
     "outside_c": (87, 0, 3.3, 19.6),
     "boiler_c": (88, 256, 28.3, 46.2),
-    "room_c": (89, 0, 20.6, 21.8),
-    "inlet_c": (94, 256, 33.1, 45.1),
-    "refrigerant_c": (95, 256, 37.2, 50.7),
+    "room_c": (89, 0, 20.6, 22.1),
+    "inlet_c": (94, 256, 32.4, 45.1),
+    "refrigerant_c": (95, 256, 33.2, 50.7),
 }
 
 
@@ -94,7 +94,7 @@ def decode(body):
         "quality": "provisional_outside_reference_range" if outside else "provisional_reference_range",
         "outside_reference_range": outside,
         "checksum_verified": False,
-        "decoder_version": "xor-permutation-observed-branches-v1",
+        "decoder_version": "xor-permutation-observed-branches-v2",
         "decoded_hex": plain.hex(),
         "candidate_frequency_or_ack": plain[86],
         "candidate_outputs": plain[84],

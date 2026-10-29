@@ -41,6 +41,12 @@ branches. CRC, high-bit selection, negative temperatures and candidate operating
 bits remain unresolved. Refrigerant outside its checked branch is null in the UI;
 the raw candidate remains in evidence. Never infer a branch by always adding 25.6 C.
 
+Photo-validated ranges extended on 2026-10-29 (decoder v2): buffer 34.2–41.3 C,
+inlet 32.4–45.1 C, room 20.6–22.1 C, refrigerant observed branch 33.2–50.7 C.
+These are evidence ranges, not device safety limits. High boiler temperatures
+52.2–54.1 C still wrap in the provisional branch; retain cloud fallback and reject
+the passive candidate. No high-bit/CRC rule is inferred from a range extension.
+
 The overview panel mirrors the physical display. `?` denotes a candidate field;
 unknown fields are `—`. Cloud-derived fields are marked API. Passive samples expire
 after 180 s, cloud after 900 s, with per-field cloud fallback for common temperatures.
