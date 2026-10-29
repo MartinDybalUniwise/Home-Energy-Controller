@@ -33,7 +33,10 @@ def trusted_origin(origin: str, host: str) -> bool:
             return False
         if parsed.username or parsed.password:
             return False
-        return parsed.scheme == "https" or (parsed.scheme == "http" and parsed.hostname in {"localhost", "127.0.0.1", "::1"})
+        local_pc = parsed.hostname in {"localhost", "127.0.0.1", "::1"}
+        # Owner explicitly confirmed this exact private HEC origin is accessed via VPN.
+        owner_vpn = parsed.hostname == "192.168.2.115" and parsed.port == 8080
+        return parsed.scheme == "https" or (parsed.scheme == "http" and (local_pc or owner_vpn))
     except ValueError:
         return False
 

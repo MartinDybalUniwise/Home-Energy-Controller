@@ -13,12 +13,14 @@ export async function mountMcpSetup(view) {
     <details><summary>Jak získat a uložit klíč</summary>
       <p><a href="https://platform.openai.com/settings/organization/api-keys" target="_blank" rel="noopener noreferrer">Vytvořit klíč v OpenAI Platform</a>. Organizace musí odpovídat tunelu a klíč potřebuje Tunnels Read + Use.</p>
       <p>Klíč se ukládá soukromě k MCP službě, mimo konfiguraci HEC. Po uložení se nezobrazuje. Samotné uložení ještě nepotvrzuje propojení s ChatGPT.</p>
+      <p>Při vzdáleném přístupu na domácí adresu 192.168.2.115:8080 používejte svou VPN.</p>
     </details>`;
   view.append(panel);
   const input = panel.querySelector('input');
   const button = panel.querySelector('button');
   const message = panel.querySelector('[data-mcp-message]');
-  const secure = location.protocol === 'https:' || ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+  const ownerVpn = location.protocol === 'http:' && location.hostname === '192.168.2.115' && location.port === '8080';
+  const secure = location.protocol === 'https:' || ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname) || ownerVpn;
   try {
     const response = await fetch('/api/mcp/setup', {credentials: 'same-origin', cache: 'no-store'});
     const state = await response.json();
@@ -31,7 +33,7 @@ export async function mountMcpSetup(view) {
       return;
     }
     if (!secure) {
-      message.textContent = 'Pro vložení klíče otevřete HEC přes HTTPS nebo přímo na domácím PC přes localhost. Běžné nastavení HEC funguje dál.';
+      message.textContent = 'Pro vložení klíče otevřete HEC přes vlastní VPN na 192.168.2.115:8080, přes HTTPS, nebo přímo na domácím PC. Běžné nastavení HEC funguje dál.';
       return;
     }
     input.disabled = button.disabled = false;
