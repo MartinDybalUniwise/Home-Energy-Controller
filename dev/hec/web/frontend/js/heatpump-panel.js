@@ -46,10 +46,14 @@ export function heatpumpPanel(current, config, now = new Date()) {
   const operation = effective('operation');
   let desiredMode = operation.default_mode || 'heating';
   for (const item of operation.schedule || []) if (inWindow(item)) desiredMode = item.mode;
+  const comfort = cloudFresh && cloud.comfort_guard_active === true;
+  if (comfort && desiredMode !== 'off') desiredMode = 'heating';
   const target = name => {
     const section = effective(name);
     let value = section.default_temperature;
     for (const item of section.schedule || []) if (inWindow(item)) value = item.temperature;
+    if (comfort && name === 'heating') value = 42;
+    if (comfort && name === 'thermostat') value = Math.max(21.5, value);
     return finite(value) === null ? '—' : `${num(value,1)} °C`;
   };
   const gate = source(current,'tng_gate').basic || {};
@@ -85,7 +89,7 @@ export function heatpumpPanel(current, config, now = new Date()) {
     <div class="hp-panels"><article><h5>${t('hp.actual')}</h5><div class="hp-display">${rows(left)}${rows(right)}</div>
       <div class="meta">${t('hp.wire_time')}: ${wire.sample_time ? esc(siteDateTime(wire.sample_time)) : '—'}</div>
       <div class="meta">API: ${cloud.sample_time ? esc(siteDateTime(cloud.sample_time)) : '—'}</div></article>
-    <article><h5>${t('hp.command')}</h5>${rows(commandRows)}<span class="hp-badge ${settingsMatch ? 'is-fresh' : 'is-stale'}">${t(settingsMatch ? 'hp.matches' : 'hp.not_matched')}</span></article></div>
+    <article><h5>${t('hp.command')}</h5>${comfort ? `<span class="hp-badge is-stale">${t('hp.comfort_guard')}</span>` : ''}${rows(commandRows)}<span class="hp-badge ${settingsMatch ? 'is-fresh' : 'is-stale'}">${t(settingsMatch ? 'hp.matches' : 'hp.not_matched')}</span></article></div>
     <details><summary>ⓘ</summary><p>${t('hp.help')}</p><p>${t('hp.trace_counts',{requests:receiver.requests ?? 0,responses:receiver.responses ?? 0,pairs:receiver.pairs ?? 0})}</p><a href="/api/tng-wire/events?hours=1&limit=100" target="_blank" rel="noopener">${t('hp.raw_events')}</a></details>
   </section>`;
 }

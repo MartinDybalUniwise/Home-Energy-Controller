@@ -48,6 +48,20 @@ AKU has no cloud substitute. Decoder data are explicitly not control-eligible.
 The adjacent command panel separates current plan, last delivery, gate status and
 reported cloud settings. A completed gate is not proof that the compressor runs.
 
+## Room comfort guard
+
+Cloud TNG room samples (never passive telemetry) override an exclusive DHW window
+after 15 continuous minutes below 21 C. A sudden drop of at least 0.5 C within
+10 minutes while heating is enabled gets 30 minutes to recover. The guard requests
+exclusive heating at 42 C and a room target of at least 21.5 C, releasing at 21.5 C.
+Explicit off mode and disabled heating are respected. All original confirmation
+gates and 900-second guards still apply; takeover is requested, not instantaneous.
+Fresh, distinct samples only; gaps over 15 minutes reset observation timers.
+State survives restart in tng_runtime_state.json. Missing data never release an
+already active guard. Current telemetry exposes comfort_guard_active and command
+audit records comfort_guard transitions. After recovery, a still-open DHW window
+may resume through the same guards; after its end, normal heating applies.
+
 ## Twice-daily review
 
 08:00 and 20:00 Europe/Prague: inspect new bounded evidence since the previous

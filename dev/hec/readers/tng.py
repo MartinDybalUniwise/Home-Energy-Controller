@@ -31,6 +31,7 @@ from ..core.timeutil import in_window, now_local, parse_iso, to_iso
 from ..storage.base import atomic_write_json, read_json
 from ..storage.history import merge_history
 from .base import BaseReader
+from .tng_comfort import evaluate_comfort
 
 SCALAR_RE = re.compile(
     r'["\']?([A-Za-z_][A-Za-z0-9_]*)["\']?\s*:\s*(true|false|null|-?\d+(?:\.\d+)?|["\'][^"\']*["\'])',
@@ -113,6 +114,7 @@ class TngReader(BaseReader):
                            "seen_pending": False, "last_requested": None},
         }
         self.telemetry_state = {"last_sample_time": None}
+        self.comfort_state = {}
         self.pending_sent: dict[str, str] = {}
         self._telemetry_records: list[dict] = []
         self._pending_audit_day: str | None = None
@@ -137,9 +139,9 @@ class TngReader(BaseReader):
         kontrolou signatury rozvrhu každou vteřinu; tady stačí naplánovat
         probuzení readeru přesně na hranici okna."""
         boundaries: set[str] = set()
-        for name in ("boiler", "heating", "thermostat"):
+        for name in ("boiler", "heating", "thermostat", "operation"):
             section = effective_schedule(self.config.get(f"tng.{name}", {}), now_local())
-            if not section.get("enabled"):
+            if name != 'operation' and not section.get("enabled"):
                 continue
             for window in section.get("schedule", []) or []:
                 boundaries.add(window.get("from"))
@@ -173,6 +175,7 @@ class TngReader(BaseReader):
 
     def _load_state(self) -> None:
         saved = read_json(self.state_path, {}) or {}
+        self.comfort_state = saved.get('comfort', {}) if isinstance(saved.get('comfort'), dict) else {}
         for kind in ("basic", "thermostat"):
             if isinstance(saved.get(kind), dict):
                 for key in ("last_post_at", "awaiting_confirmation", "seen_pending", "last_requested"):
@@ -187,6 +190,7 @@ class TngReader(BaseReader):
             "basic": self.change_gate["basic"],
             "thermostat": self.change_gate["thermostat"],
             "telemetry": self.telemetry_state,
+            "comfort": self.comfort_state,
         })
 
     # --- HTTP --------------------------------------------------------------
@@ -279,6 +283,9 @@ class TngReader(BaseReader):
             "equit_curve": settings.get("equit_curve"),
             "pending_change": settings.get("last_settings_not_confirmed"),
             "write_enabled": bool(self.config.get("tng.write_enabled", False)),
+            "comfort_guard_active": bool(self.comfort_state.get('active'))
+                and bool(self.config.get('tng.heating.enabled', False))
+                and self._comfort_operation(now_local()) == 'heating',
         }
 
     def read_state(self) -> dict:
@@ -745,6 +752,19 @@ class TngReader(BaseReader):
             payload = copy.deepcopy(self.config.get("tng.basic_settings_template", {}))
             matches = True
             mode = scheduled_operation(self.config.get("tng.operation", {}), moment)
+            observed = evaluate_comfort(self.comfort_state, heatpump, moment,
+                                        settings.get('heating_on') is True)
+            if observed != self.comfort_state:
+                was_active = bool(self.comfort_state.get('active'))
+                self.comfort_state = observed
+                self._save_state()
+                if was_active != bool(observed.get('active')):
+                    self._command_audit({'timestamp': to_iso(moment), 'source': 'tng_commands',
+                        'phase': 'comfort_guard', 'active': bool(observed.get('active')),
+                        'room_temperature': heatpump.get('room_temperature')})
+            comfort_active = bool(self.comfort_state.get('active')) and bool(heating.get('enabled'))
+            if comfort_active and mode == 'boiler':
+                mode = 'heating'
             if mode is not None:
                 heat_on = mode == "heating" and bool(heating.get("enabled"))
                 boiler_on = mode == "boiler" and bool(boiler.get("enabled"))
@@ -762,6 +782,8 @@ class TngReader(BaseReader):
                     matches = False
             if heating.get("enabled"):
                 desired = scheduled_value(heating, moment)
+                if comfort_active and mode == 'heating':
+                    desired = 42
                 if mode is not None and mode != "heating":
                     desired = settings.get("heating_set_temperature", desired)
                 payload["HeatTemp_Const"] = desired
@@ -851,6 +873,9 @@ class TngReader(BaseReader):
         if thermostat.get("enabled"):
             payload = copy.deepcopy(self.config.get("tng.thermostat_settings_template", {}))
             payload["DayTemperature"] = scheduled_value(thermostat, moment)
+            if (self.comfort_state.get('active') and heating.get('enabled')
+                    and self._comfort_operation(moment) == 'heating'):
+                payload["DayTemperature"] = max(21.5, payload["DayTemperature"])
             signature = json.dumps(payload, sort_keys=True)
             pending = state.get("LastSettingsNotConfirmed")
             self._gate_update("thermostat", pending)
@@ -868,11 +893,18 @@ class TngReader(BaseReader):
                     actions.append(f"skip:thermostat:{reason}")
         return actions
 
+    def _comfort_operation(self, moment: datetime) -> str | None:
+        mode = scheduled_operation(self.config.get('tng.operation', {}), moment)
+        if (mode == 'boiler' and self.comfort_state.get('active')
+                and self.config.get('tng.heating.enabled', False)):
+            return 'heating'
+        return mode
+
     def request_boiler_temperature(self, temperature: float, state: dict) -> tuple[bool, str]:
         """Jednorázový požadavek controlleru na teplotu TUV – prochází stejným gate."""
         settings = (state or {}).get("settings") or {}
         heatpump = (state or {}).get("heatpump") or {}
-        mode = scheduled_operation(self.config.get("tng.operation", {}), now_local())
+        mode = self._comfort_operation(now_local())
         if mode is not None and mode != "boiler":
             return False, "exclusive_operation_window"
         if settings.get("boiler_set_temperature") == temperature:
@@ -917,7 +949,7 @@ class TngReader(BaseReader):
         """Jednorázový požadavek controlleru na konstantní teplotu topení – prochází stejným gate."""
         settings = (state or {}).get("settings") or {}
         heatpump = (state or {}).get("heatpump") or {}
-        mode = scheduled_operation(self.config.get("tng.operation", {}), now_local())
+        mode = self._comfort_operation(now_local())
         if mode is not None and mode != "heating":
             return False, "exclusive_operation_window"
         if settings.get("heating_set_temperature") == temperature:

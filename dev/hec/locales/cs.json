@@ -1073,6 +1073,7 @@
     "title": "Tepelné čerpadlo",
     "actual": "Provozní parametry TČ",
     "command": "Povel HEC",
+    "comfort_guard": "Komfortní pojistka · přednost topení",
     "outlet": "Voda výstup",
     "inlet": "Voda vstup",
     "refrigerant_out": "Chladivo výstup",
