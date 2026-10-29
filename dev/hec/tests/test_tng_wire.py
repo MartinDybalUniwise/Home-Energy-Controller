@@ -49,6 +49,29 @@ def packet(body, seq=100, reverse=False):
     return b"\0" * 12 + b"\x08\x00" + ip + tcp + body
 
 
+@pytest.mark.parametrize('offset,value,key', [
+    (80, 86, 'aku_c'), (94, 68, 'inlet_c'), (89, 221, 'room_c'),
+    (95, 76, 'refrigerant_c'),
+])
+def test_photo_extended_ranges_accept_boundary_not_lower_value(offset, value, key):
+    body = bytearray(payload())
+    def encoded(number):
+        return sum(((number >> dst) & 1) << src for dst, src in enumerate(BIT_MAP)) ^ body[4]
+    body[offset] = encoded(value)
+    assert key not in decode(bytes(body))['outside_reference_range']
+    if key != 'room_c':
+        body[offset] = encoded(value - 1)
+        assert key in decode(bytes(body))['outside_reference_range']
+
+
+def test_high_boiler_branch_remains_rejected():
+    body = bytearray(payload())
+    body[88] = sum(((9 >> dst) & 1) << src for dst, src in enumerate(BIT_MAP)) ^ body[4]
+    result = decode(bytes(body))
+    assert result['temperatures']['boiler_c'] == 26.5
+    assert 'boiler_c' in result['outside_reference_range']
+
+
 def http(body, reverse=False):
     header = (
         b"HTTP/1.1 200 OK\r\nContent-Type: application/json"
