@@ -44,6 +44,8 @@ const SERIES_COLORS = {
   boiler_temperature: 'var(--series-grid-import)',
   room_temperature: 'var(--series-heatpump)',
   water_output_temperature: 'var(--series-battery)',
+  buffer_temperature: '#a78bfa',
+  water_input_temperature: '#facc15',
 };
 
 const SERIES_LABELS = {
@@ -60,6 +62,8 @@ const SERIES_LABELS = {
   room_temperature: 'entity.room',
   boiler_temperature: 'entity.dhw',
   water_output_temperature: 'entity.water_out',
+  buffer_temperature: 'entity.buffer',
+  water_input_temperature: 'entity.water_in',
 };
 
 const GOODWE_HISTORY_FIELDS = new Set([

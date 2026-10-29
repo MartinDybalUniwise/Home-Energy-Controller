@@ -92,6 +92,27 @@ def history(app, params: dict) -> tuple[int, dict]:
     bucket = int(bucket) if bucket and bucket.isdigit() else auto_bucket((to - frm).total_seconds())
     rows = downsample(records, fields, bucket)
 
+    if source == "tng" and bucket > 0:
+        # Keep cloud sensors authoritative; add only distinct passive sensors.
+        wire_fields = ["buffer_temperature", "water_input_temperature"]
+        if params.get("fields"):
+            wire_fields = [field for field in wire_fields if field in fields]
+        if wire_fields:
+            wire_records = []
+            for record in app.storage.query("tng_wire", frm, to):
+                values = record_values(record)
+                quality = values.get("field_quality") or {}
+                wire_records.append({"timestamp": record.get("timestamp"), **{
+                    field: values.get(field) if quality.get(field) == "photo_validated_provisional" else None
+                    for field in wire_fields
+                }})
+            if wire_records:
+                fields += [field for field in wire_fields if field not in fields]
+                merged = {row["timestamp"]: row for row in rows}
+                for row in downsample(wire_records, wire_fields, bucket):
+                    merged.setdefault(row["timestamp"], {"timestamp": row["timestamp"]}).update(row)
+                rows = sorted(merged.values(), key=lambda row: row["timestamp"])
+
     return 200, {
         "source": source,
         "from": to_iso(frm),
