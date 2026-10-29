@@ -64,6 +64,8 @@
     "outside": "Outdoor temperature",
     "room": "Room temperature",
     "water_out": "Heat-pump outlet",
+    "buffer": "Buffer tank",
+    "water_in": "Heat-pump inlet",
     "weather": "Weather",
     "dishwasher": "Dishwasher",
     "washing_machine": "Washing machine",

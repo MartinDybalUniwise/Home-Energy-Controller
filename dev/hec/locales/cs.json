@@ -64,6 +64,8 @@
     "outside": "Venkovní teplota",
     "room": "Teplota v místnosti",
     "water_out": "Výstup TČ",
+    "buffer": "AKU nádrž",
+    "water_in": "Vstup TČ",
     "weather": "Počasí",
     "dishwasher": "Myčka",
     "washing_machine": "Pračka",
