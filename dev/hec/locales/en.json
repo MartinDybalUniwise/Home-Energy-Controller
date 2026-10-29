@@ -1073,6 +1073,7 @@
     "title": "Heat pump",
     "actual": "Heat-pump operating parameters",
     "command": "HEC command",
+    "comfort_guard": "Comfort guard · heating priority",
     "outlet": "Water outlet",
     "inlet": "Water inlet",
     "refrigerant_out": "Refrigerant outlet",

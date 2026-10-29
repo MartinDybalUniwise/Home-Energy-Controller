@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-28",
+  "updated_at": "2026-10-29",
   "rules": [
     {
       "id": "TNG-001",
@@ -26,8 +26,8 @@
         "en": "Comfort without overheating"
       },
       "text": {
-        "cs": "Pokud je doma příjemně, nepřetápět kvůli přebytkům FVE. Prioritou je komfort topné vody; pokojová teplota slouží jako pojistka. Výstup TNG není čidlo povrchu podlahy.",
-        "en": "Do not overheat a comfortable house to absorb PV. Prioritise heating-water comfort; use room temperature as a comfort guard. TNG outlet is not floor-surface temperature."
+        "cs": "Komfort alespoň 21 °C, běžný cíl 21,5 °C. Čerstvé cloudové měření pod 21 °C souvisle 15 minut přeruší bojler a vyžádá topení 42 °C. Náhlý pokles alespoň 0,5 °C během 10 minut při povoleném topení dostane 30 minut na zotavení. Pojistka skončí při 21,5 °C. Nikdy souběh režimů; zachovat potvrzovací brány a interval 900 s, respektovat vypnuté topení. Neplatná data nejsou důkaz chladu ani zotavení.",
+        "en": "Comfort minimum 21 C, normal target 21.5 C. Fresh cloud room readings continuously below 21 C for 15 minutes interrupt DHW and request exclusive heating at 42 C. A sudden drop of at least 0.5 C within 10 minutes while heating is enabled gets 30 minutes to recover. Release at 21.5 C. Preserve confirmation gates, 900 s interval and disabled heating; invalid samples prove neither cold nor recovery."
       }
     },
     {
@@ -209,6 +209,14 @@
         "cs": "Opraveno zavádějící označení Topná voda; kontrola čidel napříč systémem.",
         "en": "Corrected ambiguous heating-water label; audited sensor use throughout HEC."
       }
+    },
+    {
+      "date": "2026-10-29",
+      "change": {
+        "cs": "Automatická pokojová komfortní pojistka má při trvalém chladu přednost před bojlerem; zachovány ochrany TNG.",
+        "en": "Automatic room comfort guard prioritises heating over DHW during sustained cold; TNG protections preserved."
+      },
+      "rule_id": "COMFORT-001"
     }
   ]
 }
