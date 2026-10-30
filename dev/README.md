@@ -105,3 +105,7 @@ See [step37/PLAN.md](step37/PLAN.md).
 ## Step38 — passive TNG evidence
 
 See [step38/PLAN.md](step38/PLAN.md).
+
+## Step39 — heating before price peaks and measured FTE surplus
+
+See [step39/PLAN.md](step39/PLAN.md). Owner approved implementation and deployment on 2026-10-30.

@@ -44,4 +44,11 @@ The owner confirmed the desired heating-store reading is AKU/buffer temperature.
 
 Owner clarification 2026-10-28: Direct LAN TNG access is READ-ONLY. Existing cloud API control remains authorised and enabled. Local investigation is explicitly paused until the owner supplies further information/credentials; do not probe the LAN controller while paused.
 
+Owner-approved 2026-10-30: tng.price_shift.enabled activates conservative price/FTE
+planning (dev/step39/PLAN.md). Preserve planner-owned dated heating/thermostat
+overrides during routine reviews; do not flatten them to constant42 merely to
+restore a schedule. Check sources.tng.price_shift for the effective comfort/solar
+veto, distinct from the saved plan. A deliberate edit of either dated schedule
+opts that date out of automatic rewriting. DHW and ordinary schedules are separate.
+
 Mobile report correction 2026-10-28: the owner phone displays local visualize directives as raw text. Use native mobile Markdown with status emoji, compact state/trend/plan blocks and a short Assessment | Recommendation table for scheduled and mobile reports. Never send local HTML paths or visualize directives in these reports. The full report must be readable in chat without opening files.

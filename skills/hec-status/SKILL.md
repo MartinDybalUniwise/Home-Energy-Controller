@@ -64,3 +64,10 @@ Owner clarification 2026-10-28: Direct LAN TNG access is READ-ONLY. Existing clo
 For wire/command analysis read ../../dev/hec/docs/TNG_WIRE.md. The passive mirror is integrated in HEC; do not restart the old standalone logger on UDP 37008. Inspect both source timestamps and tng_wire_receiver counters. Candidate bits and unresolved temperature branches remain observational only. Cloud confirmation of heating/boiler and thermostat are separate gates; neither proves physical compressor operation.
 
 Room comfort is now enforced inside TNG control: fresh distinct cloud samples below 21 C for 15 minutes request exclusive heating42 and room21.5. A sudden >=0.5 C drop within10 minutes while heating enabled gets30 minutes recovery time. Release at21.5. Persisted guard state survives restart; existing gates/900 s and explicit off/disabled heating remain authoritative. Read sources.tng.comfort_guard_active for effective status; do not override this guard from a periodic plan merely to restore a boiler window.
+
+Price/FTE shift (owner approved2026-10-30): read sources.tng.price_shift as the
+effective runtime phase and targets. Saved dated windows are conditional, not proof
+of an executed preheat/coast or compressor run. Preserve planner-owned heating and
+thermostat dates unless a deliberate adjustment is needed; routine reviews must not
+flatten them to42. Actual GoodWe surplus can permit extra heat; forecast PV alone
+cannot. No guaranteed cost savings until measured with reliable consumption data.

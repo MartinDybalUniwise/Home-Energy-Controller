@@ -32,6 +32,7 @@ from ..storage.base import atomic_write_json, read_json
 from ..storage.history import merge_history
 from .base import BaseReader
 from .tng_comfort import evaluate_comfort
+from .tng_price import evaluate_shift, refresh_plans
 
 SCALAR_RE = re.compile(
     r'["\']?([A-Za-z_][A-Za-z0-9_]*)["\']?\s*:\s*(true|false|null|-?\d+(?:\.\d+)?|["\'][^"\']*["\'])',
@@ -115,6 +116,8 @@ class TngReader(BaseReader):
         }
         self.telemetry_state = {"last_sample_time": None}
         self.comfort_state = {}
+        self.price_shift_state = {}
+        self.price_shift_status = None
         self.pending_sent: dict[str, str] = {}
         self._telemetry_records: list[dict] = []
         self._pending_audit_day: str | None = None
@@ -176,6 +179,7 @@ class TngReader(BaseReader):
     def _load_state(self) -> None:
         saved = read_json(self.state_path, {}) or {}
         self.comfort_state = saved.get('comfort', {}) if isinstance(saved.get('comfort'), dict) else {}
+        self.price_shift_state = saved.get('price_shift', {}) if isinstance(saved.get('price_shift'), dict) else {}
         for kind in ("basic", "thermostat"):
             if isinstance(saved.get(kind), dict):
                 for key in ("last_post_at", "awaiting_confirmation", "seen_pending", "last_requested"):
@@ -191,6 +195,7 @@ class TngReader(BaseReader):
             "thermostat": self.change_gate["thermostat"],
             "telemetry": self.telemetry_state,
             "comfort": self.comfort_state,
+            "price_shift": self.price_shift_state,
         })
 
     # --- HTTP --------------------------------------------------------------
@@ -286,6 +291,7 @@ class TngReader(BaseReader):
             "comfort_guard_active": bool(self.comfort_state.get('active'))
                 and bool(self.config.get('tng.heating.enabled', False))
                 and self._comfort_operation(now_local()) == 'heating',
+            "price_shift": self.price_shift_status,
         }
 
     def read_state(self) -> dict:
@@ -684,12 +690,13 @@ class TngReader(BaseReader):
             except OSError as exc:
                 self.log.warning('command_audit_failed | error=%s', type(exc).__name__)
 
-    def _command_audit(self, record: dict) -> None:
+    def _command_audit(self, record: dict, *, publish: bool = True) -> None:
         if self.storage is None:
             return
         try:
             self.storage.append('tng_commands', record)
-            self.storage.write_current('tng_command', record)
+            if publish:
+                self.storage.write_current('tng_command', record)
         except Exception as exc:  # noqa: BLE001 - diagnostics cannot change control
             # An audit failure must not change the established device gate.
             self.log.warning('command_audit_failed | error=%s', type(exc).__name__)
@@ -743,6 +750,17 @@ class TngReader(BaseReader):
         settings = state.get("settings") or {}
         heatpump = state.get("heatpump") or {}
         actions: list[str] = []
+        if not (self.config.get('tng.heating.enabled') or self.config.get('tng.boiler.enabled')):
+            self.price_shift_status = None
+
+        try:
+            price_plans = refresh_plans(self.config, moment)
+        except Exception as exc:  # planning must not prevent the existing comfort guard
+            self.log.warning('price_plan_failed | error=%s', type(exc).__name__)
+            price_plans = []
+        for plan in price_plans:
+            self._command_audit({'timestamp': to_iso(moment), 'source': 'tng_commands',
+                                 'phase': 'price_plan_saved', **plan}, publish=False)
 
         boiler = self.config.section("tng.boiler") or self.config.get("tng.boiler", {})
         heating = self.config.get("tng.heating", {})
@@ -765,6 +783,17 @@ class TngReader(BaseReader):
             comfort_active = bool(self.comfort_state.get('active')) and bool(heating.get('enabled'))
             if comfort_active and mode == 'boiler':
                 mode = 'heating'
+            shift, shift_state = evaluate_shift(self.config, heatpump, moment,
+                                               self.price_shift_state, comfort_active, mode,
+                                               self.storage.latest('goodwe') if self.storage else None)
+            if shift_state != self.price_shift_state:
+                self.price_shift_state = shift_state
+                self._save_state()
+            if shift != self.price_shift_status:
+                self.price_shift_status = shift
+                if shift is not None:
+                    self._command_audit({'timestamp': to_iso(moment), 'source': 'tng_commands',
+                                         'phase': 'price_shift', 'effective': shift}, publish=False)
             if mode is not None:
                 heat_on = mode == "heating" and bool(heating.get("enabled"))
                 boiler_on = mode == "boiler" and bool(boiler.get("enabled"))
@@ -782,6 +811,8 @@ class TngReader(BaseReader):
                     matches = False
             if heating.get("enabled"):
                 desired = scheduled_value(heating, moment)
+                if self.price_shift_status is not None:
+                    desired = self.price_shift_status['heating_temperature']
                 if comfort_active and mode == 'heating':
                     desired = 42
                 if mode is not None and mode != "heating":
@@ -873,6 +904,8 @@ class TngReader(BaseReader):
         if thermostat.get("enabled"):
             payload = copy.deepcopy(self.config.get("tng.thermostat_settings_template", {}))
             payload["DayTemperature"] = scheduled_value(thermostat, moment)
+            if self.price_shift_status is not None:
+                payload['DayTemperature'] = self.price_shift_status['room_target']
             if (self.comfort_state.get('active') and heating.get('enabled')
                     and self._comfort_operation(moment) == 'heating'):
                 payload["DayTemperature"] = max(21.5, payload["DayTemperature"])

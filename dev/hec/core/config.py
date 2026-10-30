@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import threading
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -19,6 +20,7 @@ PROJECT_ROOT = PACKAGE_ROOT.parent.parent                  # kořen repozitáře
 DEFAULT_CONFIG_PATH = PACKAGE_ROOT / "config" / "config.json"
 EXAMPLE_CONFIG_PATH = PACKAGE_ROOT / "config" / "config.example.json"
 MAX_BACKUPS = 10
+WRITE_LOCK = threading.RLock()
 
 
 class Config:
@@ -107,6 +109,11 @@ def load(path: str | Path | None = None, *, root: Path | None = None,
 
 
 def save(config: Config, new_data: dict, *, keep_backups: int = MAX_BACKUPS) -> list[str]:
+    with WRITE_LOCK:
+        return _save_locked(config, new_data, keep_backups=keep_backups)
+
+
+def _save_locked(config: Config, new_data: dict, *, keep_backups: int = MAX_BACKUPS) -> list[str]:
     """Ověří, zazálohuje předchozí verzi a atomicky zapíše. Vrací seznam chyb.
 
     Při chybě se nezapisuje nic – konfigurace nesmí skončit v polovičním stavu.

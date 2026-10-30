@@ -395,13 +395,14 @@ def config_put(app, body: dict) -> tuple[int, dict]:
             key in goodwe_incoming for key in ("hardware_verified", "hardware_authorization")):
         return 400, {"error": "hardware_authorization_read_only"}
     # Zamaskované hodnoty z UI se nikdy nezapisují zpět – tajemství se mění jen v .env.
-    before = deepcopy(app.config.data)
-    merged = _merge_preserving_secrets(app.config.data, incoming)
-    errors = config_mod.save(app.config, merged)
-    if errors:
-        return 400, {"errors": errors}
-    # Porovnává se stav před uložením – save() konfiguraci v paměti už přepsal.
-    return 200, {"saved": True, "restart_required": _restart_required(before, app.config.data)}
+    with config_mod.WRITE_LOCK:
+        before = deepcopy(app.config.data)
+        merged = _merge_preserving_secrets(app.config.data, incoming)
+        errors = config_mod.save(app.config, merged)
+        if errors:
+            return 400, {"errors": errors}
+        # Porovnává se stav před uložením – save() konfiguraci v paměti už přepsal.
+        return 200, {"saved": True, "restart_required": _restart_required(before, app.config.data)}
 
 
 def _merge_preserving_secrets(existing: dict, incoming: dict) -> dict:

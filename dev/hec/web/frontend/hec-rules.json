@@ -1,7 +1,18 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-29",
+  "updated_at": "2026-10-30",
   "rules": [
+    {
+      "id": "PLAN-002",
+      "status": "active",
+      "recorded_on": "2026-10-30",
+      "source": "owner",
+      "title": {"cs": "Topení před zdražením a z přebytku FTE", "en": "Heating before price peaks and from FTE surplus"},
+      "text": {
+        "cs": "Z publikovaných úplných cen vytvářet datované plány: nejvýše 2 h předehřevu v levnějším okně během 6 h před špičkou, TČ nejvýše 42 °C a pokojový cíl 21,7 °C. Cenový rozdíl alespoň 1 Kč/kWh; omezit nejdražších nejvýše 90 minut pouze při pokoji alespoň 21,5 °C, při 21,3 °C obnovit komfort pro zbytek okna. Měřený přebytek FTE alespoň 3 kW po 10 minut, baterie alespoň 20 % a vybíjení nejvýše 100 W dovolí předehřev i při drahé síti, nejvýše 2 h od prvního solárního startu za den; při importu nad 200 W či dosažení 21,7 °C skončit. Neoptimalizovat ze starých či neúplných vstupů; předpověď výroby není měřený přebytek. Zachovat oddělení bojleru, komfortní pojistku a všechny ochrany TNG; ručně změněné denní výjimky nepřepisovat.",
+        "en": "Generate dated plans from complete published prices: at most 2 h preheat in a cheaper window within 6 h before a peak, HP at most 42 C and room target 21.7 C. Require at least 1 CZK/kWh price gap; limit the most expensive at most 90 minutes only from room >=21.5 C, restoring comfort for the rest of the window at 21.3 C. Measured FTE surplus >=3 kW for 10 minutes, battery >=20% and discharge <=100 W permit preheat even at high grid prices, at most 2 h from the first solar start that day; stop at grid import >200 W or room 21.7 C. No optimisation from stale/incomplete inputs; forecast generation is not measured surplus. Preserve exclusive DHW, comfort guard and all TNG gates; retain owner-edited dated overrides."
+      }
+    },
     {
       "id": "TNG-001",
       "status": "active",
@@ -186,6 +197,14 @@
     }
   ],
   "history": [
+    {
+      "date": "2026-10-30",
+      "rule_id": "PLAN-002",
+      "change": {
+        "cs": "Vlastník schválil okamžitou implementaci plánování před cenovou špičkou a doplnil závislost na skutečné výrobě FTE.",
+        "en": "Owner approved immediate implementation of advance price planning and added dependence on actual FTE production."
+      }
+    },
     {
       "date": "2026-10-28",
       "rule_id": "TNG-001",
