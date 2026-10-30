@@ -386,7 +386,6 @@ export function renderToday(view, { current, weather, prices, prediction }) {
 
       <article class="workspace-card forecast-chart-card"><header class="workspace-card-header"><h4>${t('today_chart.title')}</h4></header>
         <div id="today-energy-chart"></div>
-        <header class="workspace-card-header"><h4>${t('plan.title')}</h4></header>
         <div id="today-day-plan"></div>
       </article>
     </section>

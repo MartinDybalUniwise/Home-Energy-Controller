@@ -21,7 +21,7 @@ export function heatpumpPanel(current, config, now = new Date()) {
   };
   const temp = key => {
     const result = field(key);
-    return result.value === null ? '—' : `${num(result.value,1)} <small>°C${result.origin === 'cloud' ? ' · API' : ''}</small>`;
+    return result.value === null ? '—' : `${num(result.value,1)} <small>°C</small>`;
   };
   const unknown = '—';
   const candidate = wireFresh && finite(wire.candidate_frequency_or_ack) !== null ? `${num(wire.candidate_frequency_or_ack,0)} <small>?</small>` : unknown;
@@ -36,7 +36,7 @@ export function heatpumpPanel(current, config, now = new Date()) {
   const right = [[t('hp.sw'),unknown],[t('hp.model'),unknown],[t('hp.switch'),unknown],
     [t('hp.inputs'),wireFresh && Number.isInteger(wire.candidate_inputs) ? `${wire.candidate_inputs.toString(2).padStart(8,'0')} ?` : unknown],
     [t('hp.outputs'),unknown],[t('hp.power_req'),unknown],[t('hp.power_ack'),candidate],
-    [t('hp.request'),`${t(`hp.mode_${actualMode}`)}${cloudFresh ? ' <small>· API</small>' : ''}`],[t('hp.errors'),unknown]];
+    [t('hp.request'),`${t(`hp.mode_${actualMode}`)}`],[t('hp.errors'),unknown]];
   const moment = siteTime(now), date = siteDate(moment), clock = siteClock(moment);
   const effective = name => {
     const base = config?.tng?.[name] || {};
@@ -87,9 +87,8 @@ export function heatpumpPanel(current, config, now = new Date()) {
   return `<section class="workspace-card hp-panel" id="heatpump-panel">
     <header class="workspace-card-header"><h4>${t('hp.title')}</h4><span class="hp-badge ${wireFresh && !receiver.log_limit_reached ? 'is-fresh' : 'is-stale'}">${t(receiver.log_limit_reached ? 'hp.log_limit' : wireFresh ? 'hp.receiving' : 'hp.no_wire')}</span></header>
     <div class="hp-panels"><article><h5>${t('hp.actual')}</h5><div class="hp-display">${rows(left)}${rows(right)}</div>
-      <div class="meta">${t('hp.wire_time')}: ${wire.sample_time ? esc(siteDateTime(wire.sample_time)) : '—'}</div>
-      <div class="meta">API: ${cloud.sample_time ? esc(siteDateTime(cloud.sample_time)) : '—'}</div></article>
+</article>
     <article><h5>${t('hp.command')}</h5>${comfort ? `<span class="hp-badge is-stale">${t('hp.comfort_guard')}</span>` : ''}${rows(commandRows)}<span class="hp-badge ${settingsMatch ? 'is-fresh' : 'is-stale'}">${t(settingsMatch ? 'hp.matches' : 'hp.not_matched')}</span></article></div>
-    <details><summary>ⓘ</summary><p>${t('hp.help')}</p><p>${t('hp.trace_counts',{requests:receiver.requests ?? 0,responses:receiver.responses ?? 0,pairs:receiver.pairs ?? 0})}</p><a href="/api/tng-wire/events?hours=1&limit=100" target="_blank" rel="noopener">${t('hp.raw_events')}</a></details>
+    <details><summary>ⓘ</summary><p class="meta">${t('hp.wire_time')}: ${wire.sample_time ? esc(siteDateTime(wire.sample_time)) : '—'} · API: ${cloud.sample_time ? esc(siteDateTime(cloud.sample_time)) : '—'}</p><p>${t('hp.help')}</p><p>${t('hp.trace_counts',{requests:receiver.requests ?? 0,responses:receiver.responses ?? 0,pairs:receiver.pairs ?? 0})}</p><a href="/api/tng-wire/events?hours=1&limit=100" target="_blank" rel="noopener">${t('hp.raw_events')}</a></details>
   </section>`;
 }

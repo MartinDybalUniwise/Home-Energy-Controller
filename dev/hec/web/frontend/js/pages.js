@@ -1,14 +1,14 @@
-import {renderDayPlan} from './day-plan.js?v=37';
+import {renderDayPlan} from './day-plan.js?v=41';
 import {mountMcpSetup} from './mcp-setup.js?v=1';
-import {heatpumpPanel} from './heatpump-panel.js?v=40';
+import {heatpumpPanel} from './heatpump-panel.js?v=41';
 import { rulesPage } from './rules.js?v=36';
 import {patchDOM} from './patch-dom.js?v=36';
-import { mountTodayChart, siteDateTime } from './today-chart.js?v=36';
+import { mountTodayChart, siteDateTime } from './today-chart.js?v=41';
 import { source, finite, energySnapshot, heatpumpText, heatingPermission, batteryText, batteryReason } from './telemetry.js';
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 
 import { renderChart, renderGoodWeHistoryChart, renderTable } from './chart.js?v=4';
-import { renderForecastStory, renderToday } from './advisor.js?v=38';
+import { renderForecastStory, renderToday } from './advisor.js?v=41';
 import { renderFlow } from './flow.js?v=3';
 import { availableLanguages, currentLanguage, dateTime, duration, num, power, t, time, weekday } from './i18n.js';
 import { weatherIcon } from './icons.js';
@@ -162,19 +162,19 @@ export async function overview(view, { api, motion, state }) {
   if (existing) {
     const fresh = document.createElement('div');
     renderToday(fresh, {current, weather, prices, prediction:predictionPayload, motion});
-    renderDayPlan(fresh.querySelector('#today-day-plan'),configPayload.config,new Date(),predictionPayload,current);
+    renderDayPlan(fresh.querySelector('#today-day-plan'),configPayload.config,new Date(),predictionPayload,current,{summaryOnly:true});
     fresh.querySelector('#heatpump-panel-slot').innerHTML = heatpumpPanel(current,configPayload.config);
     patchDOM(existing,fresh.querySelector('.today-screen'),new Set(['today-energy-chart']));
     const history = overviewHistory.get(view);
     if (history && Date.now()-history.at >= 60000) {
-      await history.refresh(prices);
+      await history.refresh(prices,configPayload.config);
       history.at=Date.now();
     }
   } else {
     renderToday(view, {current, weather, prices, prediction:predictionPayload, motion});
-    renderDayPlan(view.querySelector('#today-day-plan'),configPayload.config,new Date(),predictionPayload,current);
+    renderDayPlan(view.querySelector('#today-day-plan'),configPayload.config,new Date(),predictionPayload,current,{summaryOnly:true});
     view.querySelector('#heatpump-panel-slot').innerHTML = heatpumpPanel(current,configPayload.config);
-    const refresh = await mountTodayChart(view.querySelector('#today-energy-chart'), {api, prices});
+    const refresh = await mountTodayChart(view.querySelector('#today-energy-chart'), {api, prices, config:configPayload.config});
     overviewHistory.set(view,{at:Date.now(),refresh});
   }
 }

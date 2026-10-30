@@ -1,5 +1,6 @@
 import {patchDOM} from './patch-dom.js?v=36';
 // Observations and published prices share a time axis, never a unit scale.
+import { planSegments } from './day-plan.js?v=41';
 import { finite } from './telemetry.js';
 import { time, num, t } from './i18n.js';
 import { mergeEnergyHistory } from './history-fallback.js?v=34';
@@ -85,7 +86,7 @@ export function chartRows(history, prices, range, now = new Date()) {
   return rows.sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
 }
 
-function panel(rows, fields, unit, range, now, gap, width) {
+function panel(rows, fields, unit, range, now, gap, width, offset) {
   const W = width, H = 230, left = 54, right = 18, top = 24, bottom = 36;
   const x = stamp => left + (Date.parse(stamp) - +range.from) / (+range.to - +range.from) * (W - left - right);
   const vals = rows.flatMap(r => fields.map(f => r[f.field])).filter(v => v !== null);
@@ -97,13 +98,6 @@ function panel(rows, fields, unit, range, now, gap, width) {
   for (let i = 0; i <= 4; i++) {
     const value = min + (max - min) * i / 4;
     markup += `<line class="today-gridline" x1="${left}" x2="${W-right}" y1="${y(value)}" y2="${y(value)}"/><text class="axis-label" x="${left-8}" y="${y(value)+4}" text-anchor="end">${num(value, 1)}</text>`;
-  }
-  const ticks = W < 640 ? 2 : 4;
-  for (let i = 0; i <= ticks; i++) {
-    const stamp = +range.from + (+range.to - +range.from) * i / ticks;
-    const label = new Intl.DateTimeFormat(document.documentElement.lang === 'en' ? 'en-GB' : 'cs-CZ',
-      {timeZone:ZONE, day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit'}).format(stamp);
-    markup += `<text class="axis-label" x="${x(new Date(stamp).toISOString())}" y="${H-8}" text-anchor="${i===0?'start':i===ticks?'end':'middle'}">${escape(label)}</text>`;
   }
   for (const f of fields) {
     let path = '', previous = null;
@@ -122,11 +116,46 @@ function panel(rows, fields, unit, range, now, gap, width) {
     }
     markup += `<path data-series="${f.field}" d="${path}" fill="none" stroke="${f.color}" stroke-width="2.5"/>`;
   }
-  if (+now >= +range.from && +now <= +range.to) {
-    const nowX = x(now.toISOString());
-    markup += `<line class="today-now" x1="${nowX}" x2="${nowX}" y1="${top}" y2="${H-bottom}"/><text class="axis-label" x="${nowX}" y="16" text-anchor="middle">${escape(t('today_chart.now'))}</text>`;
+  return `<g transform="translate(0 ${offset})">${markup}</g>`;
+}
+
+function timeline(rows, measured, price, range, now, gap, width, config) {
+  const left=54, right=18, plotWidth=width-left-right;
+  const x=stamp=>left+(+stamp-+range.from)/(+range.to-+range.from)*plotWidth;
+  const segments=planSegments(config,now);
+  const hasPlan=segments.length>0;
+  const bottom=hasPlan?530:410, height=bottom+42;
+  let body=panel(rows,measured,t('unit.kw'),range,now,gap,width,0)
+    +panel(rows,price,t('unit.czk_kwh'),range,now,gap,width,205);
+  if (hasPlan) {
+    const day=siteDate(now);
+    for (const [mode,key,field,y] of [['heating','plan.heating','heat',444],['boiler','entity.dhw','boiler',502]]) {
+      body+=`<text class="axis-label" x="${left}" y="${y-8}">${escape(t('today_chart.plan_label'))}: ${escape(t(key))}</text><rect x="${left}" y="${y}" width="${plotWidth}" height="28" fill="var(--bg-card-subtle)" rx="4"/>`;
+      for (const block of segments) {
+        if (block.mode!==mode) continue;
+        const moment=minute=>minute===1440?siteMoment(shiftDate(day,1)):siteMoment(day,`${String(Math.floor(minute/60)).padStart(2,'0')}:${String(minute%60).padStart(2,'0')}`);
+        const from=moment(block.from),to=moment(block.to);
+        const bx=x(from),bw=x(to)-bx;
+        const detail=`${siteClock(from)}–${block.to===1440?'24:00':siteClock(to)} · ${t(key)}: ${num(block[field],0)} °C · ${t('plan.saved')}`;
+        body+=`<g class="timeline-plan-block" data-detail="${escape(detail)}" tabindex="0" role="button" aria-label="${escape(detail)}"><title>${escape(detail)}</title><rect x="${bx}" y="${y}" width="${bw}" height="28" fill="var(--series-${mode==='heating'?'heatpump':'grid-import'})" opacity=".7"/>${bw>40?`<text x="${bx+bw/2}" y="${y+19}" text-anchor="middle" fill="var(--ink-primary)" font-size="12">${num(block[field],0)}°</text>`:''}</g>`;
+      }
+    }
   }
-  return `<svg class="today-plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="${escape(unit)}">${markup}<line class="today-crosshair" y1="${top}" y2="${H-bottom}" hidden/></svg>`;
+  // One set of time coordinates spans measurements, published price and saved plan.
+  let grid='';
+  const days=Math.round((+range.to-+range.from)/86400000);
+  const step=days<=1?(width<500?6:3):days<=2?(width<500?24:12):(width<500?72:24);
+  for(let stamp=+range.from;stamp<=+range.to;stamp+=step*3600000) {
+    const at=x(stamp),last=stamp===+range.to;
+    const label=days<=1?(last?'24:00':siteClock(new Date(stamp))):days>2?time(new Date(stamp),{timeZone:ZONE,day:'2-digit',month:'2-digit'}):siteDateTime(new Date(stamp));
+    grid+=`<line class="today-gridline" x1="${at}" x2="${at}" y1="24" y2="${bottom}" opacity=".6"/>`;
+    body+=`<text class="axis-label timeline-hour" x="${at}" y="${bottom+27}" text-anchor="${width<500?'middle':stamp===+range.from?'start':last?'end':'middle'}">${escape(label)}</text>`;
+  }
+  if (+now>=+range.from&&+now<=+range.to) {
+    const at=x(now);
+    body+=`<line class="today-now" x1="${at}" x2="${at}" y1="24" y2="${bottom}"/><text class="axis-label" x="${Math.max(left+18,Math.min(width-right-18,at))}" y="16" text-anchor="middle">${escape(t('today_chart.now'))}</text>`;
+  }
+  return `<svg class="today-plot today-timeline" viewBox="0 0 ${width} ${height}" role="group" aria-label="${escape(t('today_chart.title'))}">${grid}${body}<line class="today-crosshair" y1="24" y2="${bottom}" hidden/></svg>`;
 }
 
 let selectedDays = 1;
@@ -145,7 +174,7 @@ function origin(row) {
   return `${t('entity.pv')}: ${label(pv)} · ${t('entity.house')}: ${label(house)}`;
 }
 
-export async function mountTodayChart(container, {api, prices, now = new Date()}) {
+export async function mountTodayChart(container, {api, prices, config, now = new Date()}) {
   let generation = 0;
   const draw = async (days, background = false) => {
     selectedDays = days;
@@ -189,7 +218,7 @@ export async function mountTodayChart(container, {api, prices, now = new Date()}
       ${partial?`<p role="alert">${t('today_chart.partial')}</p>`:''}
       ${!rows.some(r=>r.pv!==null||r.house!==null)?`<p>${t('today_chart.no_measurements')}</p>`:''}
       <div class="today-chart-legend">${[...measured,...price].map(f=>`<span style="--series:${f.color}">${f.label}</span>`).join('')}</div>
-      <div class="today-chart-panels">${panel(rows, measured,t('unit.kw'),range,now,gap,width)}${panel(rows,price,t('unit.czk_kwh'),range,now,gap,width)}</div>
+      <div class="today-chart-panels">${timeline(rows,measured,price,range,now,gap,width,config)}</div>
       <output class="today-chart-tooltip" aria-live="polite"></output>
       <div class="today-chart-table table-wrap" hidden><table><thead><tr><th>${t('history.time')}</th><th>${t('entity.pv')} (kW)</th><th>${t('entity.house')} (kW)</th><th>${t('entity.price')} (${t('unit.czk_kwh')})</th><th>${t('today_chart.origin')}</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${siteDateTime(r.timestamp)}</td><td>${num(r.pv,2)}</td><td>${num(r.house,2)}</td><td>${num(r.price,2)}</td><td>${origin(r)}</td></tr>`).join('')}</tbody></table></div>`;
     if (background) {
@@ -220,13 +249,18 @@ export async function mountTodayChart(container, {api, prices, now = new Date()}
       const nearest = observations.reduce((best,r)=>Math.abs(Date.parse(r.timestamp)-stamp)<Math.abs(Date.parse(best.timestamp)-stamp)?r:best,observations[0]);
       const near = nearest && Math.abs(Date.parse(nearest.timestamp)-stamp)<=gap/2 ? nearest : null;
       const tariff = rows.find(r=>r.kind==='published_price' && Date.parse(r.timestamp)<=stamp && Date.parse(r.end_at)>stamp);
-      container.querySelector('output').textContent = `${siteDateTime(new Date(stamp))} · ${t('entity.pv')}: ${num(near?.pv,2)} kW · ${t('entity.house')}: ${num(near?.house,2)} kW · ${near ? origin(near)+' · ' : ''}${t('entity.price')}: ${num(tariff?.price,2)} ${t('unit.czk_kwh')}`;
+      container.querySelector('output').textContent = `${siteDateTime(new Date(stamp))} · ${t('entity.pv')}: ${num(near?.pv,2)} kW · ${t('entity.house')}: ${num(near?.house,2)} kW · ${t('entity.price')}: ${num(tariff?.price,2)} ${t('unit.czk_kwh')}`;
       panels.querySelectorAll('.today-crosshair').forEach(line=>{
         line.removeAttribute('hidden');
         const x = 54 + (stamp-+range.from)/(+range.to-+range.from)*(width-72);
         line.setAttribute('x1',x);line.setAttribute('x2',x);
       });
     };
+    panels.querySelectorAll('[data-detail]').forEach(block=>{
+      const show=()=>{container.querySelector('output').textContent=block.dataset.detail;};
+      block.onclick=show;
+      block.onkeydown=event=>{if(['Enter',' '].includes(event.key)){event.preventDefault();event.stopPropagation();show();}};
+    });
     panels.onpointermove=event=>{
       const svg = event.target.closest('svg'); if (!svg) return;
       const b = svg.getBoundingClientRect();
@@ -239,5 +273,5 @@ export async function mountTodayChart(container, {api, prices, now = new Date()}
     };
   };
   await draw(selectedDays);
-  return async nextPrices => { prices=nextPrices || prices; now=new Date(); await draw(selectedDays,true); };
+  return async (nextPrices,nextConfig) => { prices=nextPrices || prices; config=nextConfig || config; now=new Date(); await draw(selectedDays,true); };
 }

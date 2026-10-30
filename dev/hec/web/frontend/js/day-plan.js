@@ -26,12 +26,13 @@ export function planSegments(config, now = new Date()) {
     heat:value(heating,from,'temperature',heating.default_temperature),
     boiler:value(boiler,from,'temperature',boiler.default_temperature)}));
 }
-export function renderDayPlan(container, config, now = new Date(), prediction = {}, current = {}) {
+export function renderDayPlan(container, config, now = new Date(), prediction = {}, current = {}, {summaryOnly = false} = {}) {
   const segments=planSegments(config,now);
   container.replaceChildren();
   if (!segments.length) { container.textContent=t('app.no_data'); return; }
   const local=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Prague',hour:'2-digit',minute:'2-digit'}).format(now);
   const at=minutes(local);
+  if (!summaryOnly) {
   const axis=document.createElement('div');axis.className='plan-axis';
   for (const hour of ['00','06','12','18','24']) {const label=document.createElement('span');label.textContent=hour;axis.append(label);}
   container.append(axis);
@@ -55,6 +56,7 @@ export function renderDayPlan(container, config, now = new Date(), prediction = 
   const currentSegment=segments.find(b=>at>=b.from&&at<b.to);
   detail.textContent=`${t('plan.now')}: ${t(currentSegment?.mode==='boiler'?'entity.dhw':'entity.heatpump')} · ${t('plan.saved')}`;
   container.append(detail);
+  }
   const date = new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Prague'}).format(now);
   const day=(prediction.days||[]).find(day=>day.date===date);
   const forecast=day?.forecast_consumption;
@@ -87,5 +89,5 @@ export function renderDayPlan(container, config, now = new Date(), prediction = 
     if(actual!==null)explanation.textContent+=` ${t('plan.remaining')}: ${num(Math.max(0,middle-actual),1)} kWh.`;
     info.append(caption,explanation);container.append(info);
   }
-  container.onclick=event=>{const button=event.target.closest('[data-detail]');if(button) container.querySelector('.plan-detail').textContent=button.dataset.detail;};
+  container.onclick=event=>{const button=event.target.closest('[data-detail]');if(button && container.querySelector('.plan-detail')) container.querySelector('.plan-detail').textContent=button.dataset.detail;};
 }

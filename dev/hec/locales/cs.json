@@ -972,6 +972,7 @@
     "count": "Položek: {count}"
   },
   "release": {
+    "shared_timeline": "Společná časová osa měření, ceny a denního plánu; přehlednější hodiny a hodnoty bez technických štítků.",
     "truthful_flow": "Pravdivé stavy baterie a tepelného čerpadla, kontrola kvality měření, přesnější reporty a čitelný tok energie na mobilu.",
     "energy_domains": "Oddělení AC energie měniče od síťových čítačů; nepodložené denní přetoky zůstávají neznámé.",
     "legacy_grid_energy": "Opravené zobrazení starých energetických záznamů bez přepisování historie.",
@@ -1009,7 +1010,8 @@
     "reading_info": "Zobrazen je absolutní odečet měřidla TČ. Při chybě fáze nemusí zahrnovat celý příkon; nepoužívá se jako platný vstup pro spotřebu, COP ani řízení. Ostatní měřidla se neupravují."
   },
   "today_chart": {
-    "title": "Výroba, spotřeba a cena",
+    "plan_label": "Plán",
+    "title": "Skutečnost a plán dne",
     "now": "Teď",
     "range": "Rozsah historie",
     "days_1": "Dnes",

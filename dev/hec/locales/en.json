@@ -972,6 +972,7 @@
     "count": "Items: {count}"
   },
   "release": {
+    "shared_timeline": "Shared timeline for measurements, prices and daily plan; clearer hours and values without technical source labels.",
     "truthful_flow": "Factual battery and heat pump states, measurement quality checks, improved reports and readable mobile energy flow.",
     "energy_domains": "Separate inverter AC energy from grid meter counters; unsupported daily grid energy remains unknown.",
     "legacy_grid_energy": "Correct legacy energy display without rewriting historical records.",
@@ -1009,7 +1010,8 @@
     "reading_info": "This is the absolute heat-pump meter reading. A phase fault may omit part of the total power; the reading remains invalid for energy, COP and control. Other meters are unchanged."
   },
   "today_chart": {
-    "title": "Production, consumption and price",
+    "plan_label": "Plan",
+    "title": "Actuals and daily plan",
     "now": "Now",
     "range": "History range",
     "days_1": "Today",
