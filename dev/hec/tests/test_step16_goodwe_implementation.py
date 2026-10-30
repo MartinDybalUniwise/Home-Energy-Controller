@@ -435,6 +435,7 @@ def test_goodwe_authorization_api_refuses_without_current_host_verification(tmp_
 
 def test_offline_sample_is_not_success_and_controller_enters_safe_mode(tmp_path):
     config = make_config(tmp_path, controller={"enabled": True}, goodwe={"enabled": True})
+    config.data['controller']['optimization']['goodwe_control']['enabled'] = True
 
     class BrokenClient:
         hec_test_fake = True
@@ -456,6 +457,7 @@ def test_offline_sample_is_not_success_and_controller_enters_safe_mode(tmp_path)
 
 def test_controller_dispatches_goodwe_action_to_writer(tmp_path):
     config = make_config(tmp_path, controller={"enabled": True})
+    config.data['controller']['optimization']['goodwe_control']['enabled'] = True
     calls = []
     writer = SimpleNamespace(set_export_limit_w=lambda **kwargs: calls.append(kwargs))
     app = SimpleNamespace(config=config, storage=JsonlStorage(config.data_dir, config.history_dir),

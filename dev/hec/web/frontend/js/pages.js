@@ -1331,8 +1331,8 @@ function renderControlPlanDecisionDialog(group) {
   const parameters = decision.reason_params && Object.keys(decision.reason_params).length
     ? Object.entries(decision.reason_params).map(([key, value]) => `<li><strong>${escapeHtml(key)}</strong>: ${escapeHtml(String(value))}</li>`).join('')
     : `<li>${t('control_plan.no_parameters')}</li>`;
-  const resultKey = decision.applied ? 'control_plan.applied' : 'control_plan.not_applied';
-  const resultNote = decision.applied ? t('control_plan.detail_applied_note') : t('control_plan.detail_not_applied_note');
+  const resultKey = decision.action === 'plan_tng' ? 'control_plan.planned' : decision.applied ? 'control_plan.applied' : 'control_plan.not_applied';
+  const resultNote = decision.action === 'plan_tng' ? t('control_plan.planned_note') : decision.applied ? t('control_plan.detail_applied_note') : t('control_plan.detail_not_applied_note');
   return `<dialog id="control-plan-decision-dialog" class="hec-dialog control-plan-decision-dialog">
     <div class="dialog-content">
       <header class="dialog-header"><h2>${t('control_plan.decision_detail')}</h2><button type="button" class="dialog-close" data-control-plan-close aria-label="${escapeHtml(t('app.close'))}">×</button></header>
@@ -1353,6 +1353,13 @@ function renderControlPlanDecisionDialog(group) {
 }
 
 function decisionCommandText(decision) {
+  if (decision.action === 'plan_tng' && decision.value && typeof decision.value === 'object') {
+    const p = decision.value;
+    return escapeHtml(t('control_plan.resolved_plan', {
+      mode: t(p.mode === 'boiler' ? 'entity.dhw' : p.mode === 'off' ? 'control_plan.off' : 'entity.heating'),
+      water: p.heating_temperature ?? '–', room: p.room_target ?? '–', boiler: p.boiler_temperature ?? '–',
+    }));
+  }
   const action = decision.action || decision.rule || t('control_plan.unknown_command');
   if (decision.value === null || decision.value === undefined) return action;
   return `${action}: ${escapeHtml(String(decision.value))}`;
@@ -1374,7 +1381,7 @@ function renderControlPlanActivity(decisions) {
     const countText = count > 1 ? ` <span class="control-plan-activity__count">×${count}</span>` : '';
     return `<tr data-decision-group="${groupIndex}" tabindex="0" aria-label="${escapeHtml(t('control_plan.open_detail'))}">
     <td>${dateTime(decision.timestamp)}${countText}</td><td>${decisionCommandText(decision)}</td>
-    <td>${decision.applied ? controlPlanPill('ok', 'control_plan.applied') : controlPlanPill('neutral', 'control_plan.not_applied')}</td>
+    <td>${decision.action === 'plan_tng' ? controlPlanPill('neutral', 'control_plan.planned') : decision.applied ? controlPlanPill('ok', 'control_plan.applied') : controlPlanPill('neutral', 'control_plan.not_applied')}</td>
     <td>${translatedText(decision.reason_key, decision.reason_params)}</td>
   </tr>`;
   }).join('')}</tbody></table></div>`;
@@ -1393,7 +1400,6 @@ export async function controlPlan(view, { api }) {
   const tng = sources.tng || {};
   const sdg = sources.sdg || sources.sdg_history || {};
   const shelly = Object.entries(sources).filter(([name]) => name.startsWith('shelly'));
-  const writer = statusPayload.goodwe_writer_diagnostics || {};
   const tngReader = readers.tng;
   const goodweReader = readers.goodwe;
   const cards = [
@@ -1406,9 +1412,9 @@ export async function controlPlan(view, { api }) {
   view.innerHTML = `<div class="control-plan-page">
     <header class="control-plan-header"><div><span class="section-tab">${t('control_plan.title')}</span><p class="meta">${t('control_plan.subtitle')}</p></div><span id="control-plan-updated" class="meta">${t('app.updated', { time: time(new Date()) })}</span></header>
     <section class="panel control-plan-status" aria-labelledby="control-plan-status-title"><h2 id="control-plan-status-title">${t('control_plan.automation')}</h2><div class="control-plan-status-grid">
-      <article><h3>${t('control_plan.planner')}</h3>${controlPlanPill('neutral', 'control_plan.not_exposed')}<p class="meta">${t('control_plan.planner_note')}</p></article>
+      <article><h3>${t('control_plan.planner')}</h3>${controller.planner === 'unified' ? controlPlanPill(controller.enabled ? 'ok' : 'neutral', 'control_plan.unified') : controlPlanPill('neutral', 'control_plan.not_exposed')}<p class="meta">${t(controller.planner === 'unified' ? 'control_plan.unified_note' : 'control_plan.planner_note')}</p></article>
       <article><h3>${t('settings.controller')}</h3>${controller.enabled ? controlPlanPill('ok', 'status.controller_running', 'control_plan.help_controller_active') : controlPlanPill('neutral', 'status.controller_disabled', 'control_plan.help_controller_disabled')}${controller.safe_mode ? controlPlanPill('warning', 'status.safe_mode', 'control_plan.help_safe_mode') : ''}<p class="meta">${controller.last_run ? `${t('control_plan.last_run')}: ${dateTime(controller.last_run)}` : t('control_plan.no_run')}</p></article>
-      <article><h3>${t('control_plan.writers')}</h3>${writer.enabled ? controlPlanPill('warning', 'control_plan.available_disabled', 'control_plan.help_writer_available') : controlPlanPill('neutral', 'status.write_disabled', 'control_plan.help_writer_disabled')}<p class="meta">${t('control_plan.read_only')}</p></article>
+      <article><h3>${t('control_plan.writers')}</h3>${controlPlanPill(controller.tng_write_enabled ? 'ok' : 'neutral', controller.tng_write_enabled ? 'control_plan.tng_active' : 'control_plan.tng_disabled')}<p class="meta">${t('control_plan.writer_note')}</p>${controller.goodwe_control_enabled ? '' : `<p class="meta">${t('control_plan.goodwe_unchanged')}</p>`}</article>
     </div></section>
     <section class="panel control-plan-devices" aria-labelledby="control-plan-devices-title"><h2 id="control-plan-devices-title">${t('control_plan.devices')}</h2><div class="control-plan-device-grid">${cards.join('')}${shellyCards}</div></section>
     <section class="panel control-plan-lower"><div><h2>${t('control_plan.today_activity')}</h2>${renderControlPlanActivity(decisionsPayload.decisions)}</div><div><h2>${t('control_plan.outlook')}</h2><div class="control-plan-outlook">${renderControlPlanOutlook(prices, prediction)}</div><p class="meta">${t('control_plan.appliance_cycles')}: ${num((appliances.cycles || []).length, 0)}</p></div></section>

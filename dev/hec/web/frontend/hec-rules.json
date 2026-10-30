@@ -3,6 +3,17 @@
   "updated_at": "2026-10-30",
   "rules": [
     {
+      "id": "CONTROL-001",
+      "status": "active",
+      "recorded_on": "2026-10-30",
+      "source": "owner",
+      "title": {"cs": "Jeden společný controller", "en": "One unified controller"},
+      "text": {
+        "cs": "Jedinou autoritou plánování je společný controller HEC. Z něj vychází jeden výsledný požadavek pro topení, bojler a pokojový cíl: ochrany zařízení, komfort, omezená okna teplé vody, potom cenová a FTE optimalizace. Modul TNG pouze měří a provádí schválené požadavky přes původní ochrany. Původní samostatná tepelná pravidla ani přímé požadavky mimo společný controller nesmějí vydávat další povely. Hlavní vypínač zastaví automatické zápisy; sám fyzicky nevypíná TČ. Baterie a měnič mají samostatné povolení zásahů, při sjednocení zůstávají bez nových zásahů.",
+        "en": "The unified HEC controller is the sole planning authority. It resolves one target for heating, DHW and room temperature: equipment protection, comfort, bounded DHW windows, then price and FTE optimisation. TNG only measures and executes approved requests through existing gates. Retired thermal rules and direct requests outside the controller must not issue competing commands. The master switch stops automatic writes; it does not physically switch off the HP. Battery/inverter interventions require a separate permission and remain unchanged during unification."
+      }
+    },
+    {
       "id": "PLAN-002",
       "status": "active",
       "recorded_on": "2026-10-30",
@@ -197,6 +208,11 @@
     }
   ],
   "history": [
+    {
+      "date": "2026-10-30",
+      "rule_id": "CONTROL-001",
+      "change": {"cs": "Vlastník schválil jeden společný controller, implementaci i rozhodnutí provozních podrobností.", "en": "Owner approved one unified controller, implementation and operational requirement decisions."}
+    },
     {
       "date": "2026-10-30",
       "rule_id": "PLAN-002",

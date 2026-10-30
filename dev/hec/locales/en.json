@@ -870,7 +870,16 @@
     "help_controller_disabled": "The controller is disabled in configuration.",
     "help_safe_mode": "Decision-making is paused because critical data is not safely usable.",
     "help_writer_available": "The writer is available, but this page is display-only and performs no writes.",
-    "help_writer_disabled": "The writer is disabled, so physical writes cannot be performed."
+    "help_writer_disabled": "The writer is disabled, so physical writes cannot be performed.",
+    "unified": "Unified HEC planner",
+    "unified_note": "One resolved heating and DHW plan; equipment protection and comfort take priority.",
+    "tng_active": "TNG writes enabled",
+    "tng_disabled": "TNG writes disabled",
+    "goodwe_unchanged": "Separate battery and inverter interventions are disabled.",
+    "writer_note": "A single TNG adapter sends HP commands with acknowledgement and a 900 s interval.",
+    "resolved_plan": "Plan: {mode}, HP {water} °C, room {room} °C, DHW {boiler} °C",
+    "planned": "Plan resolved",
+    "planned_note": "This is the resolved planner target. TNG sending and acknowledgement are tracked separately."
   },
   "reason": {
     "pv_surplus_high_soc": "PV surplus {pv_kw} kW, battery {soc} %, low price {price} CZK/kWh",
@@ -887,7 +896,9 @@
     "goodwe_export_limit_set": "Setting export limit to {limit_w} W",
     "goodwe_on_grid_soc_limit": "Setting on-grid SOC charging limit to {limit_pct}%",
     "write_blocked_gate": "Waiting for the heat pump to confirm the previous change",
-    "manual_override": "Manual setting takes precedence"
+    "manual_override": "Manual setting takes precedence",
+    "unified_thermal": "Unified heating and DHW plan; TNG sending and acknowledgement are tracked separately.",
+    "central_controller_required": "The request must pass through the unified planner."
   },
   "weather": {
     "clear": "Clear",

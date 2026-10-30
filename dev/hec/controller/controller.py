@@ -14,7 +14,8 @@ from ..core.logging_setup import event, get_logger, warn_event
 from ..core.model import Decision
 from ..core.timeutil import now_local, to_iso
 from ..storage.base import read_json
-from .rules import Context, clamp, default_rules
+from .rules import Context, default_rules
+from .thermal import ThermalPlanner
 
 CRITICAL_SOURCES = ("goodwe", "tng", "ote")
 GOODWE_ACTIONS = {
@@ -28,16 +29,22 @@ GOODWE_BATTERY_ACTIONS = {
 
 class Controller:
     source = "controller"
+    central_controller = True
 
     def __init__(self, app):
         self.app = app
         self.config = app.config
         self.storage = app.storage
         self.log = get_logger("controller")
-        self.rules = sorted(default_rules(self.config), key=lambda rule: rule.priority)
+        self.rules = sorted((rule for rule in default_rules(self.config)
+                             if rule.action in GOODWE_ACTIONS), key=lambda rule: rule.priority)
+        self.thermal = ThermalPlanner()
+        self.thermal_plan = None
+        self._last_thermal_run = None
+        self._last_thermal_signature = None
         self.last_decision: Decision | None = None
         self.safe_mode_reason: dict | None = None
-        self._lock = threading.Lock()
+        self._lock = threading.RLock()
         self._last_run: datetime | None = None
         self._applied: dict[str, object] = {}
 
@@ -65,16 +72,46 @@ class Controller:
         return stale
 
     def state(self) -> dict:
+        thermal_limited = (self.thermal_plan or {}).get('phase') in (
+            'stale_room', 'stale_energy', 'invalid_prices')
         return {
             "enabled": self.enabled,
-            "safe_mode": bool(self.safe_mode_reason) or not self.enabled,
+            "safe_mode": bool(self.safe_mode_reason) or not self.enabled or thermal_limited,
             "safe_mode_reason": self.safe_mode_reason,
-            "write_enabled": bool(self.config.get("tng.write_enabled", False)),
-            "rules": [{"name": rule.name, "priority": rule.priority, "enabled": rule.enabled}
-                      for rule in self.rules],
+            "write_enabled": self.enabled and bool(self.config.get("tng.write_enabled", False)),
+            "rules": [{"name": "unified_thermal", "priority": -1, "enabled": self.enabled}]
+                      + [{"name": rule.name, "priority": rule.priority,
+                          "enabled": rule.enabled and bool(self.config.get(
+                              'controller.optimization.goodwe_control.enabled', False))}
+                         for rule in self.rules],
             "last_decision": self.last_decision.to_dict() if self.last_decision else None,
-            "last_run": to_iso(self._last_run),
+            "last_run": to_iso(max(filter(None, (self._last_run, self._last_thermal_run)), default=None)),
+            "planner": "unified",
+            "thermal_plan": self.thermal_plan,
+            "tng_write_enabled": self.enabled and bool(self.config.get('tng.write_enabled', False)),
+            "goodwe_control_enabled": self.enabled and bool(self.config.get(
+                'controller.optimization.goodwe_control.enabled', False)),
         }
+
+    def prepare_tng(self, reader, state, moment):
+        """The only production authority for thermal targets; the reader executes."""
+        with self._lock:
+            if not self.enabled:
+                return None
+            plan = self.thermal.prepare_tng(reader, state, moment)
+            self.thermal_plan = plan
+            self._last_thermal_run = moment
+            signature = tuple(plan[key] for key in
+                              ('mode', 'heating_temperature', 'boiler_temperature', 'room_target', 'phase'))
+            if signature != self._last_thermal_signature:
+                decision = Decision(rule='unified_thermal', action='plan_tng', value=dict(plan),
+                                    reason_key='reason.unified_thermal', timestamp=moment)
+                try:
+                    self.record(decision)
+                except OSError as exc:
+                    self.log.warning('decision_audit_failed | error=%s', type(exc).__name__)
+                self._last_thermal_signature = signature
+            return plan
 
     # --- rozhodování ---------------------------------------------------------
     def build_context(self) -> Context:
@@ -102,29 +139,18 @@ class Controller:
         taken: set[str] = set()
         battery_mode_taken = False
         for rule in self.rules:
+            if rule.action not in GOODWE_ACTIONS:
+                continue  # retired thermal rules cannot become a competing writer
             if rule.action in taken or (rule.action in GOODWE_BATTERY_ACTIONS and battery_mode_taken):
                 continue
             decision = rule(context)
             if decision is None:
                 continue
-            self._enforce_limits(decision, context)
             decisions.append(decision)
             taken.add(rule.action)
             if rule.action in GOODWE_BATTERY_ACTIONS:
                 battery_mode_taken = True
         return decisions
-
-    def _enforce_limits(self, decision: Decision, context: Context) -> None:
-        """Komfortní meze jsou absolutní – pravidlo je nesmí překročit."""
-        comfort = context.comfort
-        if decision.action == "set_dhw":
-            decision.value = clamp(float(decision.value),
-                                   float(comfort.get("dhw_min_c", 45.0)),
-                                   float(comfort.get("dhw_max_c", 52.0)))
-        elif decision.action == "set_heating":
-            current = context.number("tng", "heating_set_temperature") or decision.value
-            maximum = current + float(comfort.get("max_preheat_k", 1.5))
-            decision.value = round(min(float(decision.value), maximum), 1)
 
     # --- provedení -------------------------------------------------------------
     @staticmethod
@@ -163,6 +189,10 @@ class Controller:
     def apply(self, decision: Decision) -> Decision:
         """Zápis jde vždy přes change-gate readeru TNG – ten chrání čerpadlo."""
         if decision.action in GOODWE_ACTIONS:
+            if not self.enabled or not self.config.get('controller.optimization.goodwe_control.enabled', False):
+                decision.applied = False
+                decision.reason_key = 'reason.write_blocked_gate'
+                return decision
             writer = getattr(self.app, "goodwe_writer", None)
             if writer is None:
                 decision.applied = False
@@ -187,31 +217,8 @@ class Controller:
                 decision.reason_key = "reason.write_blocked_gate"
             return decision
 
-        reader = self.app.reader("tng")
-        if reader is None or not self.config.get("tng.write_enabled", False):
-            decision.applied = False
-            return decision
-        if self._applied.get(decision.action) == decision.value:
-            decision.applied = False
-            decision.reason_key = "reason.no_action_needed"
-            return decision
-
-        if decision.action == "set_dhw":
-            state = {"settings": {
-                "boiler_set_temperature": (self.app.snapshot.get("tng") or {}).get("boiler_set_temperature"),
-                "last_settings_not_confirmed": (self.app.snapshot.get("tng") or {}).get("pending_change"),
-            }}
-            applied, reason = reader.request_boiler_temperature(float(decision.value), state)
-            decision.applied = applied
-            if not applied:
-                decision.reason_key = ("reason.no_action_needed" if reason == "already_set"
-                                       else "reason.write_blocked_gate")
-            else:
-                self._applied[decision.action] = decision.value
-        else:
-            # Zásah do topení zatím jen doporučujeme – zápis topné křivky
-            # potřebuje ověření na reálném hardwaru.
-            decision.applied = False
+        decision.applied = False
+        decision.reason_key = 'reason.central_controller_required'
         return decision
 
     def record(self, decision: Decision) -> None:
@@ -228,6 +235,9 @@ class Controller:
                 self.safe_mode_reason = None
                 return {"enabled": False, "decisions": []}
 
+            if not self.config.get('controller.optimization.goodwe_control.enabled', False):
+                self.safe_mode_reason = None
+                return {"enabled": True, "safe_mode": False, "decisions": []}
             stale = self.stale_sources()
             if stale:
                 # Safe mode: optimalizace stojí, nastavení se nemění, data se sbírají dál.

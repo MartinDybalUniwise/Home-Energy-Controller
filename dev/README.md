@@ -109,3 +109,7 @@ See [step38/PLAN.md](step38/PLAN.md).
 ## Step39 — heating before price peaks and measured FTE surplus
 
 See [step39/PLAN.md](step39/PLAN.md). Owner approved implementation and deployment on 2026-10-30.
+
+## Step40 — one production planning authority
+
+See [step40/PLAN.md](step40/PLAN.md). Owner approved implementation and deployment on2026-10-30.

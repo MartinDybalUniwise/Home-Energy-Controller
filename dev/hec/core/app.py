@@ -62,6 +62,9 @@ class Application:
         self.metrics = Metrics(self.config, self.storage, self.summaries)
         self.finance = FinanceService(self)
         self.controller = Controller(self)
+        tng_reader = next((reader for reader in self.readers if reader.name == 'tng'), None)
+        if tng_reader is not None:
+            tng_reader.planner = self.controller
         self.started_at = now_local()
 
         for error in self.config.errors:

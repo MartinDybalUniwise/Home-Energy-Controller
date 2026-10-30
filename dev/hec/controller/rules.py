@@ -342,7 +342,6 @@ def configured_priority(config, rule_name: str, fallback: int) -> int:
 
 def default_rules(config) -> list[Rule]:
     """Startovní sada; priority jsou konfigurovatelné, nižší číslo rozhoduje dřív."""
-    aggressiveness = str(config.get("controller.optimization.aggressiveness", "medium"))
     return [
            Rule("goodwe_enable_export_limit", configured_priority(config, "goodwe_enable_export_limit", 0), "set_export_limit_enabled",
                goodwe_enable_export_limit),
@@ -354,8 +353,4 @@ def default_rules(config) -> list[Rule]:
                goodwe_discharge_expensive),
            Rule("goodwe_stop_when_neutral", configured_priority(config, "goodwe_stop_when_neutral", 5), "stop_battery_control",
                goodwe_stop_when_neutral),
-        Rule("dhw_pv_surplus", configured_priority(config, "dhw_pv_surplus", 6), "set_dhw", dhw_pv_surplus),
-        Rule("dhw_price_high", configured_priority(config, "dhw_price_high", 7), "set_dhw", dhw_price_high),
-        Rule("heating_preheat_cheap", configured_priority(config, "heating_preheat_cheap", 8), "set_heating", heating_preheat_cheap,
-             enabled=aggressiveness in ("medium", "high")),
     ]

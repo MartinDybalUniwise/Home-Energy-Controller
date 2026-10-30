@@ -870,7 +870,16 @@
     "help_controller_disabled": "Controller je v konfiguraci vypnutý.",
     "help_safe_mode": "Rozhodování je pozastavené, protože některá kritická data nejsou bezpečně použitelná.",
     "help_writer_available": "Writer je dostupný, ale tato stránka pouze zobrazuje stav a nic nezapisuje.",
-    "help_writer_disabled": "Writer není povolený, proto nelze provádět fyzické zápisy."
+    "help_writer_disabled": "Writer není povolený, proto nelze provádět fyzické zápisy.",
+    "unified": "Společný plánovač HEC",
+    "unified_note": "Jeden výsledný plán topení a bojleru; přednost mají ochrany a komfort.",
+    "tng_active": "TNG zápisy povolené",
+    "tng_disabled": "TNG zápisy vypnuté",
+    "goodwe_unchanged": "Samostatné zásahy do baterie a měniče jsou vypnuté.",
+    "writer_note": "Povely TČ provádí jediný modul TNG s potvrzením a intervalem 900 s.",
+    "resolved_plan": "Plán: {mode}, TČ {water} °C, pokoj {room} °C, bojler {boiler} °C",
+    "planned": "Plán vyhodnocen",
+    "planned_note": "Jde o výsledný požadavek plánovače. Odeslání a potvrzení TNG se sledují samostatně."
   },
   "reason": {
     "pv_surplus_high_soc": "Přebytek FVE {pv_kw} kW, baterie {soc} %, nízká cena {price} Kč/kWh",
@@ -887,7 +896,9 @@
     "goodwe_export_limit_set": "Nastavení limitu exportu na {limit_w} W",
     "goodwe_on_grid_soc_limit": "Nastavení SOC limitu nabíjení ze sítě na {limit_pct} %",
     "write_blocked_gate": "Čeká se na potvrzení předchozí změny čerpadlem",
-    "manual_override": "Ruční nastavení má přednost"
+    "manual_override": "Ruční nastavení má přednost",
+    "unified_thermal": "Společný plán topení a bojleru; odeslání a potvrzení TNG se evidují zvlášť.",
+    "central_controller_required": "Požadavek musí projít společným plánovačem."
   },
   "weather": {
     "clear": "Jasno",

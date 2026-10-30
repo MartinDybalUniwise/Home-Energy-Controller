@@ -71,3 +71,11 @@ of an executed preheat/coast or compressor run. Preserve planner-owned heating a
 thermostat dates unless a deliberate adjustment is needed; routine reviews must not
 flatten them to42. Actual GoodWe surplus can permit extra heat; forecast PV alone
 cannot. No guaranteed cost savings until measured with reliable consumption data.
+
+Unified control2026-10-30: status.controller is the sole production planner.
+Read thermal_plan for the resolved operation/targets, tng_write_enabled for the
+effective writer permission, and goodwe_control_enabled for separate inverter
+actuation. controller.enabled is the master switch. plan_tng history entries are
+resolved plans, never proof of sending or acknowledgement. TNG remains transport;
+do not re-enable retired thermal rules or enable battery/export changes as part
+of an ordinary heating review.

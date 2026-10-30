@@ -51,4 +51,11 @@ restore a schedule. Check sources.tng.price_shift for the effective comfort/sola
 veto, distinct from the saved plan. A deliberate edit of either dated schedule
 opts that date out of automatic rewriting. DHW and ordinary schedules are separate.
 
+Owner-approved unification2026-10-30: Application.controller is the sole production
+planning authority (dev/step40/PLAN.md). TNG is its transport with unchanged gates;
+controller.enabled is the master switch. Retired individual thermal rules must
+never issue additional commands. GoodWe actuation remains separately disabled to
+preserve existing battery/grid operation. Review status.controller.thermal_plan
+and the saved dated schedules; a resolved plan is not a sent/confirmed command.
+
 Mobile report correction 2026-10-28: the owner phone displays local visualize directives as raw text. Use native mobile Markdown with status emoji, compact state/trend/plan blocks and a short Assessment | Recommendation table for scheduled and mobile reports. Never send local HTML paths or visualize directives in these reports. The full report must be readable in chat without opening files.

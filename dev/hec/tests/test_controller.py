@@ -263,6 +263,7 @@ class FakeApp:
 def build(tmp_path, *, enabled=True, write=False, ages=(10.0, 10.0), snapshot=None):
     config = make_config(tmp_path, controller={"enabled": enabled}, tng={"write_enabled": write},
                          goodwe={"enabled": True})
+    config.data['controller']['optimization']['goodwe_control']['enabled'] = True
     readers = [FakeReader("goodwe", ages[0]), FakeReader("tng", ages[1])]
     snapshot = snapshot if snapshot is not None else {
         "goodwe": {"pv_w": 6000, "house_w": 1000, "battery_soc": 95},
@@ -329,41 +330,17 @@ def test_safe_mode_reason_reports_effective_source_limit(tmp_path):
     }
 
 
-def test_decision_is_recorded_even_when_writing_is_disabled(tmp_path):
-    controller, app, _ = build(tmp_path, write=False)
-    result = controller.run_once()
-
-    dhw = next(d for d in result["decisions"] if d["action"] == "set_dhw")
-    assert dhw["rule"] == "dhw_pv_surplus" and dhw["applied"] is False
-    assert app.reader("tng").requests == []
-    # Každé rozhodnutí se zapíše do historie, i když se nikam neposílá.
-    # (Pravidlo předtopení může být podle denní doby v tichém režimu.)
-    assert len(app.storage.query("controller")) == len(result["decisions"])
-
-
-def test_write_goes_through_the_tng_change_gate(tmp_path):
-    controller, app, _ = build(tmp_path, write=True)
-    controller.run_once()
-
-    assert app.reader("tng").requests == [52.0]
-
-
-def test_same_decision_is_not_repeated(tmp_path):
-    """Opakované posílání téhož nastavení by zbytečně zatěžovalo čerpadlo."""
-    controller, app, _ = build(tmp_path, write=True)
-    controller.run_once()
-    controller._last_run = None
-    controller.run_once()
-
-    assert app.reader("tng").requests == [52.0]
-
-
-def test_comfort_limits_cannot_be_exceeded_by_a_rule(tmp_path):
+def test_retired_thermal_rules_cannot_issue_competing_requests(tmp_path):
     controller, app, config = build(tmp_path, write=True)
-    config.data["controller"]["comfort"]["dhw_max_c"] = 48.0
+    config.data['controller']['optimization']['goodwe_control']['enabled'] = True
     controller.run_once()
-
-    assert app.reader("tng").requests == [48.0]
+    assert app.reader('tng').requests == []
+    assert all(rule.action not in ('set_dhw', 'set_heating') for rule in controller.rules)
+    for action in ('set_dhw', 'set_heating'):
+        decision = controller.apply(Decision(rule='retired', action=action, value=52))
+        assert not decision.applied
+        assert decision.reason_key == 'reason.central_controller_required'
+    assert app.reader('tng').requests == []
 
 
 def test_only_one_decision_per_action(tmp_path):
@@ -375,7 +352,8 @@ def test_only_one_decision_per_action(tmp_path):
 
 
 def test_controller_survives_a_broken_rule(tmp_path):
-    controller, _, _ = build(tmp_path)
+    controller, _, config = build(tmp_path)
+    config.data['controller']['optimization']['goodwe_control']['enabled'] = True
     controller.rules[0].evaluate = lambda ctx: (_ for _ in ()).throw(RuntimeError("chyba"))
 
     result = controller.run_once()
@@ -431,7 +409,8 @@ def test_goodwe_writer_failure_is_recorded_as_not_applied(tmp_path):
 
 
 def test_goodwe_dispatch_passes_only_writer_contract_parameters(tmp_path):
-    controller, app, _ = build(tmp_path, enabled=True)
+    controller, app, config = build(tmp_path, enabled=True)
+    config.data['controller']['optimization']['goodwe_control']['enabled'] = True
     writer = StrictGoodWeWriter()
     app.goodwe_writer = writer
     decision = Decision(
@@ -458,7 +437,8 @@ def test_goodwe_limit_rules_require_valid_battery_soc():
 
 
 def test_goodwe_idempotence_ignores_changing_reason_telemetry(tmp_path):
-    controller, app, _ = build(tmp_path, enabled=True)
+    controller, app, config = build(tmp_path, enabled=True)
+    config.data['controller']['optimization']['goodwe_control']['enabled'] = True
     writer = FakeGoodWeWriter()
     app.goodwe_writer = writer
     first = Decision(
@@ -487,9 +467,10 @@ def test_rule_order_uses_configured_priorities(tmp_path):
     ]
     controller = Controller(FakeApp(config, controller.app.readers, controller.app.snapshot))
 
-    assert [rule.name for rule in controller.rules[:3]] == [
-        "goodwe_discharge_expensive", "goodwe_charge_cheap", "dhw_pv_surplus",
+    assert [rule.name for rule in controller.rules[:2]] == [
+        "goodwe_discharge_expensive", "goodwe_charge_cheap",
     ]
+    assert not any(rule.action in ("set_dhw", "set_heating") for rule in controller.rules)
 
 
 # --- metriky --------------------------------------------------------------------

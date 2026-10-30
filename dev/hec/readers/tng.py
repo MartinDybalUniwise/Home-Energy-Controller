@@ -31,8 +31,8 @@ from ..core.timeutil import in_window, now_local, parse_iso, to_iso
 from ..storage.base import atomic_write_json, read_json
 from ..storage.history import merge_history
 from .base import BaseReader
-from .tng_comfort import evaluate_comfort
-from .tng_price import evaluate_shift, refresh_plans
+from ..controller.schedules import effective_schedule, scheduled_operation, scheduled_value
+from ..controller.thermal import ThermalPlanner
 
 SCALAR_RE = re.compile(
     r'["\']?([A-Za-z_][A-Za-z0-9_]*)["\']?\s*:\s*(true|false|null|-?\d+(?:\.\d+)?|["\'][^"\']*["\'])',
@@ -41,36 +41,6 @@ WANTED_WORDS = ("temp", "heat", "boiler", "thermostat", "outside", "outdoor", "r
                 "sensor", "boost", "pool", "regulation", "curve", "confirmed", "available",
                 "incoming", "changed")
 HEATPUMP_RE = re.compile(r'HeatPump\s*=\s*(\{.*?\});\s*CurrentHeatPumpHash', re.S)
-
-
-def effective_schedule(section: dict, moment: datetime) -> dict:
-    """Date-limited owner override; ordinary schedule resumes automatically."""
-    override = (section.get("date_overrides") or {}).get(moment.date().isoformat())
-    return {**section, **override} if isinstance(override, dict) else section
-
-
-def scheduled_value(section: dict, moment: datetime):
-    """Teplota podle rozvrhu. Poslední vyhovující okno vyhrává."""
-    section = effective_schedule(section, moment)
-    value = section.get("default_temperature")
-    for window in section.get("schedule", []) or []:
-        if in_window(moment, window["from"], window["to"]):
-            value = window["temperature"]
-    return value
-
-
-def scheduled_operation(section: dict, moment: datetime) -> str | None:
-    """Optional exclusive TNG mode; a bounded DHW window cannot starve heating."""
-    if not section:
-        return None
-    section = effective_schedule(section, moment)
-    mode = section.get("default_mode", "heating")
-    for window in section.get("schedule", []) or []:
-        if in_window(moment, window["from"], window["to"]):
-            mode = window["mode"]
-    if mode not in ("heating", "boiler", "off"):
-        raise ValueError("Invalid exclusive TNG operation mode")
-    return mode
 
 
 def _fmt_temp(val: float | int | None) -> str:
@@ -118,6 +88,7 @@ class TngReader(BaseReader):
         self.comfort_state = {}
         self.price_shift_state = {}
         self.price_shift_status = None
+        self.planner = ThermalPlanner()
         self.pending_sent: dict[str, str] = {}
         self._telemetry_records: list[dict] = []
         self._pending_audit_day: str | None = None
@@ -287,7 +258,8 @@ class TngReader(BaseReader):
             "heating_mode": settings.get("heating_mode"),
             "equit_curve": settings.get("equit_curve"),
             "pending_change": settings.get("last_settings_not_confirmed"),
-            "write_enabled": bool(self.config.get("tng.write_enabled", False)),
+            "write_enabled": bool(self.config.get("tng.write_enabled", False))
+                and (not getattr(self.planner, "central_controller", False) or self.planner.enabled),
             "comfort_guard_active": bool(self.comfort_state.get('active'))
                 and bool(self.config.get('tng.heating.enabled', False))
                 and self._comfort_operation(now_local()) == 'heating',
@@ -750,18 +722,9 @@ class TngReader(BaseReader):
         settings = state.get("settings") or {}
         heatpump = state.get("heatpump") or {}
         actions: list[str] = []
-        if not (self.config.get('tng.heating.enabled') or self.config.get('tng.boiler.enabled')):
-            self.price_shift_status = None
-
-        try:
-            price_plans = refresh_plans(self.config, moment)
-        except Exception as exc:  # planning must not prevent the existing comfort guard
-            self.log.warning('price_plan_failed | error=%s', type(exc).__name__)
-            price_plans = []
-        for plan in price_plans:
-            self._command_audit({'timestamp': to_iso(moment), 'source': 'tng_commands',
-                                 'phase': 'price_plan_saved', **plan}, publish=False)
-
+        plan = self.planner.prepare_tng(self, state, moment)
+        if plan is None:
+            return ['skip:controller:disabled']
         boiler = self.config.section("tng.boiler") or self.config.get("tng.boiler", {})
         heating = self.config.get("tng.heating", {})
         thermostat = self.config.get("tng.thermostat", {})
@@ -769,31 +732,7 @@ class TngReader(BaseReader):
         if boiler.get("enabled") or heating.get("enabled"):
             payload = copy.deepcopy(self.config.get("tng.basic_settings_template", {}))
             matches = True
-            mode = scheduled_operation(self.config.get("tng.operation", {}), moment)
-            observed = evaluate_comfort(self.comfort_state, heatpump, moment,
-                                        settings.get('heating_on') is True)
-            if observed != self.comfort_state:
-                was_active = bool(self.comfort_state.get('active'))
-                self.comfort_state = observed
-                self._save_state()
-                if was_active != bool(observed.get('active')):
-                    self._command_audit({'timestamp': to_iso(moment), 'source': 'tng_commands',
-                        'phase': 'comfort_guard', 'active': bool(observed.get('active')),
-                        'room_temperature': heatpump.get('room_temperature')})
-            comfort_active = bool(self.comfort_state.get('active')) and bool(heating.get('enabled'))
-            if comfort_active and mode == 'boiler':
-                mode = 'heating'
-            shift, shift_state = evaluate_shift(self.config, heatpump, moment,
-                                               self.price_shift_state, comfort_active, mode,
-                                               self.storage.latest('goodwe') if self.storage else None)
-            if shift_state != self.price_shift_state:
-                self.price_shift_state = shift_state
-                self._save_state()
-            if shift != self.price_shift_status:
-                self.price_shift_status = shift
-                if shift is not None:
-                    self._command_audit({'timestamp': to_iso(moment), 'source': 'tng_commands',
-                                         'phase': 'price_shift', 'effective': shift}, publish=False)
+            mode = plan['mode']
             if mode is not None:
                 heat_on = mode == "heating" and bool(heating.get("enabled"))
                 boiler_on = mode == "boiler" and bool(boiler.get("enabled"))
@@ -803,18 +742,14 @@ class TngReader(BaseReader):
                         or settings.get("boiler_on") != boiler_on):
                     matches = False
             if boiler.get("enabled"):
-                desired = scheduled_value(boiler, moment)
+                desired = plan['boiler_temperature']
                 if mode is not None and mode != "boiler":
                     desired = settings.get("boiler_set_temperature", desired)
                 payload["BoilerTemp"] = desired
                 if settings.get("boiler_set_temperature") != desired:
                     matches = False
             if heating.get("enabled"):
-                desired = scheduled_value(heating, moment)
-                if self.price_shift_status is not None:
-                    desired = self.price_shift_status['heating_temperature']
-                if comfort_active and mode == 'heating':
-                    desired = 42
+                desired = plan['heating_temperature']
                 if mode is not None and mode != "heating":
                     desired = settings.get("heating_set_temperature", desired)
                 payload["HeatTemp_Const"] = desired
@@ -903,12 +838,7 @@ class TngReader(BaseReader):
 
         if thermostat.get("enabled"):
             payload = copy.deepcopy(self.config.get("tng.thermostat_settings_template", {}))
-            payload["DayTemperature"] = scheduled_value(thermostat, moment)
-            if self.price_shift_status is not None:
-                payload['DayTemperature'] = self.price_shift_status['room_target']
-            if (self.comfort_state.get('active') and heating.get('enabled')
-                    and self._comfort_operation(moment) == 'heating'):
-                payload["DayTemperature"] = max(21.5, payload["DayTemperature"])
+            payload['DayTemperature'] = plan['room_target']
             signature = json.dumps(payload, sort_keys=True)
             pending = state.get("LastSettingsNotConfirmed")
             self._gate_update("thermostat", pending)
@@ -935,6 +865,8 @@ class TngReader(BaseReader):
 
     def request_boiler_temperature(self, temperature: float, state: dict) -> tuple[bool, str]:
         """Jednorázový požadavek controlleru na teplotu TUV – prochází stejným gate."""
+        if getattr(self.planner, 'central_controller', False):
+            return False, 'central_controller_required'
         settings = (state or {}).get("settings") or {}
         heatpump = (state or {}).get("heatpump") or {}
         mode = self._comfort_operation(now_local())
@@ -980,6 +912,8 @@ class TngReader(BaseReader):
 
     def request_heating_temperature(self, temperature: float, state: dict) -> tuple[bool, str]:
         """Jednorázový požadavek controlleru na konstantní teplotu topení – prochází stejným gate."""
+        if getattr(self.planner, 'central_controller', False):
+            return False, 'central_controller_required'
         settings = (state or {}).get("settings") or {}
         heatpump = (state or {}).get("heatpump") or {}
         mode = self._comfort_operation(now_local())
