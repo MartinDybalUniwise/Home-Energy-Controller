@@ -1184,3 +1184,19 @@ dialog button { min-height: 48px; color: #06243b; border-radius: 8px; background
 }
 
 .flow-mobile-link .edge.flow-edge-reverse { animation-direction: reverse; }
+
+.control-live-processes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.control-live-gates{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
+.control-live-page p{line-height:1.55}.control-live-page .control-plan-device{overflow-wrap:anywhere}
+.control-live-page .control-plan-device>p{font-size:.85rem}.control-live-page .control-plan-metric{flex-wrap:wrap}
+.control-live-page .control-plan-metric dd{margin-left:auto}.control-live-page .pill{white-space:normal;line-height:1.4}
+.control-live-schedule{width:100%}.control-live-schedule td,.control-live-schedule th{white-space:nowrap}
+.control-live-schedule tr[aria-current]{background:color-mix(in srgb,var(--brand-accent) 15%,transparent)}
+.control-live-events{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.control-live-events li{padding:10px;border-bottom:1px solid var(--divider)}
+.control-live-events summary{display:flex;align-items:baseline;flex-wrap:wrap;gap:10px;cursor:pointer}
+.control-live-events summary>span:last-child{flex:1 1 200px;overflow-wrap:anywhere}
+.control-live-events time{font-variant-numeric:tabular-nums;color:var(--ink-secondary)}
+@media(max-width:600px){.control-live-page .panel{padding:12px}.control-live-page .control-plan-metric dt{font-size:.8rem}.control-live-schedule{font-size:.8rem}}
+.control-live-page{min-width:0;grid-template-columns:minmax(0,1fr)}.control-live-page>*{min-width:0}.control-live-page .table-wrap{max-width:100%;min-width:0;padding:0 0 12px}
+.control-live-page>.control-plan-header{padding:14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:var(--radius-panel)}

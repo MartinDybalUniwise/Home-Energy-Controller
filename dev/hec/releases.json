@@ -1,6 +1,13 @@
 {
-  "current": "0.1.16",
+  "current": "0.1.17",
   "releases": [
+    {
+      "version": "0.1.17",
+      "released_at": "2026-10-30T09:09:08.540060+01:00",
+      "changes": [
+        "release.live_control"
+      ]
+    },
     {
       "version": "0.1.16",
       "released_at": "2026-10-30T07:21:35.269636+01:00",

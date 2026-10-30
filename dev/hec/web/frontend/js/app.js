@@ -1,9 +1,9 @@
 // Vstupní bod rozhraní: přihlášení, jazyk, směrování, obnova dat.
 
-import { api } from './api.js';
+import { api } from './api.js?v=42';
 import { applyScene } from './background.js';
 import { applyTranslations, setLanguage, t, time } from './i18n.js';
-import { pages } from './pages.js?v=41';
+import { pages } from './pages.js?v=42';
 import { setupReleases } from './releases.js';
 
 const REFRESH_MS = 10000;
@@ -75,7 +75,8 @@ async function render({ showLoading = true } = {}) {
 
 async function refreshStatus() {
   try {
-    const [status, weather] = await Promise.all([api.status(), api.weather().catch(() => ({}))]);
+    const signal = AbortSignal.timeout(8000);
+    const [status, weather] = await Promise.all([api.status({signal}), api.weather({signal}).catch(() => ({}))]);
     applyScene(weather, state.motion);
     const siteNameEl = document.getElementById('site-name');
     if (siteNameEl) siteNameEl.textContent = status.site_name || t('app.name');
