@@ -1,10 +1,10 @@
-import {controlPlan} from './control-plan.js?v=45';
+import {controlPlan} from './control-plan.js?v=46';
 import {renderDayPlan} from './day-plan.js?v=41';
 import {mountMcpSetup} from './mcp-setup.js?v=1';
 import {heatpumpPanel} from './heatpump-panel.js?v=41';
 import { rulesPage } from './rules.js?v=36';
 import {patchDOM} from './patch-dom.js?v=36';
-import { mountTodayChart, siteDateTime } from './today-chart.js?v=45';
+import { mountTodayChart, siteDateTime } from './today-chart.js?v=46';
 import { source, finite, energySnapshot, heatpumpText, heatingPermission, batteryText, batteryReason } from './telemetry.js';
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 

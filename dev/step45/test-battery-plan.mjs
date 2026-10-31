@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {batteryModel,renderBatteryPlan} from '../hec/web/frontend/js/battery-plan.js';
 import {timeline,chartRange} from '../hec/web/frontend/js/today-chart.js';
+import {renderControlLive} from '../hec/web/frontend/js/control-plan.js';
 
 const now=new Date('2026-10-31T12:45:00+01:00');
 const status={controller:{enabled:true,goodwe_control_enabled:true,
@@ -36,4 +37,6 @@ for(const change of [
 }
 const finished=structuredClone(status);finished.controller.battery_plan.windows=[{from:'04:00',to:'06:30'}];
 assert.equal(model(finished).windows.length,0);
+assert.equal(model({}).phase,'unavailable');
+assert.ok(renderControlLive({current:{controller:status.controller},status:{},config:{}},now).includes('12:30–15:30'));
 console.log('Battery plan projection: current, elapsed, stale, disabled, failed and protected states passed');

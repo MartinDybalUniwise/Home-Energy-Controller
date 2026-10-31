@@ -22,7 +22,7 @@ def main():
             page.on('request', lambda req, writes=writes: writes.append(req.url) if '/api/' in req.url
                     and req.method not in ('GET', 'HEAD', 'OPTIONS') else None)
             page.goto('http://127.0.0.1:8080/#/control-plan')
-            page.locator('.battery-plan').wait_for(timeout=45000)
+            page.locator('.battery-plan').filter(has_text='12:30–15:30').wait_for(timeout=45000)
             body = page.locator('.battery-plan').inner_text()
             assert '12:30–15:30' in body, body
             assert '04:00' not in body, body
@@ -30,6 +30,7 @@ def main():
             assert 'battery_plan.' not in body, body
             assert page.locator('.battery-plan input, .battery-plan button, .battery-plan form').count() == 0
             assert page.evaluate('document.documentElement.scrollWidth <= innerWidth + 1')
+            page.locator('.battery-plan').screenshot(path=str(evidence / f'battery-plan-{width}.png'))
             page.screenshot(path=str(evidence / f'control-plan-{width}.png'), full_page=True)
             page.goto('http://127.0.0.1:8080/#/overview')
             page.locator('.timeline-battery-block').wait_for(timeout=45000)

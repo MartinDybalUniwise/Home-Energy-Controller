@@ -1,5 +1,5 @@
 import {patchDOM} from './patch-dom.js?v=36';
-import {batteryModel} from './battery-plan.js?v=45';
+import {batteryModel} from './battery-plan.js?v=46';
 // Observations and published prices share a time axis, never a unit scale.
 import { planSegments } from './day-plan.js?v=41';
 import { finite } from './telemetry.js';

@@ -31,3 +31,16 @@ for enabled/current, elapsed, stale, disabled, failed and protected plans. Ruff,
 production Python compilation and Czech/English/registry JSON validation passed.
 The configuration endpoint recursively merges partial UI saves, preserving the
 hidden economic-mode flag and inactive legacy fields without reactivating them.
+
+Production browser verification2026-10-31 11:15 Europe/Prague passed at390px and
+1440px: the remaining12:30–15:30 window appears in Control & Plan and the overview
+battery lane,60% grid ceiling and20% power are shown, old settings are absent and
+there is exactly one active-control switch. No browser errors or API write
+requests occurred. Evidence is outside Git in
+C:/TepelneCerpadlo/hec-monitoring-evidence/battery-plan-ui-20261031.
+
+The browser check caught a misleading disabled label when a full diagnostic
+response was unavailable. Use the same cached controller from the fast current
+response as fallback and label unknown state unavailable. This is covered by the
+Node regression test. Static asset version46 includes that fix; no additional
+controller, configuration change or service is introduced.

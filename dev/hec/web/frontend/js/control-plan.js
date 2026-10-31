@@ -2,7 +2,7 @@ import {t,num,time} from './i18n.js';
 import {finite,source,energySnapshot,heatpumpReportedPower,heatpumpQuality} from './telemetry.js';
 import {siteDate,siteClock,siteDateTime} from './today-chart.js?v=41';
 import {patchDOM} from './patch-dom.js?v=36';
-import {renderBatteryPlan} from './battery-plan.js?v=45';
+import {renderBatteryPlan} from './battery-plan.js?v=46';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const tr=(key,params)=>t(`control_live.${key}`,params);
@@ -110,6 +110,7 @@ function eventList(events){
 }
 
 export function renderControlLive({current={},status={},config={},commands={},decisions={},prediction={},prices={},failures=[]},now=new Date()){
+  status={...status,controller:status.controller||current.controller||current.status?.controller||{}};
   const m=liveModel(current,status,config,now),s=current.sources||{},ctrl=status.controller||{};
   const writer=status.goodwe_writer_diagnostics||{},goodwe=energySnapshot({...current,status});
   const shelly=source({...current,status},'shelly'),power=heatpumpReportedPower(shelly),quality=heatpumpQuality(shelly);

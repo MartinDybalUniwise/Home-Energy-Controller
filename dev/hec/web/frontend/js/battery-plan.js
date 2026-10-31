@@ -10,6 +10,7 @@ export function batteryModel(status,day,atClock,now=new Date()){
   const ctrl=status?.controller||{},plan=ctrl.battery_plan,at=minute(atClock);
   const age=(+now-Date.parse(plan?.timestamp))/1000;
   const fresh=!!plan&&plan.date===day&&age>=-30&&age<=180;
+  const known=typeof ctrl.enabled==='boolean'&&typeof ctrl.goodwe_control_enabled==='boolean';
   const enabled=ctrl.enabled===true&&ctrl.goodwe_control_enabled===true&&
     (ctrl.rules||[]).some(rule=>rule.name==='battery_economic'&&rule.enabled===true);
   const windows=fresh&&enabled&&plan.prices_valid===true&&at!==null?(plan.windows||[]).flatMap(window=>{
@@ -17,7 +18,7 @@ export function batteryModel(status,day,atClock,now=new Date()){
     return from!==null&&to!==null&&from<to&&to>at?[{...window,start:Math.max(from,at),end:to}]:[];
   }):[];
   const failed=plan?.last_command?.applied===false;
-  const phase=!enabled?'disabled':!fresh?'unavailable':failed?'write_failed':plan.phase;
+  const phase=!known?'unavailable':!enabled?'disabled':!fresh?'unavailable':failed?'write_failed':plan.phase;
   return {plan:fresh?plan:null,fresh,enabled,windows,phase,
     drawable:fresh&&enabled&&plan.prices_valid===true&&plan.data_valid===true&&!failed&&
       !['safe_mode','external_mode'].includes(plan.phase)};
