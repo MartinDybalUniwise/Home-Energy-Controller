@@ -113,3 +113,7 @@ See [step39/PLAN.md](step39/PLAN.md). Owner approved implementation and deployme
 ## Step40 — one production planning authority
 
 See [step40/PLAN.md](step40/PLAN.md). Owner approved implementation and deployment on2026-10-30.
+
+## Step43 — local morning price rises
+
+See [step43/PLAN.md](step43/PLAN.md). Fixes missed morning preheat reported on2026-10-31.

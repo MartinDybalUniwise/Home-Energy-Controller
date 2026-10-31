@@ -58,4 +58,9 @@ never issue additional commands. GoodWe actuation remains separately disabled to
 preserve existing battery/grid operation. Review status.controller.thermal_plan
 and the saved dated schedules; a resolved plan is not a sent/confirmed command.
 
+Repair2026-10-31 (dev/step43/PLAN.md) supersedes the original daily-median/90-minute
+price policy: local preceding-six-hour comparison, gap>=0.60 CZK/kWh and8%, later
+nearly-cheap two-hour preheat, coast<=3 h with the same21.3 C comfort veto. Preserve
+revised_at cutoffs: never turn a counterfactual missed night into an executed plan.
+
 Mobile report correction 2026-10-28: the owner phone displays local visualize directives as raw text. Use native mobile Markdown with status emoji, compact state/trend/plan blocks and a short Assessment | Recommendation table for scheduled and mobile reports. Never send local HTML paths or visualize directives in these reports. The full report must be readable in chat without opening files.

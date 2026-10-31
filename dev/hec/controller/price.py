@@ -12,6 +12,7 @@ from ..core.timeutil import in_window, parse_iso
 from ..storage.base import read_json
 
 VERSION = 'price-shift-v1'
+POLICY = 'local-peaks-v2'
 ZONE = ZoneInfo('Europe/Prague')
 
 
@@ -33,10 +34,12 @@ def operation_at(section, day, index):
 
 
 def earliest_quarter(config, day):
-    activated = parse_iso(config.get('tng.price_shift.activated_at'))
-    if activated is None:
+    stamps = [parse_iso(config.get(f'tng.price_shift.{key}'))
+              for key in ('activated_at', 'revised_at')]
+    stamps = [stamp.astimezone(ZONE) for stamp in stamps if stamp is not None]
+    if not stamps:
         return 0
-    activated = activated.astimezone(ZONE)
+    activated = max(stamps)
     return (activated.hour * 4 + activated.minute // 15 + 1) if activated.date().isoformat() == day else 0
 
 
@@ -57,45 +60,74 @@ def build_plan(payload, day, operation, earliest=0):
     valid = len(prices) == 96
     phases = []
     if valid:
-        # A real price gap, rather than top-N ranking on a nearly flat day.
-        threshold = median(prices) + 1.0
         index = 0
         while index < 96:
+            # A dear evening must not hide a smaller morning rise. Compare each
+            # local peak with the preceding six hours; freeze its entry threshold.
+            baseline = median(prices[max(0, index - 24):index]) if index else prices[0]
+            threshold = baseline + 0.6
             if prices[index] < threshold:
                 index += 1
                 continue
-            peak_start = index
-            while index < 96 and prices[index] >= threshold:
+            group_start = index
+            peak_level = prices[index]
+            while index < 96:
+                # A material valley ends this peak even when midday stays a
+                # little above the night baseline; otherwise two peaks merge.
+                floor = max(threshold, peak_level - max(0.6, abs(peak_level) * 0.08))
+                if prices[index] < floor:
+                    break
+                peak_level = max(peak_level, prices[index])
                 index += 1
-            peak_end = index
-            if peak_end - peak_start < 3:
+            group_end = index
+            if group_end - group_start < 3:
                 continue
-            # Protect the most expensive 90 minutes, not merely the rising edge.
-            width = min(6, peak_end - peak_start)
-            peak_start = max(range(peak_start, peak_end - width + 1),
-                             key=lambda i: sum(prices[i:i + width]))
-            # At most two hours of preheat, completed before the peak; skip DHW/off.
-            candidates = [i for i in range(max(earliest, peak_start - 24), peak_start - 7)
+            width = min(12, group_end - group_start)
+            if group_end - group_start <= 12:
+                price_start, end = group_start, group_end
+                # Cover the rising edge too, rather than restarting during it.
+                coast_start = max(0, group_start - 3, end - 12)
+            else:
+                price_start = max(range(group_start, group_end - width + 1),
+                                  key=lambda i: sum(prices[i:i + width]))
+                coast_start, end = price_start, price_start + width
+            if not all(operation_at(operation, day, j) == 'heating'
+                       for j in range(coast_start, end)):
+                coast_start = price_start
+            if not all(operation_at(operation, day, j) == 'heating'
+                       for j in range(coast_start, end)):
+                continue
+            if phases and coast_start <= phases[-1]['end']:
+                # A brief valley must not trigger another preheat or reset the
+                # comfort latch. Join adjacent guards only within the same cap.
+                previous = phases[-1]
+                if end - previous['start'] <= 12:
+                    previous['end'] = end
+                continue
+            candidates = [i for i in range(max(earliest, coast_start - 24), coast_start - 7)
                           if all(operation_at(operation, day, j) == 'heating' for j in range(i, i + 8))
                           and all(not (p['start'] <= i + 7 and p['end'] > i) for p in phases)]
             if not candidates:
                 continue
-            pre = min(candidates, key=lambda i: (sum(prices[i:i + 8]), -i))
-            end = peak_start + width
-            if (sum(prices[peak_start:end]) / (end - peak_start)
-                    - sum(prices[pre:pre + 8]) / 8 < 1.0):
+            expensive = sum(prices[price_start:end]) / (end - price_start)
+            averages = {i: sum(prices[i:i + 8]) / 8 for i in candidates}
+            eligible = [i for i in candidates if expensive - averages[i] + 1e-9
+                        >= max(0.6, abs(averages[i]) * 0.08)]
+            if not eligible:
                 continue
-            if not all(operation_at(operation, day, j) == 'heating' for j in range(peak_start, end)):
-                continue
+            cheapest = min(averages[i] for i in eligible)
+            # Keep the store warm near the rise: up to 0.10 CZK/kWh is allowed
+            # for a later preheat, while retaining the full minimum price gap.
+            pre = max(i for i in eligible if averages[i] <= cheapest + 0.1 + 1e-9)
             phases.extend([{'start': pre, 'end': pre + 8, 'kind': 'preheat'},
-                           {'start': peak_start, 'end': end, 'kind': 'coast'}])
-    result = {'version': VERSION, 'prices_valid': valid, 'phases': phases}
+                           {'start': coast_start, 'end': end, 'kind': 'coast'}])
+    result = {'version': VERSION, 'policy': POLICY, 'prices_valid': valid, 'phases': phases}
     for name, normal in (('heating', 42), ('thermostat', 21.5)):
         result[name] = {'default_temperature': normal, 'schedule': [
             {'from': clock(p['start']), 'to': clock(p['end']),
              'temperature': (42 if p['kind'] == 'preheat' else 35) if name == 'heating'
              else (21.7 if p['kind'] == 'preheat' else 21.2)} for p in phases]}
-    result['input_hash'] = fingerprint([payload, operation, VERSION, earliest])
+    result['input_hash'] = fingerprint([payload, operation, VERSION, POLICY, earliest])
     return result
 
 
@@ -130,7 +162,7 @@ def _refresh_plans_locked(config, moment):
             continue
         for name in ('heating', 'thermostat'):
             override = deepcopy(plan[name])
-            override['price_shift'] = {k: plan[k] for k in ('version', 'input_hash', 'prices_valid', 'phases')}
+            override['price_shift'] = {k: plan[k] for k in ('version', 'policy', 'input_hash', 'prices_valid', 'phases')}
             override['price_shift']['schedule_hash'] = fingerprint(plan[name])
             raw.setdefault('tng', {}).setdefault(name, {}).setdefault('date_overrides', {})[day] = override
         # Save raw configuration to preserve environment references and private settings.

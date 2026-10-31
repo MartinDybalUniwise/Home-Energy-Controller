@@ -1,13 +1,16 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-30",
+  "updated_at": "2026-10-31",
   "rules": [
     {
       "id": "CONTROL-001",
       "status": "active",
       "recorded_on": "2026-10-30",
       "source": "owner",
-      "title": {"cs": "Jeden společný controller", "en": "One unified controller"},
+      "title": {
+        "cs": "Jeden společný controller",
+        "en": "One unified controller"
+      },
       "text": {
         "cs": "Jedinou autoritou plánování je společný controller HEC. Z něj vychází jeden výsledný požadavek pro topení, bojler a pokojový cíl: ochrany zařízení, komfort, omezená okna teplé vody, potom cenová a FTE optimalizace. Modul TNG pouze měří a provádí schválené požadavky přes původní ochrany. Původní samostatná tepelná pravidla ani přímé požadavky mimo společný controller nesmějí vydávat další povely. Hlavní vypínač zastaví automatické zápisy; sám fyzicky nevypíná TČ. Baterie a měnič mají samostatné povolení zásahů, při sjednocení zůstávají bez nových zásahů.",
         "en": "The unified HEC controller is the sole planning authority. It resolves one target for heating, DHW and room temperature: equipment protection, comfort, bounded DHW windows, then price and FTE optimisation. TNG only measures and executes approved requests through existing gates. Retired thermal rules and direct requests outside the controller must not issue competing commands. The master switch stops automatic writes; it does not physically switch off the HP. Battery/inverter interventions require a separate permission and remain unchanged during unification."
@@ -18,10 +21,13 @@
       "status": "active",
       "recorded_on": "2026-10-30",
       "source": "owner",
-      "title": {"cs": "Topení před zdražením a z přebytku FTE", "en": "Heating before price peaks and from FTE surplus"},
+      "title": {
+        "cs": "Topení před zdražením a z přebytku FTE",
+        "en": "Heating before price peaks and from FTE surplus"
+      },
       "text": {
-        "cs": "Z publikovaných úplných cen vytvářet datované plány: nejvýše 2 h předehřevu v levnějším okně během 6 h před špičkou, TČ nejvýše 42 °C a pokojový cíl 21,7 °C. Cenový rozdíl alespoň 1 Kč/kWh; omezit nejdražších nejvýše 90 minut pouze při pokoji alespoň 21,5 °C, při 21,3 °C obnovit komfort pro zbytek okna. Měřený přebytek FTE alespoň 3 kW po 10 minut, baterie alespoň 20 % a vybíjení nejvýše 100 W dovolí předehřev i při drahé síti, nejvýše 2 h od prvního solárního startu za den; při importu nad 200 W či dosažení 21,7 °C skončit. Neoptimalizovat ze starých či neúplných vstupů; předpověď výroby není měřený přebytek. Zachovat oddělení bojleru, komfortní pojistku a všechny ochrany TNG; ručně změněné denní výjimky nepřepisovat.",
-        "en": "Generate dated plans from complete published prices: at most 2 h preheat in a cheaper window within 6 h before a peak, HP at most 42 C and room target 21.7 C. Require at least 1 CZK/kWh price gap; limit the most expensive at most 90 minutes only from room >=21.5 C, restoring comfort for the rest of the window at 21.3 C. Measured FTE surplus >=3 kW for 10 minutes, battery >=20% and discharge <=100 W permit preheat even at high grid prices, at most 2 h from the first solar start that day; stop at grid import >200 W or room 21.7 C. No optimisation from stale/incomplete inputs; forecast generation is not measured surplus. Preserve exclusive DHW, comfort guard and all TNG gates; retain owner-edited dated overrides."
+        "cs": "Cenové špičky posuzovat vůči předchozím šesti hodinám, nikoli vůči celodennímu mediánu; drahý večer nesmí skrýt ranní růst. Předehřev nejvýše 2 h, TČ nejvýše 42 °C a pokojový cíl 21,7 °C. Vyžadovat rozdíl alespoň 0,60 Kč/kWh a současně 8 % proti ceně předehřevu. Mezi podobně levnými okny preferovat pozdější (nejvýše o 0,10 Kč/kWh dražší). Omezení může pokrýt i náběh špičky, nejvýše 3 h; začíná pouze při pokoji alespoň 21,5 °C a při 21,3 °C končí pro zbytek okna. Zachovat oddělený bojler, potvrzení TNG a interval 900 s. Solární předehřev pouze z platného skutečného přebytku FTE alespoň 3 kW po 10 minut, s baterií alespoň 20 %, vybíjením nejvýše 100 W a importem nejvýše 200 W; nejvýše 2 h od prvního solárního startu za den a do pokojových 21,7 °C. Při starých nebo neplatných vstupech neoptimalizovat. Při opravě přepočítat jen zbývající část dne; nikdy nevydávat zmeškaný noční předehřev za uskutečněný. Ručně změněné denní výjimky nepřepisovat.",
+        "en": "Detect peaks against the preceding six hours, not the whole-day median; an expensive evening must not hide the morning rise. Preheat at most 2 h, HP at most 42 C and room target21.7 C. Require at least0.60 CZK/kWh and8% gap against the preheat price. Prefer a later nearly-equally-cheap window (at most0.10 CZK/kWh extra). Coast may cover the rising edge, at most3 h; enter only from room>=21.5 C and release for the rest of the window at21.3 C. Preserve exclusive DHW, acknowledgements and900 s interval. Solar preheat requires fresh measured FTE surplus>=3 kW for10 minutes, battery>=20%, discharge<=100 W, import<=200 W, at most2 h from the first solar start of the day and room<=21.7 C. Invalid/stale inputs disable optimisation. Replanning after repair changes only the remaining day; never present missed overnight preheat as executed. Preserve owner-edited dated overrides."
       }
     },
     {
@@ -211,7 +217,10 @@
     {
       "date": "2026-10-30",
       "rule_id": "CONTROL-001",
-      "change": {"cs": "Vlastník schválil jeden společný controller, implementaci i rozhodnutí provozních podrobností.", "en": "Owner approved one unified controller, implementation and operational requirement decisions."}
+      "change": {
+        "cs": "Vlastník schválil jeden společný controller, implementaci i rozhodnutí provozních podrobností.",
+        "en": "Owner approved one unified controller, implementation and operational requirement decisions."
+      }
     },
     {
       "date": "2026-10-30",
@@ -252,6 +261,14 @@
         "en": "Automatic room comfort guard prioritises heating over DHW during sustained cold; TNG protections preserved."
       },
       "rule_id": "COMFORT-001"
+    },
+    {
+      "date": "2026-10-31",
+      "rule_id": "PLAN-002",
+      "change": {
+        "cs": "Oprava po hlášení vlastníka: lokální ranní špička místo celodenní hranice, pozdější levný předehřev a až tříhodinové omezení s nezměněnou komfortní pojistkou.",
+        "en": "Repair after owner report: local morning peaks replace daily threshold, later cheap preheat and up-to-three-hour coast with unchanged comfort veto."
+      }
     }
   ]
 }

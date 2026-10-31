@@ -114,7 +114,7 @@ class TngReader(BaseReader):
         probuzení readeru přesně na hranici okna."""
         boundaries: set[str] = set()
         for name in ("boiler", "heating", "thermostat", "operation"):
-            section = effective_schedule(self.config.get(f"tng.{name}", {}), now_local())
+            section = effective_schedule(self.config.get(f"tng.{name}", {}), moment)
             if name != 'operation' and not section.get("enabled"):
                 continue
             for window in section.get("schedule", []) or []:
@@ -131,7 +131,12 @@ class TngReader(BaseReader):
                 hour, minute = (int(part) for part in hhmm.split(":"))
             except (ValueError, AttributeError):
                 continue
-            candidate = base.replace(hour=hour, minute=minute)
+            if hour == 24 and minute == 0:
+                candidate = (base + timedelta(days=1)).replace(hour=0, minute=0)
+            elif 0 <= hour <= 23 and 0 <= minute <= 59:
+                candidate = base.replace(hour=hour, minute=minute)
+            else:
+                continue
             if candidate <= moment:
                 candidate += timedelta(days=1)
             delta = (candidate - moment).total_seconds()
@@ -528,7 +533,12 @@ class TngReader(BaseReader):
                 hour, minute = (int(part) for part in hhmm.split(":"))
             except (ValueError, AttributeError):
                 continue
-            candidate = base.replace(hour=hour, minute=minute)
+            if hour == 24 and minute == 0:
+                candidate = (base + timedelta(days=1)).replace(hour=0, minute=0)
+            elif 0 <= hour <= 23 and 0 <= minute <= 59:
+                candidate = base.replace(hour=hour, minute=minute)
+            else:
+                continue
             if candidate <= moment:
                 candidate += timedelta(days=1)
             if nearest_dt is None or candidate < nearest_dt:
