@@ -1,11 +1,14 @@
 from datetime import datetime, timedelta
+from threading import Lock
 from types import SimpleNamespace
 
 import pytest
 from hec.controller.battery import BatteryPlanner, charging_windows
 from hec.controller.controller import Controller
 from hec.controller.price import ZONE, clock
+from hec.core.app import Application
 from hec.core.config import Config
+from hec.core.model import Decision
 from hec.readers.goodwe_manager import GoodWeManager
 from hec.storage.base import atomic_write_json
 
@@ -62,6 +65,7 @@ def test_charge_has_bounded_time_power_and_soc_and_restart_ownership(tmp_path):
     assert d.action == 'start_battery_charge' and d.value <= 20
     assert d.reason_params['stop_soc_pct'] == 60 and d.reason_params['valid_day'] == DAY
     assert d.reason_params['valid_to'] <= '16:00'
+    assert p.state['date'] == DAY and p.state['charge_power_limit_pct'] == 20
     p.prepare_write(d)
     assert planner(tmp_path).memory['owned'] is True
 
@@ -182,3 +186,23 @@ def test_future_native_start_is_not_treated_as_active_charge(tmp_path):
     values['battery_program'] = GoodWeManager._expected_value(d.action, d.reason_params)
     values['battery_program']['valid_from'] = '15:00'
     assert p.decide(values, curve(), instant() + timedelta(minutes=6))[0].action == 'start_battery_charge'
+
+
+def test_retired_rule_cannot_write_while_economic_controller_owns_inverter(tmp_path):
+    p = planner(tmp_path)
+    p.config.data['controller']['enabled'] = True
+    p.config.data['controller']['optimization']['goodwe_control']['enabled'] = True
+    app = SimpleNamespace(config=p.config, storage=SimpleNamespace(append=lambda *args: None),
+                          snapshot={}, readers=[], goodwe_writer=SimpleNamespace())
+    decision = Decision(rule='goodwe_discharge_expensive', action='start_battery_discharge', value=30)
+    result = Controller(app).apply(decision)
+    assert not result.applied and result.reason_key == 'reason.central_controller_required'
+
+
+def test_fast_overview_exposes_same_cached_controller_without_full_diagnostics():
+    plan = {'battery_plan': {'date': DAY, 'windows': []}}
+    app = SimpleNamespace(_lock=Lock(), snapshot={}, readers=[], controller=SimpleNamespace(state=lambda: plan))
+    app.status = lambda: (_ for _ in ()).throw(AssertionError('Full status must not run in fast mode'))
+    payload = Application.current(app, include_status=False)
+    assert payload['controller'] is plan
+    assert 'status' not in payload

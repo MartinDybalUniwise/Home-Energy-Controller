@@ -1,10 +1,10 @@
-import {controlPlan} from './control-plan.js?v=42';
+import {controlPlan} from './control-plan.js?v=45';
 import {renderDayPlan} from './day-plan.js?v=41';
 import {mountMcpSetup} from './mcp-setup.js?v=1';
 import {heatpumpPanel} from './heatpump-panel.js?v=41';
 import { rulesPage } from './rules.js?v=36';
 import {patchDOM} from './patch-dom.js?v=36';
-import { mountTodayChart, siteDateTime } from './today-chart.js?v=41';
+import { mountTodayChart, siteDateTime } from './today-chart.js?v=45';
 import { source, finite, energySnapshot, heatpumpText, heatingPermission, batteryText, batteryReason } from './telemetry.js';
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 
@@ -168,14 +168,14 @@ export async function overview(view, { api, motion, state }) {
     patchDOM(existing,fresh.querySelector('.today-screen'),new Set(['today-energy-chart']));
     const history = overviewHistory.get(view);
     if (history && Date.now()-history.at >= 60000) {
-      await history.refresh(prices,configPayload.config);
+      await history.refresh(prices,configPayload.config,current.status||{controller:current.controller});
       history.at=Date.now();
     }
   } else {
     renderToday(view, {current, weather, prices, prediction:predictionPayload, motion});
     renderDayPlan(view.querySelector('#today-day-plan'),configPayload.config,new Date(),predictionPayload,current,{summaryOnly:true});
     view.querySelector('#heatpump-panel-slot').innerHTML = heatpumpPanel(current,configPayload.config);
-    const refresh = await mountTodayChart(view.querySelector('#today-energy-chart'), {api, prices, config:configPayload.config});
+    const refresh = await mountTodayChart(view.querySelector('#today-energy-chart'), {api, prices, config:configPayload.config,status:current.status||{controller:current.controller}});
     overviewHistory.set(view,{at:Date.now(),refresh});
   }
 }
@@ -930,7 +930,11 @@ export async function settings(view, { api, onUiChange }) {
   const [{ config }, { fields }, goodweAuth] = await Promise.all([
     api.config(), api.configSchema(), api.goodweAuthorization().catch(() => ({})),
   ]);
-  const groups = groupFields(fields);
+  // Inactive legacy targets must not look like a second set of battery controls.
+  const economic=config?.controller?.optimization?.goodwe_control?.economic?.enabled===true;
+  const prefix='controller.optimization.goodwe_control.';
+  const groups = groupFields(fields.filter(field=>!economic||!field.path.startsWith(prefix)||
+    field.path===`${prefix}enabled`||field.path.startsWith(`${prefix}economic.`)&&field.path!==`${prefix}economic.enabled`));
   const personal = Object.entries(groups).filter(([section]) => section === 'ui');
   const technical = Object.entries(groups).filter(([section]) => section !== 'ui');
 

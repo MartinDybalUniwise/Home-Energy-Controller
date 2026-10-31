@@ -3,6 +3,11 @@
   "updated_at": "2026-10-31",
   "rules": [
     {
+      "id": "CONTROL-002", "status": "active", "recorded_on": "2026-10-31", "source": "owner",
+      "title": {"cs": "Jedno nastavení a zobrazený plán FVE", "en": "One configuration and visible PV plan"},
+      "text": {"cs": "FVE a baterii plánuje a ovládá pouze společný controller HEC z jediného aktivního nastavení. Původní bateriová pravidla nesmějí vydávat další povely. Obrazovka Řízení a plán i hlavní denní graf pouze zobrazují tentýž plán controlleru; nemají další časovač, výpočet cen ani ovládání měniče. Uvádět zbývající podmíněná okna, limity, čerstvost a skutečný stav odděleně od plánu. Staré neaktivní parametry nezobrazovat jako druhé nastavení.", "en": "Only the unified HEC controller plans and actuates PV/battery from one active configuration. Retired battery rules must not send further commands. Control & Plan and the overview timeline only display that same controller plan, without another timer, price calculation or inverter control. Show remaining conditional windows, limits and freshness; separate intent from actual state. Hide inactive legacy targets rather than showing a second configuration."}
+    },
+    {
       "id": "BATTERY-001",
       "status": "active",
       "recorded_on": "2026-10-31",
@@ -225,6 +230,7 @@
     }
   ],
   "history": [
+    {"date": "2026-10-31", "rule_id": "CONTROL-002", "change": {"cs": "Vlastník výslovně požaduje jedno nastavení, jeden controller FTE a plán na obrazovce.", "en": "Owner explicitly requested one inverter configuration/controller and an on-screen plan."}},
     {
       "date": "2026-10-31", "rule_id": "BATTERY-001",
       "change": {"cs": "Vlastník schválil ekonomické nabíjení baterie, zapnutí řízení FTE a důslednou kontrolu FTE/TČ každé2 h.", "en": "Owner approved economic grid charging, inverter control and careful PV/HP reviews every2h."}

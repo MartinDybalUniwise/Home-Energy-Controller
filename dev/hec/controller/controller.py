@@ -199,6 +199,11 @@ class Controller:
     def apply(self, decision: Decision) -> Decision:
         """Zápis jde vždy přes change-gate readeru TNG – ten chrání čerpadlo."""
         if decision.action in GOODWE_ACTIONS:
+            if (self.config.get('controller.optimization.goodwe_control.economic.enabled', False)
+                    and decision.rule != 'battery_economic'):
+                decision.applied = False
+                decision.reason_key = 'reason.central_controller_required'
+                return decision
             if not self.enabled or not self.config.get('controller.optimization.goodwe_control.enabled', False):
                 decision.applied = False
                 decision.reason_key = 'reason.write_blocked_gate'

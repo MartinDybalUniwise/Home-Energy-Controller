@@ -1,4 +1,18 @@
 {
+  "battery_plan": {
+    "title": "PV and battery plan", "timeline": "Plan: grid battery charge (conditional)",
+    "authority": "Plan from the unified HEC controller", "grid_target": "Grid charging ceiling",
+    "power_limit": "Maximum charging power", "reserve": "Reserve after charging", "actual_soc": "Last measured SOC",
+    "time": "Time", "action": "Planned activity", "price": "Highest window price",
+    "conditional_charge": "Conditional grid charging", "no_windows": "No further charging window today.",
+    "unavailable_note": "No active plan is available. An old plan is not shown as current.",
+    "conditions": "Charging depends on measured PV, household load, SOC and device protections. Solar surplus, high load or a full battery may limit or cancel grid charging. Parameters come from the single unified controller configuration.",
+    "measured_note": "A plan does not confirm charging. Check measured battery power; elapsed windows do not prove execution.",
+    "phase_self_consumption": "Normal self-consumption", "phase_charge": "Plan requests charging",
+    "phase_hold": "Holding energy for dearer hours", "phase_release": "Battery serving the house", "phase_solar": "Solar takes priority",
+    "phase_safe_mode": "Optimisation paused", "phase_external_mode": "External inverter mode",
+    "phase_disabled": "Battery control disabled", "phase_unavailable": "Current plan unavailable", "phase_write_failed": "Write not confirmed"
+  },
   "app": {
     "name": "Home Energy Controller",
     "loading": "Loading…",

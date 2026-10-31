@@ -74,3 +74,9 @@ release via General self-consumption, never forced grid export. Preserve TNG gat
 Existing two-hour reviews MUST follow the expanded checks in skills/hec-status:
 prices, comfort, measured PV/SOC/power, native charge schedule/readback, TNG actual
 acknowledgement and behaviour. Every review sends its own dated mobile report.
+
+Owner clarification2026-10-31: one inverter configuration, one unified controller.
+Plan views are read-only projections of status.controller.battery_plan; never add
+UI price optimisation, another writer/controller or an independent battery timer.
+Hide inactive legacy battery configuration in economic mode. Reject retired-rule
+actuation while economic mode owns GoodWe. See dev/step45/PLAN.md.

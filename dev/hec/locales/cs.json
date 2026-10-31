@@ -1,4 +1,18 @@
 {
+  "battery_plan": {
+    "title": "Plán FVE a baterie", "timeline": "Plán: baterie ze sítě (podmíněně)",
+    "authority": "Plán společného controlleru HEC", "grid_target": "Nejvýše ze sítě",
+    "power_limit": "Maximální nabíjecí výkon", "reserve": "Rezerva po dobití", "actual_soc": "Naposledy naměřené SOC",
+    "time": "Čas", "action": "Plánovaná činnost", "price": "Nejvyšší cena okna",
+    "conditional_charge": "Podmíněné nabíjení ze sítě", "no_windows": "Dnes už není další nabíjecí okno.",
+    "unavailable_note": "Aktivní plán nyní není dostupný. Starý plán se nezobrazuje jako platný.",
+    "conditions": "Nabíjení závisí na skutečné výrobě FVE, spotřebě domu, SOC a ochranách zařízení. Dostatek slunce, vysoký odběr nebo plná baterie mohou síťové nabíjení omezit či zrušit. Parametry pocházejí z jediného nastavení společného controlleru.",
+    "measured_note": "Plán není potvrzení nabíjení. Skutečný výkon ověřujte v měření baterie; uplynulá okna nejsou důkaz vykonané činnosti.",
+    "phase_self_consumption": "Běžná vlastní spotřeba", "phase_charge": "Plán požaduje nabíjení",
+    "phase_hold": "Držení energie pro dražší hodiny", "phase_release": "Využití baterie pro dům", "phase_solar": "Přednost má slunce",
+    "phase_safe_mode": "Optimalizace pozastavena", "phase_external_mode": "Vnější režim měniče",
+    "phase_disabled": "Řízení baterie vypnuto", "phase_unavailable": "Plán není aktuálně dostupný", "phase_write_failed": "Zápis nepotvrzen"
+  },
   "app": {
     "name": "Home Energy Controller",
     "loading": "Načítám…",

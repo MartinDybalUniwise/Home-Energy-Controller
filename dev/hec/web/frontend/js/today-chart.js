@@ -1,4 +1,5 @@
 import {patchDOM} from './patch-dom.js?v=36';
+import {batteryModel} from './battery-plan.js?v=45';
 // Observations and published prices share a time axis, never a unit scale.
 import { planSegments } from './day-plan.js?v=41';
 import { finite } from './telemetry.js';
@@ -119,12 +120,14 @@ function panel(rows, fields, unit, range, now, gap, width, offset) {
   return `<g transform="translate(0 ${offset})">${markup}</g>`;
 }
 
-function timeline(rows, measured, price, range, now, gap, width, config) {
+export function timeline(rows, measured, price, range, now, gap, width, config, status) {
   const left=54, right=18, plotWidth=width-left-right;
   const x=stamp=>left+(+stamp-+range.from)/(+range.to-+range.from)*plotWidth;
   const segments=planSegments(config,now);
   const hasPlan=segments.length>0;
-  const bottom=hasPlan?530:410, height=bottom+42;
+  const battery=batteryModel(status,siteDate(now),siteClock(now),now);
+  const hasBattery=battery.drawable;
+  const bottom=hasBattery?(hasPlan?588:472):hasPlan?530:410, height=bottom+42;
   let body=panel(rows,measured,t('unit.kw'),range,now,gap,width,0)
     +panel(rows,price,t('unit.czk_kwh'),range,now,gap,width,205);
   if (hasPlan) {
@@ -142,6 +145,15 @@ function timeline(rows, measured, price, range, now, gap, width, config) {
     }
   }
   // One set of time coordinates spans measurements, published price and saved plan.
+  if(hasBattery){
+    const y=hasPlan?560:444,day=siteDate(now);
+    body+=`<text class="axis-label" x="${left}" y="${y-8}">${escape(t('battery_plan.timeline'))}</text><rect x="${left}" y="${y}" width="${plotWidth}" height="28" fill="var(--bg-card-subtle)" rx="4"/>`;
+    for(const window of battery.windows){
+      const from=siteMoment(day,`${String(Math.floor(window.start/60)).padStart(2,'0')}:${String(window.start%60).padStart(2,'0')}`),to=siteMoment(day,window.to);
+      const bx=x(from),bw=x(to)-bx,detail=`${window.from}–${window.to} · ${t('battery_plan.conditional_charge')} · ≤${num(battery.plan.grid_target_soc_pct,0)} %`;
+      body+=`<g class="timeline-plan-block timeline-battery-block" data-detail="${escape(detail)}" tabindex="0" role="button" aria-label="${escape(detail)}"><title>${escape(detail)}</title><rect x="${bx}" y="${y}" width="${bw}" height="28" fill="var(--series-battery)" opacity=".75"/>${bw>45?`<text x="${bx+bw/2}" y="${y+19}" text-anchor="middle" fill="var(--ink-primary)" font-size="12">≤${num(battery.plan.grid_target_soc_pct,0)} %</text>`:''}</g>`;
+    }
+  }
   let grid='';
   const days=Math.round((+range.to-+range.from)/86400000);
   const step=days<=1?(width<500?6:3):days<=2?(width<500?24:12):(width<500?72:24);
@@ -174,7 +186,7 @@ function origin(row) {
   return `${t('entity.pv')}: ${label(pv)} · ${t('entity.house')}: ${label(house)}`;
 }
 
-export async function mountTodayChart(container, {api, prices, config, now = new Date()}) {
+export async function mountTodayChart(container, {api, prices, config, status, now = new Date()}) {
   let generation = 0;
   const draw = async (days, background = false) => {
     selectedDays = days;
@@ -218,7 +230,7 @@ export async function mountTodayChart(container, {api, prices, config, now = new
       ${partial?`<p role="alert">${t('today_chart.partial')}</p>`:''}
       ${!rows.some(r=>r.pv!==null||r.house!==null)?`<p>${t('today_chart.no_measurements')}</p>`:''}
       <div class="today-chart-legend">${[...measured,...price].map(f=>`<span style="--series:${f.color}">${f.label}</span>`).join('')}</div>
-      <div class="today-chart-panels">${timeline(rows,measured,price,range,now,gap,width,config)}</div>
+      <div class="today-chart-panels">${timeline(rows,measured,price,range,now,gap,width,config,status)}</div>
       <output class="today-chart-tooltip" aria-live="polite"></output>
       <div class="today-chart-table table-wrap" hidden><table><thead><tr><th>${t('history.time')}</th><th>${t('entity.pv')} (kW)</th><th>${t('entity.house')} (kW)</th><th>${t('entity.price')} (${t('unit.czk_kwh')})</th><th>${t('today_chart.origin')}</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${siteDateTime(r.timestamp)}</td><td>${num(r.pv,2)}</td><td>${num(r.house,2)}</td><td>${num(r.price,2)}</td><td>${origin(r)}</td></tr>`).join('')}</tbody></table></div>`;
     if (background) {
@@ -273,5 +285,5 @@ export async function mountTodayChart(container, {api, prices, config, now = new
     };
   };
   await draw(selectedDays);
-  return async (nextPrices,nextConfig) => { prices=nextPrices || prices; config=nextConfig || config; now=new Date(); await draw(selectedDays,true); };
+  return async (nextPrices,nextConfig,nextStatus) => { prices=nextPrices || prices; config=nextConfig || config; status=nextStatus || status; now=new Date(); await draw(selectedDays,true); };
 }

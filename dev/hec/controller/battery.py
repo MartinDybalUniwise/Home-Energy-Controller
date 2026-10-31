@@ -172,9 +172,10 @@ class BatteryPlanner:
                 atomic_write_json(self.path, self.memory)
         elif valid and not owned and mode != 'GENERAL':
             phase, reason = 'external_mode', 'External/manual inverter mode; HEC will not overwrite it'
-        self.state = dict(timestamp=moment.isoformat(), phase=phase, reason=reason,
+        self.state = dict(timestamp=moment.isoformat(), date=moment.date().isoformat(), phase=phase, reason=reason,
                           prices_valid=bool(prices), data_valid=bool(valid), windows=windows,
                           price_czk_kwh=price, grid_target_soc_pct=ceiling, minimum_soc_pct=minimum,
+                          charge_power_limit_pct=min(20, settings.get('charge_power_pct', 20)),
                           efficiency_assumption=eta, wear_assumption_czk_kwh=wear,
                           minimum_profit_czk_kwh=margin, planned_charge_price_basis=basis,
                           actual_mode=mode, actual_soc=soc, actual_reserve_pct=reserve,

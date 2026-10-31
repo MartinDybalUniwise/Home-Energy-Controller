@@ -118,6 +118,9 @@ class Application:
         }
         if include_status:
             payload["status"] = self.status()
+        elif getattr(self, 'controller', None) is not None:
+            # Cached controller plan only; keep the fast overview free of full diagnostics.
+            payload['controller'] = self.controller.state()
         return payload
 
     def status(self) -> dict[str, Any]:
