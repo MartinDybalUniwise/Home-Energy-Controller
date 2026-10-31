@@ -220,6 +220,10 @@ class GoodWeManager:
         await self._await(inverter.write_setting('eco_mode_1', bytes(encoded)))
         for i in (2, 3, 4):
             await self._await(inverter.write_setting(f'eco_mode_{i}_switch', 0))
+        prepared = await self._bounded_state()
+        expected = self._expected_value('start_battery_charge', kwargs)
+        if any(prepared.get(key) != value for key, value in expected.items() if key != 'work_mode'):
+            raise RuntimeError('Native charge program verification failed before mode activation')
         await self._await(inverter.set_operation_mode(OperationMode.ECO))
 
     @staticmethod

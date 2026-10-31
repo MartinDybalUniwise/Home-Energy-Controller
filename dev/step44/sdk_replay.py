@@ -13,14 +13,17 @@ from hec.readers.goodwe_manager import GoodWeManager
 
 
 class OfflineInverter:
-    def __init__(self):
+    def __init__(self, ignore_program=False):
         self.group = EcoModeV2('eco_mode_1', 0, 'Offline replay')
-        self.group.read_value(io.BytesIO(bytes.fromhex('0000173b007fffce00640000')))
+        self.program = bytes.fromhex('0000173b007fffce00640000')
+        self.group.read_value(io.BytesIO(self.program))
         self.groups = {f'eco_mode_{i}_switch': 0 for i in (2, 3, 4)}
         self.mode = 0
+        self.ignore_program = ignore_program
 
     async def read_setting(self, name):
         if name == 'eco_mode_1':
+            self.group.read_value(io.BytesIO(self.program))
             return self.group
         if name == 'time':
             return datetime(2026, 10, 31, 12)
@@ -30,7 +33,8 @@ class OfflineInverter:
 
     async def write_setting(self, name, value):
         if name == 'eco_mode_1':
-            self.group.read_value(io.BytesIO(value))
+            if not self.ignore_program:
+                self.program = value
         else:
             self.groups[name] = value
 
@@ -49,6 +53,14 @@ def main():
     actual = manager._run(manager._bounded_state())
     assert actual == manager._expected_value('start_battery_charge', args), actual
     print(actual)
+    manager._inverter = OfflineInverter(ignore_program=True)
+    with patch('hec.readers.goodwe_manager.now_local', return_value=datetime(2026, 10, 31, 12, tzinfo=ZONE)):
+        try:
+            manager._run(manager._bounded_charge(args))
+        except RuntimeError:
+            assert manager._inverter.mode == 0
+        else:
+            raise AssertionError('Mismatching program must not activate ECO')
     print('SDK bounded charge encode/write/readback replay passed; no physical I/O')
 
 

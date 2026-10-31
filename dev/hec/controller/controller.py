@@ -261,6 +261,12 @@ class Controller:
                         self.battery.last_result = decision.to_dict()
                         self.battery.state['last_command'] = self.battery.last_result
                         self.record(decision)
+                        if decision.action == 'start_battery_charge' and not decision.applied:
+                            stop = Decision(rule='battery_economic', action='stop_battery_control', value=None,
+                                            reason_key='reason.battery_write_failed', timestamp=moment)
+                            self.apply(stop)
+                            self.battery.remember(stop, stop.applied)
+                            self.record(stop)
                     self.safe_mode_reason = ({'reason_key': 'reason.safe_mode_stale_data',
                                               'reason_params': {'source': 'goodwe/prices'}}
                                              if self.battery.state['phase'] == 'safe_mode' else None)

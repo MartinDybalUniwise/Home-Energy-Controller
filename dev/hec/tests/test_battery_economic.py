@@ -151,7 +151,7 @@ def test_controller_uses_only_economic_writer_and_reports_result(tmp_path, monke
     p.config.data['controller']['enabled'] = True
     p.config.data['controller']['optimization']['goodwe_control']['enabled'] = True
     atomic_write_json(tmp_path / f'ote-{DAY}.json', curve())
-    calls, records = [], []
+    calls, records, stops = [], [], []
 
     def charge(**kwargs):
         calls.append(kwargs)
@@ -159,7 +159,8 @@ def test_controller_uses_only_economic_writer_and_reports_result(tmp_path, monke
 
     app = SimpleNamespace(config=p.config, storage=SimpleNamespace(append=lambda *args: records.append(args)),
                           snapshot={'goodwe': row()}, readers=[],
-                          goodwe_writer=SimpleNamespace(start_battery_charge=charge))
+                          goodwe_writer=SimpleNamespace(start_battery_charge=charge,
+                              stop_battery_control=lambda: stops.append(True) or {'success': True}))
     controller = Controller(app)
     monkeypatch.setattr('hec.controller.controller.now_local', instant)
     result = controller.run_once()
@@ -168,3 +169,16 @@ def test_controller_uses_only_economic_writer_and_reports_result(tmp_path, monke
     assert result['safe_mode'] is not success
     assert all(not r['enabled'] for r in controller.state()['rules'] if r['name'].startswith('goodwe_'))
     assert controller.state()['battery_plan']['last_command']['applied'] is success
+    assert bool(stops) is not success
+
+
+def test_future_native_start_is_not_treated_as_active_charge(tmp_path):
+    p = planner(tmp_path)
+    d = p.decide(row(), curve(), instant())[0]
+    p.prepare_write(d)
+    values = row()
+    values.update(operation_mode='ECO', timestamp=(instant() + timedelta(minutes=6)).isoformat(),
+                  inverter_time=(instant() + timedelta(minutes=6)).isoformat())
+    values['battery_program'] = GoodWeManager._expected_value(d.action, d.reason_params)
+    values['battery_program']['valid_from'] = '15:00'
+    assert p.decide(values, curve(), instant() + timedelta(minutes=6))[0].action == 'start_battery_charge'

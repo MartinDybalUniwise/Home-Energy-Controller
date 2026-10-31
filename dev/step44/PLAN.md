@@ -42,10 +42,14 @@ Deployment: supported stopped-writer incremental backups before changes/deploy,
 isolated fake-device tests, SDK encoding replay, raw-config activation preserving
 private references and byte-identical TNG runtime state, service/readback checks.
 
-Validation before activation:127 targeted tests passed (battery safety/economics,
+Validation before activation:128 targeted tests passed (battery safety/economics,
 exclusive unified controller, write result reporting, GoodWe transport, thermal
 and morning-price regressions). Ruff and production Python3.13 compilation passed.
 Offline replay with the installed SDK verified the complete bounded-program
 readback, including Saturday mask64, -20% charge,60% SOC and inactive groups2–4.
 Actual published2026-10-31 curve yields remaining charge window12:30–15:30;
 its execution remains conditional on fresh live PV/load/SOC/BMS/clock inputs.
+Additional hardening verifies the programmed profile before switching ECO on;
+an ignored SDK write must leave General mode active. A failed/ambiguous charge
+request triggers an immediate audited stop attempt. An active-profile comparison
+also checks that its native start time has already arrived.

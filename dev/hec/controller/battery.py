@@ -141,6 +141,8 @@ class BatteryPlanner:
             # only reduce power materially if grid headroom/BMS requires it.
             program = row.get('battery_program') or {}
             matches = (owned and mode == 'ECO' and program.get('enabled') is True
+                       and isinstance(program.get('valid_from'), str)
+                       and program['valid_from'] <= moment.strftime('%H:%M')
                        and program.get('valid_to') == current['to']
                        and program.get('day_bits') == 1 << ((moment.weekday() + 1) % 7)
                        and program.get('stop_soc_pct') == ceiling
