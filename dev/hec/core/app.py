@@ -81,6 +81,8 @@ class Application:
             if sample.values:
                 with self._lock:
                     self.snapshot[sample.source] = sample.to_dict()
+            if self.controller is not None and sample.source == 'goodwe':
+                self.controller.on_sample(sample)
             return
         with self._lock:
             self.snapshot[sample.source] = sample.to_dict()

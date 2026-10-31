@@ -64,3 +64,13 @@ nearly-cheap two-hour preheat, coast<=3 h with the same21.3 C comfort veto. Pres
 revised_at cutoffs: never turn a counterfactual missed night into an executed plan.
 
 Mobile report correction 2026-10-28: the owner phone displays local visualize directives as raw text. Use native mobile Markdown with status emoji, compact state/trend/plan blocks and a short Assessment | Recommendation table for scheduled and mobile reports. Never send local HTML paths or visualize directives in these reports. The full report must be readable in chat without opening files.
+
+Owner-approved2026-10-31 battery control supersedes the disabled-GoodWe statement
+above. The same Application.controller now exclusively selects economic battery
+planning (dev/step44/PLAN.md); never activate legacy battery/export rules alongside
+it. Grid charge ceiling60%, power<=20%, model efficiency90%, wear0.30 CZK/kWh and
+net margin>=0.50 CZK/kWh. Leave PV headroom, hold bought energy for dear periods,
+release via General self-consumption, never forced grid export. Preserve TNG gates.
+Existing two-hour reviews MUST follow the expanded checks in skills/hec-status:
+prices, comfort, measured PV/SOC/power, native charge schedule/readback, TNG actual
+acknowledgement and behaviour. Every review sends its own dated mobile report.

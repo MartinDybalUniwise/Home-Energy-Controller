@@ -79,3 +79,45 @@ actuation. controller.enabled is the master switch. plan_tng history entries are
 resolved plans, never proof of sending or acknowledgement. TNG remains transport;
 do not re-enable retired thermal rules or enable battery/export changes as part
 of an ordinary heating review.
+
+## Kontrola každé dvě hodiny — rozšíření vlastníkem 2026-10-31
+
+Toto rozšíření je povinnou součástí již aktivní dvouhodinové kontroly. Při každém
+běhu zapiš skutečný čas zahájení Europe/Prague, proveď kontrolu a vždy pošli do
+chatu stručný mobilní report. Zachovej existující četnost; nevytvářej druhý plánovač.
+Nový výslovný souhlas vlastníka umožňuje ekonomické řízení GoodWe společným
+controllerem; starší pokyn zachovat GoodWe vypnutý tímto pozbývá platnosti.
+
+- Ověř běh služby, controller.enabled, goodwe_control_enabled a economic.enabled,
+  čerstvost GoodWe/TNG a publikované ceny pro dnešní a následující den. Chybějící
+  zítřejší ceny označ; nenahrazuj je dnešními. Čti status.controller.battery_plan.
+- Porovnej uložený plán, rozhodnutí controlleru, goodwe_audit/TNG potvrzení a
+  naměřený průběh od poslední kontroly (nejvýše posledních 7 dní). Samotné povolení
+  zápisu či úspěšný readback neprokazuje fyzické nabíjení ani běh kompresoru.
+- FVE/baterie: sleduj skutečné PV, spotřebu, import/export, nabíjecí/vybíjecí výkon,
+  SOC a změnu energie. Ověř levné časové okno, konec nativního programu, shodu hodin
+  měniče do120 s, výkon<=20 %, cíl ze sítě<=60 %, BMS/teplotní omezení a rezervu
+  pro FVE. Importní rozpočet7 kW je omezení přídavného nabíjení, nikoli ochrana
+  jističe či záruka celkového odběru. Baterie musí ustoupit TČ a spotřebě domu.
+- Ekonomika: porovnej skutečnou celkovou nákupní cenu s cenou nahrazené vlastní
+  spotřeby. Model: účinnost90 %, opotřebení0,30 Kč/dodané kWh, požadovaný rozdíl
+  alespoň0,50 Kč/kWh po těchto nákladech. Tyto hodnoty jsou konzervativní předpoklady,
+  nikoli změřená účinnost, cena degradace nebo dosažená úspora. Odděl síť/PV energii;
+  při neúplných datech skutečnou úsporu nevyčísluj. Nepouštěj vynucené vybíjení do sítě.
+- Zkontroluj držení nakoupené energie do dražšího období a následné uvolnění rezervy
+  do režimu GENERAL pro spotřebu domu. Rezervu nezvyšuj nad aktuální SOC. Exportní
+  omezení nejsou součástí nového řízení. Při neplatných datech ukončit vlastní
+  vynucené nabíjení; přirozený provoz FVE a ochrany měniče ponechat.
+- TČ: zhodnoť, zda skutečně potvrzený předehřev předcházel růstu ceny, nebo zda ho
+  zabrzdila brána900 s, nepotvrzený povel či komfort. Neoznač zmeškanou noc jako
+  vykonaný předehřev. Uveď pokojovou teplotu/trend, AKU jen z ověřeného čerstvého
+  čidla, výstup TNG a bojler. Posuzuj komfort>=21 °C, běžný cíl21,5 °C, přetápění,
+  večerní zásobu TV, výlučné režimy a účinné komfortní/solární veto.
+- Při změně plánu použij jen společný controller a schválené parametry/datované
+  výjimky. Neobnovuj vyřazená samostatná pravidla. Zachovej stav potvrzení TNG.
+  Neupravuj účinnost ani opotřebení podle jedné epizody. U závady uveď konkrétní
+  rozdíl plán→povel→potvrzení→měření, provedenou nápravu a co ještě není ověřené.
+
+V reportu vždy aktuální stav, naměřený trend, dnešní další okna a krátká tabulka
+Zhodnocení | Doporučení. Drahé vytápění může být nutné pro komfort: vysvětli důvod,
+nepokládej samotnou vysokou cenu za závadu. Poškození komfortu kvůli nabíjení je závada.

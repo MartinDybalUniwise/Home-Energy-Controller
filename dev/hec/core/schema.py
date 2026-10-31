@@ -214,6 +214,16 @@ SCHEMA: dict[str, Any] = {
             "expensive_price_percentile": F("float", 0.75, minimum=0, maximum=1),
             "goodwe_control": {
                 "enabled": F("bool", False),
+                "economic": {
+                    "enabled": F("bool", False),
+                    "roundtrip_efficiency": F("float", .90, minimum=.5, maximum=1),
+                    "wear_czk_kwh": F("float", .30, minimum=0, maximum=10),
+                    "minimum_profit_czk_kwh": F("float", .50, minimum=.3, maximum=20),
+                    "grid_target_soc_pct": F("int", 60, minimum=20, maximum=60),
+                    "minimum_soc_pct": F("int", 20, minimum=10, maximum=20),
+                    "charge_power_pct": F("int", 20, minimum=5, maximum=20),
+                    "max_grid_import_w": F("int", 7000, minimum=1000, maximum=7000),
+                },
                 "export_limit_enabled": F("bool", False),
                 "export_limit_w": F("int", 0, minimum=0, maximum=100_000),
                 "on_grid_soc_limit_enabled": F("bool", False),

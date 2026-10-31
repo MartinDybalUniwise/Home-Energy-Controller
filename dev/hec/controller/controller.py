@@ -14,6 +14,7 @@ from ..core.logging_setup import event, get_logger, warn_event
 from ..core.model import Decision
 from ..core.timeutil import now_local, to_iso
 from ..storage.base import read_json
+from .battery import BatteryPlanner
 from .rules import Context, default_rules
 from .thermal import ThermalPlanner
 
@@ -39,6 +40,7 @@ class Controller:
         self.rules = sorted((rule for rule in default_rules(self.config)
                              if rule.action in GOODWE_ACTIONS), key=lambda rule: rule.priority)
         self.thermal = ThermalPlanner()
+        self.battery = BatteryPlanner(self.config)
         self.thermal_plan = None
         self._last_thermal_run = None
         self._last_thermal_signature = None
@@ -80,14 +82,19 @@ class Controller:
             "safe_mode_reason": self.safe_mode_reason,
             "write_enabled": self.enabled and bool(self.config.get("tng.write_enabled", False)),
             "rules": [{"name": "unified_thermal", "priority": -1, "enabled": self.enabled}]
+                      + [{"name": "battery_economic", "priority": 0, "enabled": self.enabled and bool(
+                          self.config.get('controller.optimization.goodwe_control.enabled', False)) and bool(
+                          self.config.get('controller.optimization.goodwe_control.economic.enabled', False))}]
                       + [{"name": rule.name, "priority": rule.priority,
                           "enabled": rule.enabled and bool(self.config.get(
-                              'controller.optimization.goodwe_control.enabled', False))}
+                              'controller.optimization.goodwe_control.enabled', False)) and not self.config.get(
+                              'controller.optimization.goodwe_control.economic.enabled', False)}
                          for rule in self.rules],
             "last_decision": self.last_decision.to_dict() if self.last_decision else None,
             "last_run": to_iso(max(filter(None, (self._last_run, self._last_thermal_run)), default=None)),
             "planner": "unified",
             "thermal_plan": self.thermal_plan,
+            "battery_plan": self.battery.state,
             "tng_write_enabled": self.enabled and bool(self.config.get('tng.write_enabled', False)),
             "goodwe_control_enabled": self.enabled and bool(self.config.get(
                 'controller.optimization.goodwe_control.enabled', False)),
@@ -180,10 +187,13 @@ class Controller:
                                "set_on_grid_soc_limit_pct"}:
             return {"value": decision.value}
         if decision.action in {"start_battery_charge", "start_battery_discharge"}:
-            return {
+            result = {
                 key: params[key]
                 for key in ("power_pct", "start_soc_pct", "stop_soc_pct", "valid_from", "valid_to")
             }
+            if params.get('valid_day'):
+                result['valid_day'] = params['valid_day']
+            return result
         return {}
 
     def apply(self, decision: Decision) -> Decision:
@@ -199,7 +209,7 @@ class Controller:
                 decision.reason_key = "reason.write_blocked_gate"
                 return decision
             command_key = self._goodwe_command_key(decision)
-            if self._applied.get("goodwe_command") == command_key:
+            if decision.rule != 'battery_economic' and self._applied.get("goodwe_command") == command_key:
                 decision.applied = False
                 decision.reason_key = "reason.no_action_needed"
                 return decision
@@ -212,9 +222,10 @@ class Controller:
                     self._applied["goodwe_command"] = command_key
                 else:
                     decision.reason_key = "reason.write_blocked_gate"
-            except Exception:
+            except Exception as exc:
                 decision.applied = False
                 decision.reason_key = "reason.write_blocked_gate"
+                decision.reason_params['write_error'] = type(exc).__name__
             return decision
 
         decision.applied = False
@@ -238,6 +249,39 @@ class Controller:
             if not self.config.get('controller.optimization.goodwe_control.enabled', False):
                 self.safe_mode_reason = None
                 return {"enabled": True, "safe_mode": False, "decisions": []}
+            if self.config.get('controller.optimization.goodwe_control.economic.enabled', False):
+                try:
+                    moment = now_local()
+                    payload = read_json(self.config.data_dir / f'ote-{moment.date().isoformat()}.json', {})
+                    decisions = self.battery.decide(self.app.snapshot.get('goodwe', {}), payload, moment)
+                    for decision in decisions:
+                        self.battery.prepare_write(decision)
+                        self.apply(decision)
+                        self.battery.remember(decision, decision.applied)
+                        self.battery.last_result = decision.to_dict()
+                        self.battery.state['last_command'] = self.battery.last_result
+                        self.record(decision)
+                    self.safe_mode_reason = ({'reason_key': 'reason.safe_mode_stale_data',
+                                              'reason_params': {'source': 'goodwe/prices'}}
+                                             if self.battery.state['phase'] == 'safe_mode' else None)
+                    if self.battery.last_result and not self.battery.last_result['applied']:
+                        self.safe_mode_reason = {'reason_key': 'reason.battery_write_failed',
+                                                 'last_command': self.battery.last_result}
+                    return {'enabled': True, 'safe_mode': bool(self.safe_mode_reason),
+                            'decisions': [d.to_dict() for d in decisions]}
+                except Exception as exc:
+                    self.log.error('battery_decision_failed | error=%s', type(exc).__name__)
+                    self.safe_mode_reason = {'reason_key': 'reason.battery_error', 'error': type(exc).__name__}
+                    if self.battery.memory.get('owned'):
+                        try:
+                            stop = Decision(rule='battery_economic', action='stop_battery_control', value=None,
+                                            reason_key='reason.battery_error', timestamp=now_local())
+                            self.apply(stop)
+                            self.battery.remember(stop, stop.applied)
+                            self.record(stop)
+                        except Exception:
+                            self.log.error('battery_emergency_stop_failed')
+                    return {'enabled': True, 'safe_mode': True, 'decisions': []}
             stale = self.stale_sources()
             if stale:
                 # Safe mode: optimalizace stojí, nastavení se nemění, data se sbírají dál.

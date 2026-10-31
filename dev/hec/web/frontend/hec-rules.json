@@ -3,6 +3,17 @@
   "updated_at": "2026-10-31",
   "rules": [
     {
+      "id": "BATTERY-001",
+      "status": "active",
+      "recorded_on": "2026-10-31",
+      "source": "owner",
+      "title": {"cs": "Ekonomické řízení FVE a baterie", "en": "Economic PV and battery control"},
+      "text": {
+        "cs": "Vlastník schválil řízení GoodWe společným controllerem. Staré samostatné bateriové a exportní povely se v ekonomickém režimu neprovádějí. Nabíjet ze sítě jen v publikovaném levném okně při následné alespoň hodinové dražší spotřebě; modelová účinnost90 %, rezerva na opotřebení0,30 Kč/kWh a požadovaný čistý rozdíl nejméně0,50 Kč/kWh. Nejvýše60 % SOC ze sítě, výkon nejvýše20 % měniče, omezený BMS a importním rozpočtem7 kW. Ponechat kapacitu pro FVE; při skutečném PV přebytku preferovat přirozené solární nabíjení. Nakoupenou energii podržet do dražšího období (nejvýše12 h), potom GENERAL pro vlastní spotřebu s rezervou20 %, nikdy vynucené vybíjení do sítě. Časové okno1–3 h ověřit v měniči včetně výkonu, SOC, dne a hodin. Chybějící data nebo ochranné veto ukončí vlastní vynucené nabíjení. Každé2 h posoudit FVE, baterii i TČ: plán, povel, potvrzení, skutečný výkon a teploty vzhledem k celkové ceně a komfortu. Každá kontrola pošle zprávu do chatu. Model není důkaz dosažené úspory.",
+        "en": "Owner approved unified GoodWe economic control, excluding legacy battery/export actions. Require published cheap windows and a sustained later peak covering assumed90% efficiency,0.30 CZK/kWh wear and0.50 CZK/kWh net margin. Grid SOC ceiling60%, power<=20% with BMS and7kW import budget. Preserve PV headroom and prefer measured solar surplus. Hold bought energy for dear periods up to12h, then General self-consumption with20% reserve; never forced discharge to grid. Verify1–3h native schedule, power, SOC, weekday and clock. Invalid data/protection veto stops owned forced charging. Every2h review PV, battery and HP plans, commands, acknowledgements and physical power/temperatures against total price and comfort; report each run. Model economics do not prove realised savings."
+      }
+    },
+    {
       "id": "CONTROL-001",
       "status": "active",
       "recorded_on": "2026-10-30",
@@ -214,6 +225,10 @@
     }
   ],
   "history": [
+    {
+      "date": "2026-10-31", "rule_id": "BATTERY-001",
+      "change": {"cs": "Vlastník schválil ekonomické nabíjení baterie, zapnutí řízení FTE a důslednou kontrolu FTE/TČ každé2 h.", "en": "Owner approved economic grid charging, inverter control and careful PV/HP reviews every2h."}
+    },
     {
       "date": "2026-10-30",
       "rule_id": "CONTROL-001",
