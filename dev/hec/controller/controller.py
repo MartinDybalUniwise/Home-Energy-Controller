@@ -10,10 +10,10 @@ from __future__ import annotations
 import threading
 from datetime import datetime, timedelta
 
+from ..core.electricity_price import load_priced_day
 from ..core.logging_setup import event, get_logger, warn_event
 from ..core.model import Decision
 from ..core.timeutil import now_local, to_iso
-from ..storage.base import read_json
 from .battery import BatteryPlanner
 from .rules import Context, default_rules
 from .thermal import ThermalPlanner
@@ -122,7 +122,7 @@ class Controller:
 
     # --- rozhodování ---------------------------------------------------------
     def build_context(self) -> Context:
-        prices = (read_json(self.config.data_dir / f"ote-{now_local().date().isoformat()}.json")
+        prices = (load_priced_day(self.config, now_local().date().isoformat())
                   or {}).get("periods", [])
         forecast = {}
         predictor = getattr(self.app, "predictor", None)
@@ -257,7 +257,7 @@ class Controller:
             if self.config.get('controller.optimization.goodwe_control.economic.enabled', False):
                 try:
                     moment = now_local()
-                    payload = read_json(self.config.data_dir / f'ote-{moment.date().isoformat()}.json', {})
+                    payload = load_priced_day(self.config, moment.date().isoformat())
                     decisions = self.battery.decide(self.app.snapshot.get('goodwe', {}), payload, moment)
                     for decision in decisions:
                         self.battery.prepare_write(decision)

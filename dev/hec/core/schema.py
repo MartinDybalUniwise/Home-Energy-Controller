@@ -173,6 +173,7 @@ SCHEMA: dict[str, Any] = {
         "eur_czk_rate": F("float", 25.0, minimum=1, maximum=100),
         "fetch_rate_from_cnb": F("bool", True),
         "distribution_czk_kwh": F("float", 0.0, minimum=0, maximum=20),
+        "distribution_tariff": F("dict", {}),
         "fees_czk_kwh": F("float", 0.0, minimum=0, maximum=20),
         "vat_rate": F("float", 0.21, minimum=0, maximum=1),
         "export_price_czk_kwh": F("float", 0.0, minimum=0, maximum=20),

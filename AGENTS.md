@@ -80,3 +80,10 @@ Plan views are read-only projections of status.controller.battery_plan; never ad
 UI price optimisation, another writer/controller or an independent battery timer.
 Hide inactive legacy battery configuration in economic mode. Reject retired-rule
 actuation while economic mode owns GoodWe. See dev/step45/PLAN.md.
+
+Owner-approved2026-10-31 EVV1/D57d distribution-aware pricing (dev/step46/PLAN.md).
+Use core.electricity_price.load_priced_day for all plans/API consumers; do not use
+cached total prices without projecting current configuration. One NT/VT config,
+no SDG duplicate controls. Check distribution_pricing.valid and validity dates.
+Reviews must verify exported EVV1 times against distributor changes; preserve
+owned schedules and comfort gates. Configured fees are not verified supplier fees.

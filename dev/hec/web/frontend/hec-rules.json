@@ -3,16 +3,28 @@
   "updated_at": "2026-10-31",
   "rules": [
     {
-      "id": "CONTROL-002", "status": "active", "recorded_on": "2026-10-31", "source": "owner",
-      "title": {"cs": "Jedno nastavení a zobrazený plán FVE", "en": "One configuration and visible PV plan"},
-      "text": {"cs": "FVE a baterii plánuje a ovládá pouze společný controller HEC z jediného aktivního nastavení. Původní bateriová pravidla nesmějí vydávat další povely. Obrazovka Řízení a plán i hlavní denní graf pouze zobrazují tentýž plán controlleru; nemají další časovač, výpočet cen ani ovládání měniče. Uvádět zbývající podmíněná okna, limity, čerstvost a skutečný stav odděleně od plánu. Staré neaktivní parametry nezobrazovat jako druhé nastavení.", "en": "Only the unified HEC controller plans and actuates PV/battery from one active configuration. Retired battery rules must not send further commands. Control & Plan and the overview timeline only display that same controller plan, without another timer, price calculation or inverter control. Show remaining conditional windows, limits and freshness; separate intent from actual state. Hide inactive legacy targets rather than showing a second configuration."}
+      "id": "CONTROL-002",
+      "status": "active",
+      "recorded_on": "2026-10-31",
+      "source": "owner",
+      "title": {
+        "cs": "Jedno nastavení a zobrazený plán FVE",
+        "en": "One configuration and visible PV plan"
+      },
+      "text": {
+        "cs": "FVE a baterii plánuje a ovládá pouze společný controller HEC z jediného aktivního nastavení. Původní bateriová pravidla nesmějí vydávat další povely. Obrazovka Řízení a plán i hlavní denní graf pouze zobrazují tentýž plán controlleru; nemají další časovač, výpočet cen ani ovládání měniče. Uvádět zbývající podmíněná okna, limity, čerstvost a skutečný stav odděleně od plánu. Staré neaktivní parametry nezobrazovat jako druhé nastavení.",
+        "en": "Only the unified HEC controller plans and actuates PV/battery from one active configuration. Retired battery rules must not send further commands. Control & Plan and the overview timeline only display that same controller plan, without another timer, price calculation or inverter control. Show remaining conditional windows, limits and freshness; separate intent from actual state. Hide inactive legacy targets rather than showing a second configuration."
+      }
     },
     {
       "id": "BATTERY-001",
       "status": "active",
       "recorded_on": "2026-10-31",
       "source": "owner",
-      "title": {"cs": "Ekonomické řízení FVE a baterie", "en": "Economic PV and battery control"},
+      "title": {
+        "cs": "Ekonomické řízení FVE a baterie",
+        "en": "Economic PV and battery control"
+      },
       "text": {
         "cs": "Vlastník schválil řízení GoodWe společným controllerem. Staré samostatné bateriové a exportní povely se v ekonomickém režimu neprovádějí. Nabíjet ze sítě jen v publikovaném levném okně při následné alespoň hodinové dražší spotřebě; modelová účinnost90 %, rezerva na opotřebení0,30 Kč/kWh a požadovaný čistý rozdíl nejméně0,50 Kč/kWh. Nejvýše60 % SOC ze sítě, výkon nejvýše20 % měniče, omezený BMS a importním rozpočtem7 kW. Ponechat kapacitu pro FVE; při skutečném PV přebytku preferovat přirozené solární nabíjení. Nakoupenou energii podržet do dražšího období (nejvýše12 h), potom GENERAL pro vlastní spotřebu s rezervou20 %, nikdy vynucené vybíjení do sítě. Časové okno1–3 h ověřit v měniči včetně výkonu, SOC, dne a hodin. Chybějící data nebo ochranné veto ukončí vlastní vynucené nabíjení. Každé2 h posoudit FVE, baterii i TČ: plán, povel, potvrzení, skutečný výkon a teploty vzhledem k celkové ceně a komfortu. Každá kontrola pošle zprávu do chatu. Model není důkaz dosažené úspory.",
         "en": "Owner approved unified GoodWe economic control, excluding legacy battery/export actions. Require published cheap windows and a sustained later peak covering assumed90% efficiency,0.30 CZK/kWh wear and0.50 CZK/kWh net margin. Grid SOC ceiling60%, power<=20% with BMS and7kW import budget. Preserve PV headroom and prefer measured solar surplus. Hold bought energy for dear periods up to12h, then General self-consumption with20% reserve; never forced discharge to grid. Verify1–3h native schedule, power, SOC, weekday and clock. Invalid data/protection veto stops owned forced charging. Every2h review PV, battery and HP plans, commands, acknowledgements and physical power/temperatures against total price and comfort; report each run. Model economics do not prove realised savings."
@@ -227,13 +239,46 @@
         "cs": "Přímé lokální spojení TNG smí pouze číst, nikdy zapisovat ani měnit nastavení. Původní cloudové API ovládání zůstává povolené s ochrannými bránami. Zkoumání lokálního rozhraní je dočasně pozastavené na pokyn vlastníka, dokud nedodá další informace.",
         "en": "Direct local TNG access may only read; never write or change settings. Existing cloud API control remains enabled with its guards. Local-interface investigation is paused at owner request until further information is provided."
       }
+    },
+    {
+      "id": "PRICE-001",
+      "status": "active",
+      "recorded_on": "2026-10-31",
+      "source": "owner",
+      "title": {
+        "cs": "Distribuce EVV1 / D57d",
+        "en": "EVV1 / D57d distribution"
+      },
+      "text": {
+        "cs": "Jeden cenovy podklad pro TC i baterii: spot OTE + distribuce NT/VT EVV1 + nastavene poplatky a DPH. NT denne 00-06,07-09,10-13,14-16,17-24; VT zbytek. Ceny distribuce 2026 bez DPH: NT 0,11650, VT 0,75477 Kc/kWh. Neprepsat rucni denni plany; zachovat komfort, FVE a ochrany zapisu. Rozvrh je export distributora, nikoli zive HDO; kontrolovat zmeny. Neoverene poplatky dodavatele nevydavat za konecnou fakturovanou cenu.",
+        "en": "One price basis for heat pump and battery: OTE spot + EVV1 distribution + configured fees and VAT. NT daily00-06,07-09,10-13,14-16,17-24; VT otherwise. 2026 prices excluding VAT: NT0.11650, VT0.75477 CZK/kWh. Preserve manual plans, comfort/PV/write guards. Exported schedule is not live HDO; check changes. Supplier fees are not verified."
+      }
     }
   ],
   "history": [
-    {"date": "2026-10-31", "rule_id": "CONTROL-002", "change": {"cs": "Vlastník výslovně požaduje jedno nastavení, jeden controller FTE a plán na obrazovce.", "en": "Owner explicitly requested one inverter configuration/controller and an on-screen plan."}},
     {
-      "date": "2026-10-31", "rule_id": "BATTERY-001",
-      "change": {"cs": "Vlastník schválil ekonomické nabíjení baterie, zapnutí řízení FTE a důslednou kontrolu FTE/TČ každé2 h.", "en": "Owner approved economic grid charging, inverter control and careful PV/HP reviews every2h."}
+      "date": "2026-10-31",
+      "rule_id": "PRICE-001",
+      "change": {
+        "cs": "Vlastnik schvalil zapracovani vlastniho exportu EVV1 do planovace.",
+        "en": "Owner approved integrating their EVV1 export into the planner."
+      }
+    },
+    {
+      "date": "2026-10-31",
+      "rule_id": "CONTROL-002",
+      "change": {
+        "cs": "Vlastník výslovně požaduje jedno nastavení, jeden controller FTE a plán na obrazovce.",
+        "en": "Owner explicitly requested one inverter configuration/controller and an on-screen plan."
+      }
+    },
+    {
+      "date": "2026-10-31",
+      "rule_id": "BATTERY-001",
+      "change": {
+        "cs": "Vlastník schválil ekonomické nabíjení baterie, zapnutí řízení FTE a důslednou kontrolu FTE/TČ každé2 h.",
+        "en": "Owner approved economic grid charging, inverter control and careful PV/HP reviews every2h."
+      }
     },
     {
       "date": "2026-10-30",

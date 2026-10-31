@@ -8,6 +8,7 @@ from statistics import median
 from zoneinfo import ZoneInfo
 
 from ..core import config as config_mod
+from ..core.electricity_price import load_priced_day
 from ..core.timeutil import in_window, parse_iso
 from ..storage.base import read_json
 
@@ -86,7 +87,10 @@ def build_plan(payload, day, operation, earliest=0):
             if group_end - group_start <= 12:
                 price_start, end = group_start, group_end
                 # Cover the rising edge too, rather than restarting during it.
-                coast_start = max(0, group_start - 3, end - 12)
+                tariff_edge = (periods[group_start].get('distribution_tariff') == 'VT'
+                               and group_start > 0
+                               and periods[group_start - 1].get('distribution_tariff') == 'NT')
+                coast_start = group_start if tariff_edge else max(0, group_start - 3, end - 12)
             else:
                 price_start = max(range(group_start, group_end - width + 1),
                                   key=lambda i: sum(prices[i:i + width]))
@@ -106,6 +110,8 @@ def build_plan(payload, day, operation, earliest=0):
                 continue
             candidates = [i for i in range(max(earliest, coast_start - 24), coast_start - 7)
                           if all(operation_at(operation, day, j) == 'heating' for j in range(i, i + 8))
+                          and all(periods[j].get('distribution_tariff') != 'VT'
+                                  for j in range(i, i + 8))
                           and all(not (p['start'] <= i + 7 and p['end'] > i) for p in phases)]
             if not candidates:
                 continue
@@ -144,7 +150,7 @@ def _refresh_plans_locked(config, moment):
     for delta in (0, 1):
         day = (moment.astimezone(ZONE).date() + timedelta(days=delta)).isoformat()
         operation = config.get('tng.operation', {})
-        payload = read_json(config.data_dir / f'ote-{day}.json', {})
+        payload = load_priced_day(config, day)
         plan = build_plan(payload, day, operation, earliest_quarter(config, day))
         existing = {name: config.get(f'tng.{name}.date_overrides', {}).get(day)
                     for name in ('heating', 'thermostat')}
@@ -274,7 +280,7 @@ def evaluate_shift(config, heatpump, moment, saved, comfort_active, mode, energy
         state['blocked'] = True
         return status, state
     meta = overrides[0]['price_shift']
-    payload = read_json(config.data_dir / f'ote-{day}.json', {})
+    payload = load_priced_day(config, day)
     plan = build_plan(payload, day, config.get('tng.operation', {}), earliest_quarter(config, day))
     if not plan['prices_valid'] or plan['input_hash'] != meta.get('input_hash'):
         status['phase'] = 'invalid_prices'

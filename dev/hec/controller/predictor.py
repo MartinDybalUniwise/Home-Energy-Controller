@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import date, timedelta
 from statistics import median
 
+from ..core.electricity_price import load_priced_day
 from ..core.logging_setup import get_logger
 from ..core.timeutil import now_local, parse_iso, to_iso
 from ..forecast.today import today_pv
@@ -100,7 +101,7 @@ class Predictor:
         return read_json(self.config.data_dir / "weather.json", {}) or {}
 
     def _prices_for(self, day: date) -> list[dict]:
-        payload = read_json(self.config.data_dir / f"ote-{day.isoformat()}.json") or {}
+        payload = load_priced_day(self.config, day.isoformat()) or {}
         return payload.get("periods", [])
 
     @staticmethod

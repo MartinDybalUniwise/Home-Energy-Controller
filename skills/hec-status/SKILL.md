@@ -121,3 +121,10 @@ controllerem; starší pokyn zachovat GoodWe vypnutý tímto pozbývá platnosti
 V reportu vždy aktuální stav, naměřený trend, dnešní další okna a krátká tabulka
 Zhodnocení | Doporučení. Drahé vytápění může být nutné pro komfort: vysvětli důvod,
 nepokládej samotnou vysokou cenu za závadu. Poškození komfortu kvůli nabíjení je závada.
+
+EVV1/D57d tariff review (2026-10-31 owner approval): check that OTE API prices
+include the shared current distribution_pricing projection and valid date range.
+NT00-06,07-09,10-13,14-16,17-24 every weekday. VT otherwise. Check for distributor
+schedule changes; exported times are not live HDO confirmation. Never use the old
+SDG00-06/19-21 schedule. Preserve price-owned overrides; review differences between
+planned preheat, comfort/PV veto, confirmed TNG settings and measured behaviour.

@@ -303,7 +303,8 @@
     "distribution_czk_kwh": 0.0,
     "fees_czk_kwh": 0.0,
     "vat_rate": 0.21,
-    "export_price_czk_kwh": 0.0
+    "export_price_czk_kwh": 0.0,
+    "distribution_tariff": {}
   },
   "weather": {
     "enabled": true,
