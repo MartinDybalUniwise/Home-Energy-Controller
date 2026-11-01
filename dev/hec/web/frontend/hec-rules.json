@@ -274,6 +274,14 @@
       "date": "2026-11-01",
       "rule_id": "FLOOR-001",
       "change": {
+        "cs": "Opraveno čtení termostatického FloatValue z cloudu, aby se uzavřel potvrzený návrat na aktuální plán; bez nových povelů a bez obcházení potvrzovacích bran.",
+        "en": "Parse cloud thermostat FloatValue to finish confirmed restoration to the current plan; no new control path or confirmation bypass."
+      }
+    },
+    {
+      "date": "2026-11-01",
+      "rule_id": "FLOOR-001",
+      "change": {
         "cs": "Vlastník schválil rozšíření dolní meze AKU na30 °C pro kontrolu podlahy; samostatná kvalita owner_extended_provisional, původní fotoověřený rozsah zachován.",
         "en": "Owner authorised floor-check AKU lower bound30C; separate owner_extended_provisional quality, original photo-reference range retained."
       }

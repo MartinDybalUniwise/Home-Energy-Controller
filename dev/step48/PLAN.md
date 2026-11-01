@@ -68,3 +68,16 @@ remain unchanged. Below35C valid expanded samples latch the existing reheat phas
 Range-extension validation:52 tests passed (floor state machine, passive wire
 quality boundary cases and unified controller); Ruff and git diff --check passed.
 Prechange incremental snapshot:9fb4e3bd0b374521be5dc4f4a5ebc65f.
+
+Completion repair2026-11-01: live cloud returns DayTemperature as an object with
+FloatValue21.5 and ByteArray, rather than the scalar used by initial fixtures.
+This prevented acknowledgement/restoration matching despite native gate clearance.
+Parse the explicit numeric finite FloatValue for Day/NightTemperature, preserve
+legacy scalar support, never infer readback from POST. Complete persisted restore
+only with fresh room, pendingFalse, clear gate and CURRENT plan target match.
+No additional heating request or bypass of900s gates is required.
+Prechange incremental snapshot:c06398fe1faa4f97956303cc8695feef.
+
+Completion-fix verification:61 reader/floor/unified-controller regressions passed;
+Ruff and git diff --check passed. Live native DayTemperature21.5 was read directly
+from cloud before repair; device requests/persisted confirmation gates untouched.

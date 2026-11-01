@@ -16,6 +16,7 @@ import copy
 import json
 import re
 from datetime import UTC, datetime, timedelta
+from math import isfinite
 from pathlib import Path
 from urllib.parse import urljoin
 from uuid import uuid4
@@ -303,6 +304,18 @@ class TngReader(BaseReader):
                 except ValueError:
                     pass
             raw[key] = value
+        # Current cloud pages wrap temperature settings in FloatValue/ByteArray.
+        # Decode only these named objects; never use the requested target as readback.
+        for key in ("DayTemperature", "NightTemperature"):
+            pattern = rf'"{key}"\s*:\s*(\{{)'
+            for match in re.finditer(pattern, page.text):
+                try:
+                    setting, _ = json.JSONDecoder().raw_decode(page.text[match.start(1):])
+                except ValueError:
+                    continue
+                value = setting.get("FloatValue") if isinstance(setting, dict) else None
+                if isinstance(value, (int, float)) and not isinstance(value, bool) and isfinite(value):
+                    raw[key] = value
         out["tng"] = raw
         for key in ("LastSettingsNotConfirmed", "DayTemperature", "NightTemperature"):
             if key in raw:

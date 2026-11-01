@@ -412,3 +412,54 @@ def test_tng_request_heating_temperature_gate_blocked(tmp_path, tng_connect):
 
         logged_events = [call_args[0][0] for call_args in mock_info.call_args_list]
         assert any("TNG_SET_HEATING_SKIP " in event for event in logged_events)
+
+
+def test_tng_wrapped_temperature_readback_completes_persisted_floor_cycle(tmp_path, tng_connect):
+    from hec.controller.floor import floor_plan
+    from hec.storage.base import atomic_write_json, read_json
+    reader, config, session = build_tng(tmp_path, tng_connect)
+    session.routes["MyThermostat"] = FakeResponse(
+        '<script>var thermostat={"LastSettingsNotConfirmed":false,"Settings":{'
+        '"DayTemperature":{"FloatValue":21.5,"ByteArray":[215,0]},'
+        '"NightTemperature":{"ByteArray":[210,0],"FloatValue":21}}};</script>'
+    )
+    state = reader.read_state()
+    assert state["DayTemperature"] == 21.5
+    assert state["NightTemperature"] == 21
+    assert state["LastSettingsNotConfirmed"] is False
+    moment = now_local()
+    state["heatpump"].update(sample_time=moment.isoformat(), room_temperature=22)
+    config.data["tng"]["floor_check"] = {"enabled": True}
+    config.data["tng"]["write_enabled"] = True
+    config.data["tng"]["heating"] = {"enabled": True}
+    config.data["tng"]["thermostat"] = {"enabled": True}
+    config.data["tng"]["operation"] = {"enabled": True}
+    path = config.data_dir / "floor-circulation-state.json"
+    saved = {"last_assumed_activity_at": moment.isoformat(), "active": {
+        "stage":"restoring", "created_at":moment.isoformat(), "room_request_c":22.5,
+        "request_sent_at":moment.isoformat(), "outcome":"maximum_duration_reached"}}
+    atomic_write_json(path, saved)
+    base = {"mode":"heating", "room_target":21.5, "heating_temperature":42}
+    gate = {"thermostat":{"awaiting_confirmation":False}}
+    # An open transport gate or wrong current target must not complete restoration.
+    gate["thermostat"]["awaiting_confirmation"] = True
+    assert floor_plan(config,base,state,None,gate,moment)["floor_check"]["phase"] == "restoring"
+    gate["thermostat"]["awaiting_confirmation"] = False
+    state["DayTemperature"] = 22.5
+    assert floor_plan(config,base,state,None,gate,moment)["floor_check"]["phase"] == "restoring"
+    state["DayTemperature"] = 21.5
+    plan = floor_plan(config,base,state,None,gate,moment)
+    assert plan["floor_check"]["phase"] == "idle"
+    assert "active" not in read_json(path)
+    assert read_json(path)["last_cycle"]["restored_at"] == moment.isoformat()
+    assert not any(method == "POST" for method, _ in session.calls)
+
+
+def test_tng_invalid_wrapped_readback_is_not_a_temperature(tmp_path, tng_connect):
+    reader, _, session = build_tng(tmp_path, tng_connect)
+    for invalid in ["null", "true", '"21.5"', "NaN"]:
+        session.routes["MyThermostat"] = FakeResponse(
+            '<script>var thermostat={"LastSettingsNotConfirmed":false,"Settings":{'
+            '"DayTemperature":{"FloatValue":' + invalid + ',"ByteArray":[215,0]}}};</script>'
+        )
+        assert "DayTemperature" not in reader.read_state()
