@@ -329,3 +329,25 @@ def test_floor_reheat_can_use_same_battery_priority_with_warm_living_room(tmp_pa
     tng = dict(heating_on=True, room_temperature=21.6, sample_time=now.isoformat())
     decisions = p.decide(values, tariff_curve(), now, thermal, tng)
     assert decisions and decisions[0].action == "set_on_grid_soc_limit_pct" and decisions[0].value == 20
+
+
+@pytest.mark.parametrize("aku", [30.0, 33.2, 34.1])
+def test_owner_extended_aku_range_latches_reheat(tmp_path, aku):
+    c = configured(tmp_path)
+    t, gate = requesting(c)
+    moment = t + timedelta(minutes=5)
+    state, wire, _ = inputs(moment, aku=aku, target=22.1)
+    wire["field_quality"]["buffer_temperature"] = "owner_extended_provisional"
+    plan = floor_plan(c, BASE, state, wire, gate, moment)
+    assert plan["floor_check"]["phase"] == "reheating"
+    assert plan["floor_check"]["aku_c"] == aku
+    assert plan["floor_check"]["aku_quality"] == "owner_extended_range_cloud_crosschecked"
+    assert plan["heating_temperature"] == 42
+
+
+@pytest.mark.parametrize("aku", [29.9, 41.6])
+def test_owner_extended_aku_range_still_rejects_outside(tmp_path, aku):
+    from hec.controller.floor import qualified_aku
+    state, wire, _ = inputs(START, aku=aku)
+    wire["field_quality"]["buffer_temperature"] = "owner_extended_provisional"
+    assert qualified_aku(wire, state["heatpump"], START)[0] is None

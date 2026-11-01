@@ -87,3 +87,10 @@ a narrow separate qualifier: sample<=180s, photo-range buffer, independent fresh
 cloud room/outlet/outside agreement<=0.8C, bounded42C heat request through existing
 TNG gates. This exception does not license any other passive-data control use.
 See dev/step48/PLAN.md for unknown-data handling and restoration limits.
+
+Owner update2026-11-01: expand floor-check operational AKU range to30.0-41.5C.
+Below34.2C use owner_extended_provisional / owner_extended_range_cloud_crosschecked;
+this is owner-authorised operational acceptance, NOT additional photo validation.
+Keep original decoder photo-reference range34.2-41.5C and CRC/global control_eligible
+unverified. Freshness/cloud crosschecks, exclusive modes,42C/24C caps and900s gates
+remain unchanged. Below35C valid expanded samples latch the existing reheat phase.

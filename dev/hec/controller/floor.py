@@ -32,8 +32,8 @@ def qualified_aku(wire, heatpump, moment):
     value = wire.get("buffer_temperature")
     if (
         not number(value)
-        or not 34.2 <= value <= 41.5
-        or wire.get("field_quality", {}).get("buffer_temperature") != "photo_validated_provisional"
+        or not 30.0 <= value <= 41.5
+        or wire.get("field_quality", {}).get("buffer_temperature") != ("owner_extended_provisional" if value < 34.2 else "photo_validated_provisional")
     ):
         return None, "outside_validated_range"
     # Narrow owner-approved use of this photo-checked field. Unresolved packet
@@ -42,7 +42,7 @@ def qualified_aku(wire, heatpump, moment):
         a, b = wire.get(key), heatpump.get(key)
         if not number(a) or not number(b) or abs(a - b) > 0.8:
             return None, "cloud_crosscheck_failed"
-    return value, "photo_range_cloud_crosschecked"
+    return value, ("owner_extended_range_cloud_crosschecked" if value < 34.2 else "photo_range_cloud_crosschecked")
 
 
 def floor_plan(config, base, state, wire, gates, moment):

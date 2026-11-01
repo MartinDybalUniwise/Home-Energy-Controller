@@ -57,3 +57,14 @@ adapter simulation of request/confirmation/restoration with>=900s between writes
 restart, timeout, invalid samples, exclusive DHW/off, crosschecks, preserved pump
 flag, battery coordination, cloud API and price planning. Ruff, production Python
 compilation, translations and registry JSON passed. No real test pulse has yet run.
+
+Owner update2026-11-01: expand floor-check operational AKU range to30.0-41.5C.
+Below34.2C use owner_extended_provisional / owner_extended_range_cloud_crosschecked;
+this is owner-authorised operational acceptance, NOT additional photo validation.
+Keep original decoder photo-reference range34.2-41.5C and CRC/global control_eligible
+unverified. Freshness/cloud crosschecks, exclusive modes,42C/24C caps and900s gates
+remain unchanged. Below35C valid expanded samples latch the existing reheat phase.
+
+Range-extension validation:52 tests passed (floor state machine, passive wire
+quality boundary cases and unified controller); Ruff and git diff --check passed.
+Prechange incremental snapshot:9fb4e3bd0b374521be5dc4f4a5ebc65f.

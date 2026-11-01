@@ -210,3 +210,24 @@ def test_owner_photo_buffer_41_5_is_accepted_but_next_step_is_not():
     assert 'aku_c' not in decode(bytes(body))['outside_reference_range']
     body[80]=encoded(160)
     assert 'aku_c' in decode(bytes(body))['outside_reference_range']
+
+
+@pytest.mark.parametrize("value,quality", [
+    (29.9, "outside_verified_range"),
+    (30.0, "owner_extended_provisional"),
+    (33.2, "owner_extended_provisional"),
+    (34.2, "photo_validated_provisional"),
+    (41.5, "photo_validated_provisional"),
+    (41.6, "outside_verified_range"),
+])
+def test_owner_buffer_extension_has_separate_quality(tmp_path, value, quality):
+    body = bytearray(payload())
+    number = round(value * 10) - 256
+    body[80] = sum(((number >> dst) & 1) << src for dst, src in enumerate(BIT_MAP)) ^ body[4]
+    reader = Reader("192.0.2.10")
+    message = reader.feed_messages(now_local().timestamp(), 1, packet(http(bytes(body))))[0]
+    sample = TngWireReader(config(tmp_path)).ingest(message)
+    assert sample.values["buffer_temperature"] == value
+    assert sample.values["field_quality"]["buffer_temperature"] == quality
+    assert sample.values["checksum_verified"] is False
+    assert sample.values["control_eligible"] is False
