@@ -183,3 +183,21 @@ def test_learning_does_not_move_today_completed_preheat_into_the_past(tmp_path):
     }
     assert planning_preheat_quarters(p.config, DAY, moment) == 8
     assert planning_preheat_quarters(p.config, (moment.date() + timedelta(days=1)).isoformat(), moment) == 16
+
+
+def test_nt_price_ramp_does_not_hide_nine_oclock_tariff_peak():
+    data = tariff_curve()
+    data["periods"][35]["price_total_czk_kwh"] = 7.8  # NT ramp at08:45
+    plan = build_plan(data, DAY, {}, preheat_width=16)
+    coast = next(p for p in plan["phases"] if p["kind"] == "coast" and p["start"] == 36)
+    assert coast["end"] == 40
+    pre = plan["phases"][plan["phases"].index(coast) - 1]
+    assert pre == dict(start=28, end=36, kind="preheat")
+
+
+def test_repair_uses_remaining_shorter_nt_window_without_backdating():
+    plan = build_plan(tariff_curve(), DAY, {}, earliest=29, preheat_width=16)
+    coast = next(p for p in plan["phases"] if p["kind"] == "coast" and p["start"] == 36)
+    pre = plan["phases"][plan["phases"].index(coast) - 1]
+    assert pre == dict(start=29, end=36, kind="preheat")
+    assert all(p["start"] >= 29 for p in plan["phases"])

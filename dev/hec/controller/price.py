@@ -15,7 +15,7 @@ from ..storage.base import read_json
 from .response import planning_preheat_quarters
 
 VERSION = "price-shift-v1"
-POLICY = "coordinated-peaks-v3"
+POLICY = "coordinated-peaks-v4"
 ZONE = ZoneInfo("Europe/Prague")
 
 
@@ -99,6 +99,13 @@ def build_plan(payload, day, operation, earliest=0, preheat_width=8):
                     and periods[group_start - 1].get("distribution_tariff") == "NT"
                 )
                 coast_start = group_start if tariff_edge else max(0, group_start - 3, end - 12)
+                # An NT price ramp immediately before VT must not consume the
+                # very NT slots needed for preheat. Anchor at the first VT edge.
+                tariff_edges = [j for j in range(group_start, group_end)
+                                if j > 0 and periods[j].get('distribution_tariff') == 'VT'
+                                and periods[j - 1].get('distribution_tariff') == 'NT']
+                if tariff_edges:
+                    price_start = coast_start = tariff_edges[0]
             else:
                 price_start = max(
                     range(group_start, group_end - width + 1), key=lambda i: sum(prices[i : i + width])
@@ -119,7 +126,7 @@ def build_plan(payload, day, operation, earliest=0, preheat_width=8):
             eligible = []
             # Use measured lead time when cheap/exclusive heating slots permit;
             # otherwise retain the longest feasible cheaper block, never VT.
-            for pre_width in range(max(8, min(16, preheat_width)), 7, -1):
+            for pre_width in range(max(8, min(16, preheat_width)), 3, -1):
                 candidates = [
                     i
                     for i in range(max(earliest, coast_start - 24), coast_start - pre_width + 1)

@@ -46,3 +46,10 @@ four-hour preheat would start02:00, not proof that it happened or would reach ta
 
 Validation:201 broad regressions passed;80 thermal/coordination cases passed after
 adding the published-day freeze check. Ruff and isolated real-day replay passed.
+
+Live verification found the repair cutoff could leave less than2h before VT.
+Use the longest feasible cheaper block down to1h rather than drop preheat entirely;
+required learned lead stays2-4h and shorter lead does not prove readiness. For short
+price groups, anchor at an internal NT-to-VT edge so an NT ramp before09:00 cannot
+consume the07-09 preheat opportunity.109 regressions passed after this correction.
+Policycoordinated-peaks-v4 invalidates older plan fingerprints.
