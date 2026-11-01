@@ -137,3 +137,13 @@ estimated cheaper refill within6h. Compare battery_plan.coordination and
 release_reason=comfort_peak to audited reserve changes, physical battery/grid power
 and SOC. Distinguish estimated refill/load from measurements and do not promise
 financial optimality. Never re-lock the same VT release during ordinary warming.
+
+Hourly floor check2026-11-01: inspect thermal_plan.floor_check (phase, next_check_at,
+request_sent_at, acknowledged_at, observations and last_cycle). Pump activity is an
+owner assumption from thermostat demand, not measurement. During a cycle cloud
+polling is60s; no second hourly chat task/controller exists. Distinguish requested
+restoration from native acknowledgement;900s gates can delay delivery. Review AKU
+range/cloud crosschecks and missing/late samples. Reheating threshold35C, stable
+recovery38C, earliest15min and restoration request by45min. Native autonomous
+pump-only control is NOT verified. Check that the temporary room service request
+(+0.5C,max24C) returns to the CURRENT common plan and explicitoff/DHW take priority.

@@ -76,3 +76,14 @@ and report verified findings/unknowns. Do not generate commands for experimentat
 Use original timed photos and independent cloud/Shelly evidence; phase-fault Shelly
 can support temporal observations, not valid energy/COP. Proven observational
 decoder changes require regression tests and the normal backup/PR/deploy process.
+
+## Owner-approved bounded floor check2026-11-01
+
+New physical-panel photos independently show AKU41.2 and41.5C. Extend only the
+buffer evidence upper bound41.3->41.5C; keep lower34.2C and every other field's
+range unchanged. No CRC, higher-branch, pump relay or request-bit rule is inferred.
+Global control_eligible remainsFalse. The owner-authorised hourly floor check has
+a narrow separate qualifier: sample<=180s, photo-range buffer, independent fresh
+cloud room/outlet/outside agreement<=0.8C, bounded42C heat request through existing
+TNG gates. This exception does not license any other passive-data control use.
+See dev/step48/PLAN.md for unknown-data handling and restoration limits.

@@ -74,6 +74,9 @@ def comfort_supply(payload, windows, prices, moment, thermal, tng, row, power, e
     stamp = parse_iso(tng.get("sample_time"))
     planned = parse_iso(thermal.get("planned_at"))
     room = tng.get("room_temperature")
+    floor = thermal.get('floor_check') or {}
+    floor_need = (floor.get('phase') in ('testing', 'reheating')
+                  and floor.get('request_sent_at') is not None)
     index = moment.hour * 4 + moment.minute // 15
     result = dict(allowed=False, demand_quality="estimate_from_current_house_power")
     if (
@@ -86,8 +89,8 @@ def comfort_supply(payload, windows, prices, moment, thermal, tng, row, power, e
         or thermal.get("mode") != "heating"
         or tng.get("heating_on") is not True
         or not number(room)
-        or not 0 <= room < 21.5
-        or thermal.get("phase") not in ("comfort_veto", "comfort_guard", "normal", "schedule")
+        or not 0 <= room < (24 if floor_need else 21.5)
+        or thermal.get("phase") not in ("comfort_veto", "comfort_guard", "normal", "schedule", "floor_test", "floor_reheat")
         or not number(row.get("house_w"))
         or not number(row.get("rated_power_w"))
         or power < 5

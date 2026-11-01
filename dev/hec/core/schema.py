@@ -139,6 +139,18 @@ SCHEMA: dict[str, Any] = {
         "telemetry_bootstrap_seconds": F("int", 3600, minimum=300, maximum=86400),
         "telemetry_overlap_seconds": F("int", 120, minimum=0, maximum=3600),
         "write_enabled": F("bool", False),
+        "floor_check": {
+            "enabled": F("bool", False),
+            "activated_at": F("str", ""),
+            "idle_minutes": F("int", 60, minimum=60, maximum=240),
+            "probe_minutes": F("int", 15, minimum=15, maximum=30),
+            "max_cycle_minutes": F("int", 45, minimum=15, maximum=60),
+            "minimum_aku_c": F("float", 35, minimum=34.5, maximum=38),
+            "recovery_aku_c": F("float", 38, minimum=35, maximum=41.5),
+            "water_target_c": F("float", 42, minimum=35, maximum=42),
+            "room_request_offset_c": F("float", .5, minimum=.3, maximum=1),
+            "maximum_room_request_c": F("float", 24, minimum=21.7, maximum=26),
+        },
         "heating": {
             "enabled": F("bool", False),
             "default_temperature": F("float", 42, minimum=20, maximum=60),

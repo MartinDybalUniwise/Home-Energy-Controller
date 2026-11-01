@@ -253,9 +253,31 @@
         "cs": "Jeden cenovy podklad pro TC i baterii: spot OTE + distribuce NT/VT EVV1 + nastavene poplatky a DPH. NT denne 00-06,07-09,10-13,14-16,17-24; VT zbytek. Ceny distribuce 2026 bez DPH: NT 0,11650, VT 0,75477 Kc/kWh. Neprepsat rucni denni plany; zachovat komfort, FVE a ochrany zapisu. Rozvrh je export distributora, nikoli zive HDO; kontrolovat zmeny. Neoverene poplatky dodavatele nevydavat za konecnou fakturovanou cenu.",
         "en": "One price basis for heat pump and battery: OTE spot + EVV1 distribution + configured fees and VAT. NT daily00-06,07-09,10-13,14-16,17-24; VT otherwise. 2026 prices excluding VAT: NT0.11650, VT0.75477 CZK/kWh. Preserve manual plans, comfort/PV/write guards. Exported schedule is not live HDO; check changes. Supplier fees are not verified."
       }
+    },
+    {
+      "id": "FLOOR-001",
+      "status": "active",
+      "recorded_on": "2026-11-01",
+      "source": "owner",
+      "title": {
+        "cs": "Hodinová kontrola tepla pro podlahu",
+        "en": "Hourly floor heat check"
+      },
+      "text": {
+        "cs": "Na výslovný pokyn vlastníka předpokládat oběh pouze při topení. Po 60 minutách bez předpokládaného termostatického požadavku vyžádat přes jediný controller omezený běh topení. Nejde o změřený chod čerpadla ani samostatný povel oběhu; může běžet i kompresor. Dočasný pokojový požadavek +0,5 °C, nejvýše 24 °C, voda nejvýše 42 °C. První kontrola po aktivaci za hodinu; běžné topení čítač obnovuje. Sledovat AKU a vratnou vodu po 2/5/10/15 min, chybějící data nezaměňovat za nulu. Čerstvá AKU v fotoověřeném rozsahu 34,2–41,5 °C a shoda společných čidel s cloudem jsou úzce povolený vstup této funkce; ostatní pasivní pole zůstávají neověřená. Pod 35 °C podržet dohřev, obnovu běžného plánu požadovat nejdříve po 15 min při stabilní AKU alespoň 38 °C, nejpozději po 45 min. Skutečné ukončení podléhá původním potvrzovacím branám a 900 s. Při výpadku HEC/cloudu nelze zaručit softwarový časový limit. Žádný souběh s bojlerem, respektovat vypnuté topení a limit pokojového požadavku; nevytvářet další plánovač ani zapisovač.",
+        "en": "Owner assumes circulation only with heating. After60min without assumed thermostat demand, the unified controller requests bounded heating (may also start compressor). Temporary room request+0.5C capped24C, water<=42C. First check after an hour; ordinary demand resets the idle clock. Observe2/5/10/15min; missing data are not zero. Only fresh photo-range AKU34.2-41.5C with cloud crosschecks is narrowly authorised for this feature; other passive data remain unverified. Below35C latch reheating; request normal-plan restoration after>=15min with stable AKU>=38C, no later than45min. Delivery still obeys original900s/confirmation gates and depends on HEC/cloud availability. Respect DHW/off/disabled controls; no second planner or writer."
+      }
     }
   ],
   "history": [
+    {
+      "date": "2026-11-01",
+      "rule_id": "FLOOR-001",
+      "change": {
+        "cs": "Vlastník schválil hodinovou kontrolu s předpokladem běhu oběhového čerpadla při topení.",
+        "en": "Owner approved an hourly check assuming circulation while heating."
+      }
+    },
     {
       "date": "2026-11-01",
       "rule_id": "PLAN-002",

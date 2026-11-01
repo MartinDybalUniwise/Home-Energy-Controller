@@ -199,3 +199,14 @@ def test_udp_bind_failure_isolated_from_other_readers(tmp_path):
         assert not reader.poll().ok
         assert reader.status.error_count == 1
         assert reader.socket is None
+
+
+def test_owner_photo_buffer_41_5_is_accepted_but_next_step_is_not():
+    body=bytearray(payload())
+    def encoded(number):
+        return sum(((number >> dst) & 1) << src for dst,src in enumerate(BIT_MAP)) ^ body[4]
+    body[80]=encoded(159)
+    assert decode(bytes(body))['temperatures']['aku_c']==41.5
+    assert 'aku_c' not in decode(bytes(body))['outside_reference_range']
+    body[80]=encoded(160)
+    assert 'aku_c' in decode(bytes(body))['outside_reference_range']

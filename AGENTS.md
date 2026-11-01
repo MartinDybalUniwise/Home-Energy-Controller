@@ -97,3 +97,17 @@ when a cheaper profitable refill within6h has estimated capacity>=110% of remain
 VT consumption. Keep20% reserve and General self-consumption, no forced discharge.
 This comfort priority is not a guaranteed global cost optimum. One controller,
 same writers/guards. See dev/step47/PLAN.md; reviews must compare physical response.
+
+Owner-approved2026-11-01 hourly floor check (dev/step48/PLAN.md): assume pump runs
+with confirmed thermostat heating demand; do not present that as measured activity.
+After60min idle the same thermal resolver requests a bounded heating check (may
+start compressor). Temporary room service request+0.5C up to24C, water<=42C; this
+specific bounded service supersedes the ordinary21.7C price-preheat cap only for
+its duration. Observe2/5/10/15min; below35C latch reheat, stable>=38C after>=15min
+allows restore, request restore by45min through original900s/ack gates. No duplicate
+scheduler/writer, no LAN access, no simultaneous DHW. The global passive-control
+prohibition has ONE owner-approved exception: fresh photo-range AKU34.2-41.5C
+with independent cloud room/outlet/outside crosschecks may inform this bounded
+floor check. Other passive candidates/global control_eligible stay unverified.
+Preserve external-circulation-pump configuration; its enable flag is not pump-on.
+Software duration limits require the original service and cloud to remain available.

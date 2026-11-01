@@ -285,6 +285,18 @@
         true,
         false
       ]
+    },
+    "floor_check": {
+      "enabled": false,
+      "activated_at": "",
+      "idle_minutes": 60,
+      "probe_minutes": 15,
+      "max_cycle_minutes": 45,
+      "minimum_aku_c": 35,
+      "recovery_aku_c": 38,
+      "water_target_c": 42,
+      "room_request_offset_c": 0.5,
+      "maximum_room_request_c": 24
     }
   },
   "tng_wire": {

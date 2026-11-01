@@ -24,15 +24,15 @@ from zoneinfo import ZoneInfo
 import requests
 from bs4 import BeautifulSoup
 
+from ..controller.schedules import effective_schedule, scheduled_operation, scheduled_value
+from ..controller.thermal import ThermalPlanner
 from ..core.logging_setup import register_secrets
 from ..core.model import Sample
 from ..core.secrets import collect_secret_values, expand_tree
-from ..core.timeutil import in_window, now_local, parse_iso, to_iso
+from ..core.timeutil import now_local, parse_iso, to_iso
 from ..storage.base import atomic_write_json, read_json
 from ..storage.history import merge_history
 from .base import BaseReader
-from ..controller.schedules import effective_schedule, scheduled_operation, scheduled_value
-from ..controller.thermal import ThermalPlanner
 
 SCALAR_RE = re.compile(
     r'["\']?([A-Za-z_][A-Za-z0-9_]*)["\']?\s*:\s*(true|false|null|-?\d+(?:\.\d+)?|["\'][^"\']*["\'])',
@@ -105,6 +105,10 @@ class TngReader(BaseReader):
         return expand_tree(data)
 
     def interval_seconds(self) -> int:
+        status = getattr(self, 'floor_check_status', {})
+        if self.config.get('tng.floor_check.enabled', False) and status.get('phase') in (
+                'preparing','requesting','testing','reheating','restoring'):
+            return 60
         return int(self.config.get("polling.tng_seconds", 300))
 
     def _next_boundary_seconds(self, moment: datetime) -> float | None:
@@ -121,11 +125,14 @@ class TngReader(BaseReader):
                 boundaries.add(window.get("from"))
                 boundaries.add(window.get("to"))
         boundaries.discard(None)
+        floor_at = parse_iso(getattr(self, 'floor_check_status', {}).get('next_check_at'))
+        nearest = None
+        if floor_at is not None and moment.tzinfo is not None and floor_at > moment:
+            nearest = (floor_at-moment).total_seconds()
         if not boundaries:
-            return None
+            return nearest
 
         base = moment.replace(second=0, microsecond=0)
-        nearest: float | None = None
         for hhmm in boundaries:
             try:
                 hour, minute = (int(part) for part in hhmm.split(":"))
@@ -146,6 +153,7 @@ class TngReader(BaseReader):
 
     def schedule_next(self, monotonic_now: float) -> None:
         super().schedule_next(monotonic_now)
+        self.status.interval_seconds = self.interval_seconds()
         if not self.config.get("tng.write_enabled", False):
             return
         boundary = self._next_boundary_seconds(now_local())
@@ -353,6 +361,7 @@ class TngReader(BaseReader):
             "boiler_sensor": boiler_set.get("Sensor"),
             "boiler_boost": boiler_set.get("Boost"),
             "heating_on": heat_set.get("Heat"),
+            "external_circulation_pump": heat_set.get("ExternalCirculationPump"),
             "heating_set_temperature": heat_temp.get("FloatValue", heat_temp.get("ShortValue")),
             "heating_mode": heat_set.get("HeatingMode"),
             "equit_curve": settings.get("EquitCurve"),
@@ -742,6 +751,8 @@ class TngReader(BaseReader):
         if boiler.get("enabled") or heating.get("enabled"):
             payload = copy.deepcopy(self.config.get("tng.basic_settings_template", {}))
             matches = True
+            if isinstance(settings.get('external_circulation_pump'), bool):
+                payload.setdefault('HeatSet', {})['ExternalCirculationPump'] = settings['external_circulation_pump']
             mode = plan['mode']
             if mode is not None:
                 heat_on = mode == "heating" and bool(heating.get("enabled"))

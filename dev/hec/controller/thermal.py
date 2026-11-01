@@ -5,6 +5,7 @@ The TNG adapter owns device acknowledgement/state persistence, never policy.
 
 from ..core.timeutil import to_iso
 from .comfort import evaluate_comfort
+from .floor import floor_plan
 from .price import evaluate_shift, refresh_plans
 from .response import observe_response, planning_preheat_quarters, preheat_quarters
 from .schedules import scheduled_operation, scheduled_value
@@ -81,7 +82,7 @@ class ThermalPlanner:
             water = 42
             if room is not None:
                 room = max(21.5, room)
-        return {
+        plan = {
             "mode": mode,
             "heating_temperature": water,
             "boiler_temperature": scheduled_value(boiler, moment),
@@ -93,3 +94,22 @@ class ThermalPlanner:
             "room_ready_for_coast": isinstance(heatpump.get("room_temperature"), (int, float))
             and heatpump["room_temperature"] >= 21.5,
         }
+        wire = reader.storage.latest('tng_wire') if reader.storage else None
+        try:
+            plan = floor_plan(config, plan, state, wire, reader.change_gate, moment)
+        except Exception as exc:
+            reader.log.error('floor_check_failed | error=%s', type(exc).__name__)
+            # A failed observation/persistence must still permit the ordinary
+            # plan (and restore its room target through the original gates).
+            plan['floor_check'] = dict(enabled=config.get('tng.floor_check.enabled', False),
+                                       phase='error', reason=type(exc).__name__)
+        previous = getattr(reader, 'floor_check_status', {})
+        info = plan.get('floor_check', {})
+        def signature(value):
+            return (value.get('phase'), value.get('reason'), value.get('request_sent_at'),
+                    len(value.get('observations', {})))
+        if info and signature(info) != signature(previous):
+            reader._command_audit({'timestamp': to_iso(moment), 'source': 'tng_commands',
+                                  'phase': 'floor_check', 'details': info}, publish=False)
+        reader.floor_check_status = info
+        return plan
