@@ -87,3 +87,13 @@ cached total prices without projecting current configuration. One NT/VT config,
 no SDG duplicate controls. Check distribution_pricing.valid and validity dates.
 Reviews must verify exported EVV1 times against distributor changes; preserve
 owned schedules and comfort gates. Configured fees are not verified supplier fees.
+
+Owner-approved2026-11-01 coordinated repair supersedes the fixed2h preheat cap:
+confirmed room-response evidence can extend grid preheat up to4h, still42C/21.7C,
+NT-only and subject to comfort/PV/exclusive-mode gates. Thermal model evidence
+expires after7days and never proves heat inventory. Native grid charging must
+end before VT. Fresh present comfort demand can release the held battery in VT
+when a cheaper profitable refill within6h has estimated capacity>=110% of remaining
+VT consumption. Keep20% reserve and General self-consumption, no forced discharge.
+This comfort priority is not a guaranteed global cost optimum. One controller,
+same writers/guards. See dev/step47/PLAN.md; reviews must compare physical response.

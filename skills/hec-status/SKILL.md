@@ -128,3 +128,12 @@ NT00-06,07-09,10-13,14-16,17-24 every weekday. VT otherwise. Check for distribut
 schedule changes; exported times are not live HDO confirmation. Never use the old
 SDG00-06/19-21 schedule. Preserve price-owned overrides; review differences between
 planned preheat, comfort/PV veto, confirmed TNG settings and measured behaviour.
+
+Coordinated repair2026-11-01: verify native grid charging ends before VT. Read
+thermal-response.json freshness/outcome and thermal_plan.required_preheat_minutes;
+2-4h preheat is conditional, not a readiness guarantee. Battery coordination may
+release to20% General reserve for a fresh cold-house VT peak with sufficient
+estimated cheaper refill within6h. Compare battery_plan.coordination and
+release_reason=comfort_peak to audited reserve changes, physical battery/grid power
+and SOC. Distinguish estimated refill/load from measurements and do not promise
+financial optimality. Never re-lock the same VT release during ordinary warming.
