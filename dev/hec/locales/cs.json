@@ -1037,7 +1037,8 @@
     "partial_meter": "Kladný odečet TČ je viditelný i při chybě fáze, s označením neúplného měření.",
     "tng_wire": "Pasivní komunikace TČ, AKU a panel povelů",
     "live_control": "Stránka řízení sleduje společný controller, účinné cíle, ochranné intervaly a skutečné události.",
-    "boiler_display": "Opravené teploty bojleru a výstupu TČ: ověřený odečet místo nejednoznačné větve pasivního dekodéru."
+    "boiler_display": "Opravené teploty bojleru a výstupu TČ: ověřený odečet místo nejednoznačné větve pasivního dekodéru.",
+    "aku_display_range": "AKU se zobrazuje i mimo původní ověřený rozsah; přesnější popisek chybějícího údaje."
   },
   "meter": {
     "valid": "Měřený příkon",
@@ -1090,7 +1091,7 @@
     "disabled": "Ohřev vypnutý",
     "heating_setting": "Nastavení TČ {value} °C",
     "buffer": "AKU nádrž",
-    "buffer_unavailable": "Čidlo zatím nenačítáme",
+    "buffer_unavailable": "Aktuální údaj není dostupný",
     "buffer_sensor": "Čidlo akumulační nádrže"
   },
   "rules": {

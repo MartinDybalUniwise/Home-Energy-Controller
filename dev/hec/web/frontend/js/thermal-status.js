@@ -14,7 +14,9 @@ export function temperatureReading(current,field,now=new Date()) {
   const reading=(data,origin)=>({value:finite(data[field]),origin,timestamp:data.sample_time||data.timestamp});
   const cloudReading=recent(cloud,now,900,60)&&finite(cloud[field])!==null?reading(cloud,'cloud'):null;
   if(CLOUD_ONLY.has(field))return cloudReading;
-  if(recent(wire,now,180,5)&&finite(wire[field])!==null&&wire.field_quality?.[field]!=='outside_verified_range')return reading(wire,'wire');
+  // Owner request: AKU display is independent of the old photo-reference range.
+  const displayable=field==='buffer_temperature'||wire.field_quality?.[field]!=='outside_verified_range';
+  if(recent(wire,now,180,5)&&finite(wire[field])!==null&&displayable)return reading(wire,'wire');
   return cloudReading;
 }
 

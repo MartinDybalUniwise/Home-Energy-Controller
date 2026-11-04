@@ -1037,7 +1037,8 @@
     "partial_meter": "Show the positive HP reading alongside a partial-phase warning.",
     "tng_wire": "Passive heat-pump traffic, buffer temperature and command panel",
     "live_control": "Control page tracks the unified controller, effective targets, guard intervals and actual events.",
-    "boiler_display": "Correct boiler and heat-pump outlet temperatures using the verified reading rather than an ambiguous passive decoder branch."
+    "boiler_display": "Correct boiler and heat-pump outlet temperatures using the verified reading rather than an ambiguous passive decoder branch.",
+    "aku_display_range": "Show AKU beyond the original reference range; clarify the missing-reading label."
   },
   "meter": {
     "valid": "Measured electrical input",
@@ -1090,7 +1091,7 @@
     "disabled": "Heating disabled",
     "heating_setting": "HP setting {value} °C",
     "buffer": "Buffer tank",
-    "buffer_unavailable": "Sensor not connected to HEC",
+    "buffer_unavailable": "Current reading unavailable",
     "buffer_sensor": "Buffer tank sensor"
   },
   "rules": {

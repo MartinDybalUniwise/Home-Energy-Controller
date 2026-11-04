@@ -1,4 +1,4 @@
-import {temperatureReading} from './thermal-status.js?v=boiler-20261104';
+import {temperatureReading} from './thermal-status.js?v=aku-20261104';
 import {source, finite} from './telemetry.js';
 import {t, num} from './i18n.js';
 import {siteDateTime, siteTime, siteDate, siteClock} from './today-chart.js';

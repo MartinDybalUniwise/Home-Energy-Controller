@@ -107,3 +107,11 @@ AKU and other passive-only fields retain their existing <=180 s/quality guards.
 Individual timestamps are retained and the shared overview timestamp uses the
 oldest displayed reading. Raw decoder evidence, control eligibility and all
 controller/writer/confirmation behaviour are unchanged.
+
+## Owner display request2026-11-04
+
+Display fresh finite AKU readings even when field_quality is outside_verified_range.
+The old photo-reference interval is not a display cutoff. Overview and heat-pump
+detail share this policy. Keep freshness and missing-value handling, original
+quality metadata and the separately authorised controller/floor-check qualifiers.
+The verified cloud source policy for boiler/outlet is unchanged.

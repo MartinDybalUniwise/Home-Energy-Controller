@@ -1,4 +1,4 @@
-import {thermalSnapshot} from './thermal-status.js?v=boiler-20261104';
+import {thermalSnapshot} from './thermal-status.js?v=aku-20261104';
 import { siteDate, siteClock, siteMoment, siteTime, siteDateTime, uniqueSiteMoment, priceInterval } from './today-chart.js';
 import { source, finite, energySnapshot, heatpumpPower, heatpumpReportedPower, batteryText, heatpumpText, heatingPermission } from './telemetry.js?v=37';
 // Rozhodovací vrstva pro domovskou stránku (Step 18 Touchscreen Redesign).
