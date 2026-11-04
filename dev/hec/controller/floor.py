@@ -90,6 +90,10 @@ def floor_plan(config, base, state, wire, gates, moment):
     active = saved.get("active")
     reason = "waiting_for_idle_hour"
     phase = "idle"
+    adaptive = cfg.get("adaptive_enabled", True)
+    cold = fresh and (room <= 21.3 or (aku is not None and aku < minimum))
+    coast = base.get("phase") == "coast"
+    next_due = None
 
     def begin_restore(why):
         active.update(stage="restoring", restore_requested_at=moment.isoformat(), outcome=why)
@@ -176,13 +180,18 @@ def floor_plan(config, base, state, wire, gates, moment):
                 )
                 if elapsed >= maximum:
                     begin_restore("maximum_duration_reached")
+                elif (adaptive and coast and not cold and aku is not None
+                      and elapsed >= probe and not active.get("below_minimum_seen")):
+                    begin_restore("price_coast_without_cold_buffer")
                 elif acknowledged and elapsed >= probe and aku is not None and aku >= recovery and stable:
                     begin_restore("buffer_stable_and_recovered")
         if active.get("stage") == "restoring":
             phase, reason = "restoring", active.get("outcome")
+            read_at = parse_iso(state.get("timestamp"))
+            readback_fresh = read_at is not None and 0 <= (moment - read_at).total_seconds() <= 180
             # Restore the CURRENT common plan, never a stale saved room schedule.
             if (
-                fresh
+                (fresh or readback_fresh)
                 and state.get("LastSettingsNotConfirmed") is False
                 and gates.get("thermostat", {}).get("awaiting_confirmation") is False
                 and number(state.get("DayTemperature"))
@@ -257,6 +266,11 @@ def floor_plan(config, base, state, wire, gates, moment):
                     phase, reason = "blocked", "room_request_ceiling"
                 elif aku is None:
                     phase, reason = "blocked", "aku_" + aku_quality
+                elif (adaptive and not cold and moment < last + timedelta(minutes=max(idle, 120))
+                      and (coast or (aku >= recovery and room >= 21.5)
+                           or (saved.get("last_cycle") or {}).get("outcome") == "maximum_duration_reached")):
+                    phase, reason = "deferred", "price_coast_or_store_already_warm"
+                    next_due = last + timedelta(minutes=max(idle, 120))
                 else:
                     saved["active"] = dict(
                         stage="preparing",
@@ -272,6 +286,8 @@ def floor_plan(config, base, state, wire, gates, moment):
                     plan["phase"] = "floor_test"
     last = parse_iso(saved.get("last_assumed_activity_at")) or moment
     active = saved.get("active")
+    restoring_at = parse_iso((active or {}).get("restore_requested_at"))
+    restoration_wait = max(0, (moment - restoring_at).total_seconds() / 60) if restoring_at else 0
     info = dict(
         enabled=bool(enabled),
         phase=phase,
@@ -280,7 +296,12 @@ def floor_plan(config, base, state, wire, gates, moment):
         pump_run_measured=False,
         aku_c=aku,
         aku_quality=aku_quality,
-        next_check_at=(last + timedelta(minutes=idle)).isoformat(),
+        next_check_at=(next_due or max(last + timedelta(minutes=idle), moment + timedelta(seconds=60))).isoformat()
+        if not active else None,
+        next_evaluation_at=(moment + timedelta(seconds=60 if active else 300)).isoformat(),
+        restoration_wait_minutes=round(restoration_wait, 1),
+        confirmation_delayed=restoration_wait >= 20,
+        adaptive_enabled=adaptive,
         last_cycle=saved.get("last_cycle"),
         request_sent_at=(active or {}).get("request_sent_at"),
         acknowledged_at=(active or {}).get("acknowledged_at"),

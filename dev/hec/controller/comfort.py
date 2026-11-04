@@ -30,6 +30,13 @@ def evaluate_comfort(saved, heatpump, moment, heating_on):
             and state.get('last_room', room) - room >= 0.5
             and not state.get('ventilation_since')):
         state['ventilation_since'] = to_iso(stamp)
+    # A small sustained cooling step near the floor should be handled before
+    # another 15 minutes below21C. Preserve the separate sudden-ventilation wait.
+    if (previous and 0 < (stamp - previous).total_seconds() <= 900
+            and 21 <= room <= 21.2 and not state.get('ventilation_since')
+            and state.get('last_room', room) - room >= 0.1 - 1e-9):
+        state['active'] = True
+        state['activation_reason'] = 'cooling_near_comfort_floor'
     if room >= 21:
         state.pop('below_since', None)
         state.pop('ventilation_since', None)

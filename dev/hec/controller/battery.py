@@ -6,7 +6,7 @@ estimates, never a claim of realised savings.
 """
 
 from datetime import timedelta
-from math import isfinite
+from math import ceil, isfinite
 
 from ..core.model import Decision
 from ..core.timeutil import parse_iso
@@ -16,6 +16,35 @@ from .price import build_plan, clock
 
 def number(value):
     return isinstance(value, (int, float)) and not isinstance(value, bool) and isfinite(value)
+
+
+def peak_reservation(prices, index, row, capacity, minimum, ceiling):
+    """Reserve estimated energy for a sustained dearer peak, not the first profit.
+
+    Capacity is configured and demand is estimated from current house power.
+    Neither is presented as measured future consumption. No device writes here.
+    """
+    result = dict(active=False, basis="configured_capacity_current_house_load_estimate")
+    if not prices or not number(row.get("house_w")) or not number(row.get("battery_soc")):
+        return result
+    end = min(96, index + 49)
+    hours = [(sum(prices[j:j + 4]) / 4, j) for j in range(index + 1, end - 3)]
+    if not hours:
+        return result
+    # On a flat expensive plateau, reserve for its beginning, not its final
+    # hour; otherwise the estimated protected demand is understated.
+    price, start = max(hours, key=lambda pair: pair[0])
+    if price < prices[index] + max(0.6, abs(prices[index]) * 0.08):
+        return result
+    slots = [j for j in range(start, end) if prices[j] >= price - 0.3]
+    required = max(0.5, row["house_w"] / 1000) * len(slots) / 4
+    soc = row["battery_soc"]
+    reserve = min(ceiling, int(soc))
+    if number(capacity) and capacity > 0:
+        reserve = min(reserve, max(minimum, ceil(minimum + required / (capacity * 0.9) * 100)))
+    result.update(active=reserve > minimum, reserve_pct=reserve, peak_from=clock(start),
+                  peak_mean_czk_kwh=round(price, 4), estimated_required_kwh=round(required, 3))
+    return result
 
 
 def charging_windows(payload, day, settings):
@@ -251,6 +280,10 @@ class BatteryPlanner:
                 self.memory["comfort_supply_until"] = deadline_text
                 atomic_write_json(self.path, self.memory)
         release = release or comfort_release
+        peak = peak_reservation(prices, index, row,
+                                self.config.get("prediction.battery_capacity_kwh", 10), minimum, ceiling)
+        if expired or comfort_release or not usable_basis:
+            peak["active"] = False
         charge = (
             safe
             and current is not None
@@ -302,9 +335,14 @@ class BatteryPlanner:
             # the remaining capacity. No forced export, no inferred PV forecast.
             hold = usable_basis and soc > minimum and not release and prices
             target = min(ceiling, int(soc)) if hold else min(minimum, int(soc))
+            if peak.get("active"):
+                target = max(target, peak["reserve_pct"])
+                hold = True
             phase = "hold" if hold else ("release" if release else phase)
             if hold:
-                reason = "Retain purchased energy for a profitable price; General mode still accepts PV"
+                reason = ("Reserve estimated house demand for the later sustained dearer peak"
+                          if peak.get("active") else
+                          "Retain purchased energy for a profitable price; General mode still accepts PV")
             elif comfort_release:
                 reason = "Current comfort heating in VT has priority; sufficient cheaper refill precedes the later peak"
             elif release:
@@ -343,6 +381,7 @@ class BatteryPlanner:
             force_discharge=False,
             next_action=action,
             coordination=coordination,
+            peak_reservation=peak,
             release_reason="comfort_peak" if comfort_release else None,
         )
         urgent_release = comfort_release and action == "set_on_grid_soc_limit_pct" and value < reserve

@@ -12,7 +12,7 @@ from ..controller.predictor import CONFIDENCE_BANDS, Predictor
 from ..core.timeutil import now_local, parse_iso
 from . import Forecast
 
-MODEL_VERSION = "predictor-median-v1"
+MODEL_VERSION = "recent-weather-measured-load-v2"
 
 
 def forecast_household_consumption(day: dict, generated_at: str | None = None) -> Forecast:
@@ -24,6 +24,9 @@ def forecast_household_consumption(day: dict, generated_at: str | None = None) -
     if value is not None:
         band = CONFIDENCE_BANDS[confidence]
         range_ = (round(value * (1 - band), 2), round(value * (1 + band), 2))
+        measured = (day.get("consumption_progress") or {}).get("measured_kwh")
+        if isinstance(measured, (int, float)):
+            range_ = (max(measured, range_[0]), max(measured, range_[1]))
     return Forecast(
         value=value,
         range=range_,

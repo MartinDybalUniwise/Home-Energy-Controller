@@ -141,6 +141,7 @@ SCHEMA: dict[str, Any] = {
         "write_enabled": F("bool", False),
         "floor_check": {
             "enabled": F("bool", False),
+            "adaptive_enabled": F("bool", True),
             "activated_at": F("str", ""),
             "idle_minutes": F("int", 60, minimum=60, maximum=240),
             "probe_minutes": F("int", 15, minimum=15, maximum=30),

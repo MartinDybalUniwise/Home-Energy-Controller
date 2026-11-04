@@ -16,6 +16,7 @@ import copy
 import json
 import re
 from datetime import UTC, datetime, timedelta
+from hashlib import sha256
 from math import isfinite
 from pathlib import Path
 from urllib.parse import urljoin
@@ -754,6 +755,10 @@ class TngReader(BaseReader):
         settings = state.get("settings") or {}
         heatpump = state.get("heatpump") or {}
         actions: list[str] = []
+        # Let the sole resolver see the confirmation from THIS read, rather
+        # than retaining a restoring cycle until a later polling pass.
+        self._gate_update("basic", settings.get("last_settings_not_confirmed"))
+        self._gate_update("thermostat", state.get("LastSettingsNotConfirmed"))
         plan = self.planner.prepare_tng(self, state, moment)
         if plan is None:
             return ['skip:controller:disabled']
@@ -874,9 +879,20 @@ class TngReader(BaseReader):
             payload = copy.deepcopy(self.config.get("tng.thermostat_settings_template", {}))
             payload['DayTemperature'] = plan['room_target']
             signature = json.dumps(payload, sort_keys=True)
+            signature_hash = sha256(signature.encode()).hexdigest()
             pending = state.get("LastSettingsNotConfirmed")
             self._gate_update("thermostat", pending)
-            if (self.pending_sent.get("thermostat") == signature
+            actual_target = state.get("DayTemperature")
+            if (pending is False and not self.change_gate["thermostat"]["awaiting_confirmation"]
+                    and (self.change_gate["thermostat"].get("last_requested") or {}).get("payload_signature") == signature_hash
+                    and isinstance(actual_target, (int, float)) and not isinstance(actual_target, bool)
+                    and isinstance(plan["room_target"], (int, float))
+                    and abs(actual_target - plan["room_target"]) < 0.05):
+                # A confirmed matching readback survives restart without a
+                # redundant POST that would reopen the 900s confirmation gate.
+                self.pending_sent["thermostat"] = signature
+                actions.append("skip:thermostat:confirmed_readback")
+            elif (self.pending_sent.get("thermostat") == signature
                     and self.change_gate["thermostat"]["awaiting_confirmation"]):
                 actions.append("skip:thermostat:awaiting_confirmation")
             elif self.pending_sent.get("thermostat") != signature:
@@ -884,7 +900,8 @@ class TngReader(BaseReader):
                 if allowed:
                     self.post_json("thermostat_settings", payload, "THERMOSTAT_SETTINGS")
                     self.pending_sent["thermostat"] = signature
-                    self._mark_posted("thermostat", {"day_temperature": payload.get("DayTemperature")})
+                    self._mark_posted("thermostat", {"day_temperature": payload.get("DayTemperature"),
+                                                     "payload_signature": signature_hash})
                     actions.append("post:thermostat")
                 else:
                     actions.append(f"skip:thermostat:{reason}")

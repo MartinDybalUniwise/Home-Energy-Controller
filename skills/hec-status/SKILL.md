@@ -147,3 +147,15 @@ range/cloud crosschecks and missing/late samples. Reheating threshold35C, stable
 recovery38C, earliest15min and restoration request by45min. Native autonomous
 pump-only control is NOT verified. Check that the temporary room service request
 (+0.5C,max24C) returns to the CURRENT common plan and explicitoff/DHW take priority.
+
+Daily-review optimisation2026-11-04 (dev/step49/PLAN.md): review battery_plan.
+peak_reservation (configured capacity/current load estimate) against measured
+SOC/native reserve and later sustained peaks; comfort exceptions still win.
+Hourly floor evaluation may defer warm/safe pulses to120min, never cold-store/room
+needs. Inspect restoration_wait_minutes/confirmation_delayed and actual basic/
+thermostat readbacks, not an overdue next_check_at or an assumed pump runtime.
+Second ordinary DHW window may be skipped with fresh probe>=target (resume at
+target-2), retaining first/hygienic/dated-owner windows. Check dhw_readiness.
+Consumption forecasts now include heating once and expose consumption_components
+and consumption_progress (measured today + estimated remainder); compare with
+fresh GoodWe load counter. Never present an empirical weather component as COP.

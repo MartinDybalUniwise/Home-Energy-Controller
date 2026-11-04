@@ -296,7 +296,8 @@
       "recovery_aku_c": 38,
       "water_target_c": 42,
       "room_request_offset_c": 0.5,
-      "maximum_room_request_c": 24
+      "maximum_room_request_c": 24,
+      "adaptive_enabled": true
     }
   },
   "tng_wire": {

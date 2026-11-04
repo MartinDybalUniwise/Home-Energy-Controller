@@ -5,6 +5,7 @@ The TNG adapter owns device acknowledgement/state persistence, never policy.
 
 from ..core.timeutil import to_iso
 from .comfort import evaluate_comfort
+from .dhw import dhw_mode
 from .floor import floor_plan
 from .price import evaluate_shift, refresh_plans
 from .response import observe_response, planning_preheat_quarters, preheat_quarters
@@ -31,6 +32,12 @@ class ThermalPlanner:
                 publish=False,
             )
         mode = scheduled_operation(config.get("tng.operation", {}), moment)
+        boiler_target = scheduled_value(boiler, moment)
+        try:
+            mode, dhw = dhw_mode(config, state, moment, mode, boiler_target)
+        except Exception as exc:
+            reader.log.warning("dhw_readiness_failed | error=%s", type(exc).__name__)
+            dhw = dict(skipped=False, reason="readiness_unavailable")
         observed = evaluate_comfort(
             reader.comfort_state, heatpump, moment, settings.get("heating_on") is True
         )
@@ -86,6 +93,7 @@ class ThermalPlanner:
             "mode": mode,
             "heating_temperature": water,
             "boiler_temperature": scheduled_value(boiler, moment),
+            "dhw_readiness": dhw,
             "room_target": room,
             "phase": (shift or {}).get("phase", "comfort_guard" if comfort else "schedule"),
             "planned_at": to_iso(moment),

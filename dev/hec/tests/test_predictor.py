@@ -32,6 +32,7 @@ def seed_summaries(storage, days=30, pv=40.0, irradiation=5.0, house=20.0,
             "source": "summary", "date": day.isoformat(),
             "pv_kwh": pv, "house_kwh": house, "irradiation_kwh_m2": irradiation,
             "heatpump_kwh": heatpump, "degree_days": degree_days,
+            "heatpump_quality": {"quality": "measured", "valid_samples": 100},
         })
 
 
@@ -156,7 +157,9 @@ def test_forecast_includes_heat_demand_and_balance(tmp_path):
     day = Predictor(config, storage).forecast()["days"][0]
     assert day["pv_kwh"] == 9.6
     assert day["heat_kwh"] == 20.0                      # 2 kWh/denostupeň × 10
-    assert day["grid_balance_kwh"] == round(20.0 + 20.0 - 9.6, 1)
+    # Whole-house20 historically already contains measured heat10: base10+future heat20.
+    assert day["consumption_kwh"] == 30
+    assert day["grid_balance_kwh"] == round(30.0 - 9.6, 1)
 
 
 def test_cost_is_none_without_known_prices(tmp_path):

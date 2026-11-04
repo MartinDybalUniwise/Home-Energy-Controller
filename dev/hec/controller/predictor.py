@@ -8,11 +8,13 @@ nese interval a míru jistoty – falešná přesnost je horší než přiznaná
 from __future__ import annotations
 
 from datetime import date, timedelta
+from math import isfinite
 from statistics import median
 
 from ..core.electricity_price import load_priced_day
 from ..core.logging_setup import get_logger
 from ..core.timeutil import now_local, parse_iso, to_iso
+from ..forecast.consumption import today_consumption, weather_consumption
 from ..forecast.today import today_pv
 from ..storage.base import read_json
 
@@ -27,7 +29,8 @@ DHW_WINDOW_HOURS = 2
 
 
 def safe_median(values: list[float]) -> float | None:
-    values = [value for value in values if isinstance(value, (int, float))]
+    values = [value for value in values if isinstance(value, (int, float))
+              and not isinstance(value, bool) and isfinite(value)]
     return median(values) if values else None
 
 
@@ -70,6 +73,12 @@ class Predictor:
         """
         history = history if history is not None else self._history()
         weekend = target.weekday() >= 5
+        recent = [day for day in history if day.get("date")
+                  and 0 < (target - date.fromisoformat(day["date"])).days <= 7
+                  and day.get("house_kwh")
+                  and (date.fromisoformat(day["date"]).weekday() >= 5) == weekend]
+        if len(recent) >= 3:
+            history = recent
         same_kind = [day["house_kwh"] for day in history
                      if day.get("house_kwh") and
                      (parse_iso(day["date"] + "T00:00:00").weekday() >= 5) == weekend]
@@ -83,8 +92,12 @@ class Predictor:
         history = history if history is not None else self._history()
         ratios = [day["heatpump_kwh"] / day["degree_days"]
                   for day in history
-                  if day.get("degree_days") and day.get("heatpump_kwh")
-                  and day["degree_days"] > 0.5]
+                  if isinstance(day.get("degree_days"), (int, float))
+                  and isinstance(day.get("heatpump_kwh"), (int, float))
+                  and isfinite(day["degree_days"]) and isfinite(day["heatpump_kwh"])
+                  and day["degree_days"] > 0.5 and day["heatpump_kwh"] > 0
+                  and (day.get("heatpump_quality") or {}).get("valid_samples", 0) >= 2
+                  and (day.get("heatpump_quality") or {}).get("quality") not in ("unavailable", "phase", "invalid")]
         learned = safe_median(ratios)
         return (round(learned, 3), len(ratios)) if learned else (None, 0)
 
@@ -181,11 +194,12 @@ class Predictor:
             mean_temp = self._mean_temperature(weather, day)
             degree_days = max(0.0, BASE_TEMPERATURE_C - mean_temp) if mean_temp is not None else None
             heat = round(slope * degree_days, 1) if (slope and degree_days) else None
+            consumption, components = weather_consumption(history, day, mean_temp, consumption, heat)
 
             # Bez naučené spotřeby nejde spočítat ani bilanci sítě, ani náklad,
             # ani nabití baterie – dopočítávat je z neznámé spotřeby by bylo
             # jen jiné jméno pro odhad, který nikdo neověřil.
-            total_load = None if consumption is None else consumption + (heat or 0.0)
+            total_load = consumption
             balance = round(total_load - pv, 1) if total_load is not None else None
             periods = self._prices_for(day)
             cost = self._estimate_cost(balance, periods) if balance is not None else None
@@ -198,6 +212,7 @@ class Predictor:
                 "irradiation_kwh_m2": irradiation,
                 "confidence": confidence,
                 "consumption_kwh": consumption,
+                "consumption_components": components,
                 "heat_kwh": heat,
                 "mean_temperature_c": mean_temp,
                 "grid_balance_kwh": balance,
@@ -226,8 +241,12 @@ class Predictor:
                     self._today_cache = (key, dict(current))
             future_prices = [p for p in self._prices_for(today) if p["start"] >= moment.strftime("%H:%M")]
             consumption, samples = self.consumption_estimate(today, history)
+            consumption, components = weather_consumption(
+                history, today, self._mean_temperature(weather, today), consumption, None)
+            consumption, measured_load = today_consumption(self.storage, self.config, moment, consumption)
             current.update(date=today.isoformat(), confidence=self.confidence_for(factor_samples),
                            consumption_kwh=consumption, heat_kwh=None, grid_balance_kwh=None,
+                           consumption_components=components, consumption_progress=measured_load,
                            cost_czk=None, battery_soc_min_pct=None,
                            mean_temperature_c=self._mean_temperature(weather, today),
                            best_appliance_window=self._format_window(self.cheapest_window(future_prices, APPLIANCE_WINDOW_HOURS)),

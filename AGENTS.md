@@ -118,3 +118,13 @@ this is owner-authorised operational acceptance, NOT additional photo validation
 Keep original decoder photo-reference range34.2-41.5C and CRC/global control_eligible
 unverified. Freshness/cloud crosschecks, exclusive modes,42C/24C caps and900s gates
 remain unchanged. Below35C valid expanded samples latch the existing reheat phase.
+
+Owner-approved2026-11-04 review optimisation (dev/step49/PLAN.md): hourly floor
+evaluation may defer warm/safe pulses to120min, with cold-store/room exceptions;
+retain existing bounds/gates. Protect estimated battery energy for a sustained
+later materially dearer peak, preserving comfort exceptions and native limits.
+Only second ordinary DHW window target<=50 may skip with fresh probe>=target
+and resume target-2; dated/hygienic/first windows remain. Near21.2 slow cooling
+can trigger early comfort recovery. Forecast house totals include heating once,
+use recent/weather evidence and today's measured load plus estimated remainder.
+Check confirmation delay diagnostics and native readbacks, not POST counts.
