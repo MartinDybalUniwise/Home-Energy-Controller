@@ -1,4 +1,4 @@
-import {thermalSnapshot} from './thermal-status.js?v=38';
+import {thermalSnapshot} from './thermal-status.js?v=boiler-20261104';
 import { siteDate, siteClock, siteMoment, siteTime, siteDateTime, uniqueSiteMoment, priceInterval } from './today-chart.js';
 import { source, finite, energySnapshot, heatpumpPower, heatpumpReportedPower, batteryText, heatpumpText, heatingPermission } from './telemetry.js?v=37';
 // Rozhodovací vrstva pro domovskou stránku (Step 18 Touchscreen Redesign).
@@ -206,7 +206,7 @@ export function renderToday(view, { current, weather, prices, prediction }) {
         <div class="thermal-card" data-temperature="buffer"><span class="thermal-label">${t('thermal.buffer')}</span><strong>${num(thermal.buffer,1)} <small>°C</small></strong><span class="thermal-detail">${thermal.buffer === null ? t('thermal.buffer_unavailable') : t('thermal.buffer_sensor')}</span></div>
         <div class="thermal-card" data-temperature="water"><span class="thermal-label">${t('thermal.water')}</span><strong>${num(thermal.water,1)} <small>°C</small></strong><span class="thermal-detail">${thermal.heatingEnabled === false ? t('thermal.disabled') : t('thermal.heating_setting',{value:num(thermal.waterTarget,1)})}</span></div>
       </div>
-      <div class="thermal-measurement"><span>${thermal.fresh ? t('thermal.reading') : t('thermal.stale')}${thermal.timestamp && Number.isFinite(Date.parse(thermal.timestamp)) ? ' '+siteClock(new Date(thermal.timestamp)) : ''}</span><details class="explanation-info"><summary aria-label="${t('thermal.info')}">ⓘ</summary><p>${t('thermal.measured_at')}</p></details></div>
+      <div class="thermal-measurement"><span>${thermal.fresh ? t('thermal.reading') : t('thermal.stale')}${thermal.timestamp && Number.isFinite(Date.parse(thermal.timestamp)) ? ' '+siteClock(new Date(thermal.timestamp)) : ''}</span><details class="explanation-info"><summary aria-label="${t('thermal.info')}">ⓘ</summary><p>${t('thermal.measured_at')}</p><p>${[['boiler','boiler_temperature'],['water','water_output_temperature'],['buffer','buffer_temperature']].map(([label,key])=>`${t('thermal.'+label)}: ${thermal.timestamps[key]?siteClock(new Date(thermal.timestamps[key])):'—'}`).join(' · ')}</p></details></div>
     </section>
 
       <div class="weather-station-widget">

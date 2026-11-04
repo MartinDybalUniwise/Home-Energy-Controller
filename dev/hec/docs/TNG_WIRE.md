@@ -94,3 +94,16 @@ this is owner-authorised operational acceptance, NOT additional photo validation
 Keep original decoder photo-reference range34.2-41.5C and CRC/global control_eligible
 unverified. Freshness/cloud crosschecks, exclusive modes,42C/24C caps and900s gates
 remain unchanged. Below35C valid expanded samples latch the existing reheat phase.
+
+## Display correction2026-11-04
+
+The low observed branch can alias a higher boiler or outlet temperature into a
+plausible value inside its photo-reference range. A range check alone is not
+proof of correct branch selection. The overview and heat-pump detail share one
+temperatureReading policy: boiler and outlet temperatures, plus their requested
+setpoints, use fresh cloud fields (<=900 s); if unavailable they remain unknown.
+Never fall back to the ambiguous passive values or add a guessed25.6 C offset.
+AKU and other passive-only fields retain their existing <=180 s/quality guards.
+Individual timestamps are retained and the shared overview timestamp uses the
+oldest displayed reading. Raw decoder evidence, control eligibility and all
+controller/writer/confirmation behaviour are unchanged.

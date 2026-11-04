@@ -1036,7 +1036,8 @@
     "buffer_status": "Separate buffer tank status; missing readings are never replaced by HP outlet temperature.",
     "partial_meter": "Show the positive HP reading alongside a partial-phase warning.",
     "tng_wire": "Passive heat-pump traffic, buffer temperature and command panel",
-    "live_control": "Control page tracks the unified controller, effective targets, guard intervals and actual events."
+    "live_control": "Control page tracks the unified controller, effective targets, guard intervals and actual events.",
+    "boiler_display": "Correct boiler and heat-pump outlet temperatures using the verified reading rather than an ambiguous passive decoder branch."
   },
   "meter": {
     "valid": "Measured electrical input",

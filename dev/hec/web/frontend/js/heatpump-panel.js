@@ -1,3 +1,4 @@
+import {temperatureReading} from './thermal-status.js?v=boiler-20261104';
 import {source, finite} from './telemetry.js';
 import {t, num} from './i18n.js';
 import {siteDateTime, siteTime, siteDate, siteClock} from './today-chart.js';
@@ -13,12 +14,7 @@ export function heatpumpPanel(current, config, now = new Date()) {
   const wire = source(current,'tng_wire'), cloud = source(current,'tng');
   const receiver = source(current,'tng_wire_receiver');
   const wireFresh = fresh(wire,now,180), cloudFresh = fresh(cloud,now,900);
-  const field = key => {
-    if (wireFresh && finite(wire[key]) !== null && wire.field_quality?.[key] !== 'outside_verified_range')
-      return {value:wire[key], origin:'wire'};
-    if (cloudFresh && finite(cloud[key]) !== null) return {value:cloud[key], origin:'cloud'};
-    return {value:null,origin:null};
-  };
+  const field = key => temperatureReading(current,key,now)||{value:null,origin:null};
   const temp = key => {
     const result = field(key);
     return result.value === null ? '—' : `${num(result.value,1)} <small>°C</small>`;

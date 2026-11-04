@@ -3,7 +3,7 @@
 import { api } from './api.js?v=42';
 import { applyScene } from './background.js';
 import { applyTranslations, setLanguage, t, time } from './i18n.js';
-import { pages } from './pages.js?v=46';
+import { pages } from './pages.js?v=boiler-20261104';
 import { setupReleases } from './releases.js';
 
 const REFRESH_MS = 10000;

@@ -1,7 +1,7 @@
 import {controlPlan} from './control-plan.js?v=46';
 import {renderDayPlan} from './day-plan.js?v=41';
 import {mountMcpSetup} from './mcp-setup.js?v=1';
-import {heatpumpPanel} from './heatpump-panel.js?v=41';
+import {heatpumpPanel} from './heatpump-panel.js?v=boiler-20261104';
 import { rulesPage } from './rules.js?v=36';
 import {patchDOM} from './patch-dom.js?v=36';
 import { mountTodayChart, siteDateTime } from './today-chart.js?v=46';
@@ -9,7 +9,7 @@ import { source, finite, energySnapshot, heatpumpText, heatingPermission, batter
 // Stránky rozhraní. Každá odpovídá na tři otázky: co se děje, proč, co bude dál.
 
 import { renderChart, renderGoodWeHistoryChart, renderTable } from './chart.js?v=4';
-import { renderForecastStory, renderToday } from './advisor.js?v=41';
+import { renderForecastStory, renderToday } from './advisor.js?v=boiler-20261104';
 import { renderFlow } from './flow.js?v=3';
 import { availableLanguages, currentLanguage, dateTime, duration, num, power, t, time, weekday } from './i18n.js';
 import { weatherIcon } from './icons.js';
