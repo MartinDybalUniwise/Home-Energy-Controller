@@ -22,9 +22,9 @@
   README status validation:PASS. Whole-repository Ruff has34 PRE-EXISTING findings
   in test_mcp_setup and historical step46/47/48 activation scripts; baseline
   comparison proves identical code/location/messages. They are not new failures.
-- Generated config.example is synchronized with the existing schema defaults
-  (including disabled economic/floor defaults); schema and private production
-  configuration are unchanged. No telemetry is committed. Pump flag preserved.
+- Generated example-only test output was restored to its pre-task content;
+  schema and private production configuration are unchanged. No telemetry is
+  committed. Pump flag preserved.
 
 Private evidence lives under the owner's monitoring-evidence directory: before/
 after replay JSON, full/targeted test output, baseline lint comparison and mobile
@@ -42,3 +42,12 @@ initial commit failed for missing Git identity. The finally clause restored the
 service using the validated code, protected by the original prechange snapshot.
 Commit194295d then succeeded under explicit Codex identity. A clean follow-up
 snapshot/restart and subsequent readbacks are recorded in private live evidence.
+
+Final clean routine snapshot:91e3dfb18bb34217a0cff3ef03555283, revision9724389,
+copied33277303bytes,15 dirty history files, initial_audit=false. The existing
+service restarted successfully with writerPID10412 in the correct root. At09:38
+version0.1.20, both gates clear, actual heating42C, room21.7C, boiler25.6C.
+Both last_post_at values remained09:33:30: restart sent no duplicate commands.
+Current/prediction/config GETs succeeded; TNG reader has no current error.
+Live evidence:comfort-deployment-2026-11-16.json in private monitoring evidence.
+The final documentation-only commit does not alter the verified runtime code.
