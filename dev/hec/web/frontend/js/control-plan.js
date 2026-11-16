@@ -3,6 +3,7 @@ import {finite,source,energySnapshot,heatpumpReportedPower,heatpumpQuality} from
 import {siteDate,siteClock,siteDateTime} from './today-chart.js?v=41';
 import {patchDOM} from './patch-dom.js?v=36';
 import {renderBatteryPlan} from './battery-plan.js?v=46';
+import {thermalAlerts} from './thermal-alerts.js?v=50';
 
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const tr=(key,params)=>t(`control_live.${key}`,params);
@@ -136,6 +137,7 @@ export function renderControlLive({current={},status={},config={},commands={},de
   return `<div class="control-plan-page control-live-page">
     <header class="control-plan-header"><div><span class="section-tab">${t('control_plan.title')}</span><p class="meta">${tr('subtitle')}</p></div><span id="control-plan-updated" class="meta">${tr('updated')}: ${esc(siteClock(now))}</span></header>
     ${failures.length?`<p class="notice error" role="alert">${tr('partial')}: ${failures.map(key=>esc(tr(`source_${key}`))).join(', ')}</p>`:''}
+    ${thermalAlerts({status},now)}
     <section class="panel control-plan-status"><h2>${tr('processes')}</h2><div class="control-live-processes">${tngCards}</div></section>
     <section class="panel control-plan-status"><h2>${tr('now')}</h2><div class="control-live-processes">
       ${card('effective',tr('effective'),`<dl class="control-plan-metrics">${metric(tr('mode'),esc(tr(`mode_${m.mode}`)))}${metric(tr('heat'),temp(m.targets.heat))}${metric(tr('boiler'),temp(m.targets.boiler))}${metric(tr('room'),temp(m.targets.room))}</dl><p class="meta">${tr(m.writes?'effective_note':'effective_disabled')}</p>`)}

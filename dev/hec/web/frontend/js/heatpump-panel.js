@@ -1,6 +1,7 @@
 import {temperatureReading} from './thermal-status.js?v=aku-20261104';
 import {source, finite} from './telemetry.js';
 import {t, num} from './i18n.js';
+import {thermalAlerts} from './thermal-alerts.js?v=50';
 import {siteDateTime, siteTime, siteDate, siteClock} from './today-chart.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -40,11 +41,19 @@ export function heatpumpPanel(current, config, now = new Date()) {
   };
   const inWindow = item => item.from <= item.to ? clock >= item.from && clock < item.to : clock >= item.from || clock < item.to;
   const operation = effective('operation');
+  const candidatePlan = current?.status?.controller?.thermal_plan;
+  const planAge = (+now-Date.parse(candidatePlan?.planned_at))/1000;
+  const plan = current?.status?.controller?.enabled && planAge >= -60 && planAge <= 900 ? candidatePlan : null;
   let desiredMode = operation.default_mode || 'heating';
   for (const item of operation.schedule || []) if (inWindow(item)) desiredMode = item.mode;
   const comfort = cloudFresh && cloud.comfort_guard_active === true;
   if (comfort && desiredMode !== 'off') desiredMode = 'heating';
+  if (plan) desiredMode = plan.mode;
   const target = name => {
+    if (plan) {
+      const value = plan[{heating:'heating_temperature',boiler:'boiler_temperature',thermostat:'room_target'}[name]];
+      return finite(value) === null ? '—' : `${num(value,1)} °C`;
+    }
     const section = effective(name);
     let value = section.default_temperature;
     for (const item of section.schedule || []) if (inWindow(item)) value = item.temperature;
@@ -82,6 +91,7 @@ export function heatpumpPanel(current, config, now = new Date()) {
     [t('hp.reported_boiler'),cloudFresh ? `${num(cloud.boiler_set_temperature,1)} °C` : '—']];
   return `<section class="workspace-card hp-panel" id="heatpump-panel">
     <header class="workspace-card-header"><h4>${t('hp.title')}</h4><span class="hp-badge ${wireFresh && !receiver.log_limit_reached ? 'is-fresh' : 'is-stale'}">${t(receiver.log_limit_reached ? 'hp.log_limit' : wireFresh ? 'hp.receiving' : 'hp.no_wire')}</span></header>
+    ${thermalAlerts(current,now)}
     <div class="hp-panels"><article><h5>${t('hp.actual')}</h5><div class="hp-display">${rows(left)}${rows(right)}</div>
 </article>
     <article><h5>${t('hp.command')}</h5>${comfort ? `<span class="hp-badge is-stale">${t('hp.comfort_guard')}</span>` : ''}${rows(commandRows)}<span class="hp-badge ${settingsMatch ? 'is-fresh' : 'is-stale'}">${t(settingsMatch ? 'hp.matches' : 'hp.not_matched')}</span></article></div>

@@ -21,7 +21,10 @@ def test_sustained_low_and_hysteresis():
     assert state['active']
     state = sample(state, 20, 21.1)
     assert state['active']
-    assert not sample(state, 25, 21.5)['active']
+    for minute in range(25, 55, 5):
+        state = sample(state, minute, 21.5)
+        assert state['active']
+    assert not sample(state, 55, 21.5)['active']
 
 
 def test_ventilation_recovers_without_boost_or_times_out():

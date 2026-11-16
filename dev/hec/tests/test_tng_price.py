@@ -48,6 +48,19 @@ def evaluate(config, moment=BASE, room=21.6, saved=None, **kwargs):
                           moment, saved or {}, False, 'heating', energy(moment), **kwargs)
 
 
+def seed_confirmed_readiness(config, moment=BASE):
+    atomic_write_json(config.data_dir / 'thermal-recovery-state.json', dict(
+        day=moment.date().isoformat(), day_blocked=False,
+        warm_since=(moment - timedelta(minutes=40)).isoformat(),
+        last_sample=(moment - timedelta(minutes=1)).isoformat(),
+        preheat=dict(key=f'{moment.date().isoformat()}:16',
+                     first_at=(moment - timedelta(minutes=120)).isoformat(),
+                     last_at=(moment - timedelta(minutes=1)).isoformat(),
+                     first_room=21.5, last_room=21.6, minutes=119)))
+    atomic_write_json(config.data_dir / 'thermal-response.json', dict(
+        assessed_at=moment.isoformat(), lead_quarters=8, last_outcome={'ready': True}))
+
+
 def test_preheat_precedes_real_peaks_and_coast_is_bounded():
     plan = build_plan(curve(), DAY, {'default_mode': 'heating'})
     assert plan['prices_valid']
@@ -220,6 +233,7 @@ def test_solar_window_persists_and_expires_after_two_hours():
 
 def test_real_apply_preserves_gates_exclusivity_and_runtime_after_restart(tmp_path, tng_connect):
     reader, config = setup(tmp_path, tng_connect)
+    seed_confirmed_readiness(config)
     from hec.storage.jsonl import JsonlStorage
     reader.storage = JsonlStorage(config.data_dir, config.history_dir)
     reader.storage.write_current('goodwe', energy())

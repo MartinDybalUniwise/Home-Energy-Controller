@@ -5,7 +5,7 @@ from hec.controller.controller import Controller
 from hec.core.app import Application
 from hec.core.model import Decision
 from test_controller import FakeApp, FakeGoodWeWriter
-from test_tng_price import BASE, energy, setup
+from test_tng_price import BASE, energy, seed_confirmed_readiness, setup
 
 
 def connected(tmp_path, tng_connect):
@@ -24,6 +24,7 @@ def connected(tmp_path, tng_connect):
 
 def test_controller_resolves_one_target_and_only_adapter_posts(tmp_path, tng_connect):
     reader, controller, app, state = connected(tmp_path, tng_connect)
+    seed_confirmed_readiness(reader.config)
     with patch.object(reader, 'post_json', return_value=204) as post:
         reader.apply(state, moment=BASE)
         assert [c.args[0] for c in post.call_args_list].count('basic_settings') == 1

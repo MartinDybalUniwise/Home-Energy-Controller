@@ -5,9 +5,10 @@ The TNG adapter owns device acknowledgement/state persistence, never policy.
 
 from ..core.timeutil import to_iso
 from .comfort import evaluate_comfort
-from .dhw import dhw_mode
+from .dhw import catchup_plan, dhw_mode
 from .floor import floor_plan
 from .price import evaluate_shift, refresh_plans
+from .recovery import observe_recovery
 from .response import observe_response, planning_preheat_quarters, preheat_quarters
 from .schedules import scheduled_operation, scheduled_value
 
@@ -31,7 +32,7 @@ class ThermalPlanner:
                 {"timestamp": to_iso(moment), "source": "tng_commands", "phase": "price_plan_saved", **plan},
                 publish=False,
             )
-        mode = scheduled_operation(config.get("tng.operation", {}), moment)
+        scheduled = mode = scheduled_operation(config.get("tng.operation", {}), moment)
         boiler_target = scheduled_value(boiler, moment)
         try:
             mode, dhw = dhw_mode(config, state, moment, mode, boiler_target)
@@ -57,8 +58,19 @@ class ThermalPlanner:
                     publish=False,
                 )
         comfort = bool(observed.get("active")) and bool(heating.get("enabled"))
+        try:
+            safety = observe_recovery(config, state, reader.change_gate, observed, moment)
+        except Exception as exc:
+            reader.log.error('thermal_recovery_failed | error=%s', type(exc).__name__)
+            safety = dict(coast_ready=False, stable_recovery=False, reason='evidence_unavailable')
         if comfort and mode == "boiler":
             mode = "heating"
+        try:
+            mode, boiler_target, catchup = catchup_plan(
+                config, state, reader.change_gate, moment, scheduled, mode, boiler_target, comfort, safety)
+        except Exception as exc:
+            reader.log.error('dhw_catchup_failed | error=%s', type(exc).__name__)
+            catchup = dict(active=False, reason='evidence_unavailable')
         shift, saved = evaluate_shift(
             config,
             heatpump,
@@ -67,6 +79,7 @@ class ThermalPlanner:
             comfort,
             mode,
             reader.storage.latest("goodwe") if reader.storage else None,
+            safety=safety,
         )
         if saved != reader.price_shift_state:
             reader.price_shift_state = saved
@@ -92,16 +105,30 @@ class ThermalPlanner:
         plan = {
             "mode": mode,
             "heating_temperature": water,
-            "boiler_temperature": scheduled_value(boiler, moment),
+            "boiler_temperature": boiler_target,
             "dhw_readiness": dhw,
+            "dhw_catchup": catchup,
+            "recovery": safety,
             "room_target": room,
             "phase": (shift or {}).get("phase", "comfort_guard" if comfort else "schedule"),
             "planned_at": to_iso(moment),
             "required_preheat_minutes": planning_preheat_quarters(config, moment.date().isoformat(), moment) * 15,
             "response_required_preheat_minutes": preheat_quarters(config, moment) * 15,
-            "room_ready_for_coast": isinstance(heatpump.get("room_temperature"), (int, float))
-            and heatpump["room_temperature"] >= 21.5,
+            "room_ready_for_coast": safety.get('coast_ready', False),
+            "alerts": ([dict(code='heating_response_insufficient', severity='warning',
+                             action='coast_blocked_check_physical_response')]
+                       if safety.get('response_fault') else [])
+                      + ([dict(code='dhw_deferred_for_comfort', severity='warning',
+                               action='catchup_after_stable_recovery')]
+                         if catchup.get('debt') and not catchup.get('active') else []),
         }
+        diagnostic = (bool(safety.get('response_fault')), bool(catchup.get('debt')),
+                      catchup.get('active'), catchup.get('reason'))
+        if diagnostic != getattr(reader, '_recovery_diagnostic', None):
+            reader._command_audit(dict(timestamp=to_iso(moment), source='tng_commands',
+                                       phase='thermal_recovery', recovery=safety,
+                                       dhw_catchup=catchup, alerts=plan['alerts']), publish=False)
+            reader._recovery_diagnostic = diagnostic
         wire = reader.storage.latest('tng_wire') if reader.storage else None
         try:
             plan = floor_plan(config, plan, state, wire, reader.change_gate, moment)

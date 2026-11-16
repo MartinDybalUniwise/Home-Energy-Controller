@@ -1038,7 +1038,8 @@
     "tng_wire": "Passive heat-pump traffic, buffer temperature and command panel",
     "live_control": "Control page tracks the unified controller, effective targets, guard intervals and actual events.",
     "boiler_display": "Correct boiler and heat-pump outlet temperatures using the verified reading rather than an ambiguous passive decoder branch.",
-    "aku_display_range": "Show AKU beyond the original reference range; clarify the missing-reading label."
+    "aku_display_range": "Show AKU beyond the original reference range; clarify the missing-reading label.",
+    "comfort_recovery": "Persistent comfort protection, verified preheat and bounded hot-water catch-up."
   },
   "meter": {
     "valid": "Measured electrical input",
@@ -1280,6 +1281,11 @@
     "battery_unified_standby": "The unified controller is not currently performing automatic battery or inverter interventions.",
     "phase_schedule": "Saved schedule",
     "event_resolved_plan": "Resolved controller plan",
-    "plan_only": "Plan resolved; sending and confirmation are recorded separately"
+    "plan_only": "Plan resolved; sending and confirmation are recorded separately",
+    "phase_readiness_veto": "Waiting for verified recovery"
+  },
+  "thermal_alert": {
+    "heating_response_insufficient": "Heating settings are confirmed, but room recovery has remained insufficient for at least an hour. HEC has blocked economic coasting. Check physical operation, circulation and regulation; pump activity is not measured.",
+    "dhw_deferred_for_comfort": "Hot water needs reheating. HEC is waiting for safe room recovery or an available bounded window; the unmet need remains visible."
   }
 }

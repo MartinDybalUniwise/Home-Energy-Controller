@@ -305,7 +305,7 @@ def solar_available(energy, moment, saved, room):
     return bool(state.get("active_at")), state, "valid"
 
 
-def evaluate_shift(config, heatpump, moment, saved, comfort_active, mode, energy=None):
+def evaluate_shift(config, heatpump, moment, saved, comfort_active, mode, energy=None, safety=None):
     """Runtime comfort veto overrides the saved price plan, never the TNG gates."""
     day = moment.astimezone(ZONE).date().isoformat()
     overrides = [
@@ -376,6 +376,8 @@ def evaluate_shift(config, heatpump, moment, saved, comfort_active, mode, energy
         key = f"{day}:{phase['start']}:{phase['kind']}"
         if state.get("key") != key:
             state.update(key=key, blocked=False)
+            if safety is not None:
+                state['readiness_accepted'] = bool(safety.get('coast_ready'))
             if phase["kind"] == "coast" and room < 21.5:
                 state["blocked"] = True
         if phase["kind"] == "preheat":
@@ -384,11 +386,23 @@ def evaluate_shift(config, heatpump, moment, saved, comfort_active, mode, energy
             if not state["blocked"]:
                 status.update(phase="preheat", room_target=21.7)
         else:
+            # Do not stack an economic coast with the next DHW interruption.
+            # No heat-inventory model can prove that the combined break is safe.
+            dhw_follows = safety is not None and any(
+                operation_at(config.get('tng.operation', {}), day, j) == 'boiler'
+                for j in range(phase['end'], min(96, phase['end'] + 4)))
+            readiness_veto = safety is not None and (
+                not state.get('readiness_accepted') or safety.get('day_blocked')
+                or safety.get('response_fault') or dhw_follows)
+            if readiness_veto:
+                state['blocked'] = True
+                status['coast_readiness'] = safety
+                status['dhw_follows_coast'] = dhw_follows
             if room <= 21.3:
                 state["blocked"] = True
             if not state["blocked"]:
                 status.update(phase="coast", heating_temperature=35, room_target=21.2)
             else:
-                status["phase"] = "comfort_veto"
+                status["phase"] = "readiness_veto" if readiness_veto else "comfort_veto"
         break
     return status, state

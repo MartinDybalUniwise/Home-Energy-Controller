@@ -247,7 +247,7 @@ def test_storage_failure_preserves_ordinary_controller_plan(tmp_path, tng_connec
 
     monkeypatch.setattr("hec.controller.thermal.floor_plan", fail)
     plan = controller.prepare_tng(reader, state, TNG_BASE)
-    assert plan["mode"] == "heating" and plan["heating_temperature"] == 35
+    assert plan["mode"] == "heating" and plan["heating_temperature"] == 42
     assert plan["floor_check"]["phase"] == "error"
 
 

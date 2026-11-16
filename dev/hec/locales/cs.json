@@ -1038,7 +1038,8 @@
     "tng_wire": "Pasivní komunikace TČ, AKU a panel povelů",
     "live_control": "Stránka řízení sleduje společný controller, účinné cíle, ochranné intervaly a skutečné události.",
     "boiler_display": "Opravené teploty bojleru a výstupu TČ: ověřený odečet místo nejednoznačné větve pasivního dekodéru.",
-    "aku_display_range": "AKU se zobrazuje i mimo původní ověřený rozsah; přesnější popisek chybějícího údaje."
+    "aku_display_range": "AKU se zobrazuje i mimo původní ověřený rozsah; přesnější popisek chybějícího údaje.",
+    "comfort_recovery": "Ochrana trvalého komfortu, ověřený předehřev a omezený náhradní dohřev vody."
   },
   "meter": {
     "valid": "Měřený příkon",
@@ -1280,6 +1281,11 @@
     "battery_unified_standby": "Společný controller nyní neprovádí automatické zásahy do baterie a měniče.",
     "phase_schedule": "Podle uloženého rozvrhu",
     "event_resolved_plan": "Výsledný plán controlleru",
-    "plan_only": "Plán sestaven; odeslání a potvrzení se evidují zvlášť"
+    "plan_only": "Plán sestaven; odeslání a potvrzení se evidují zvlášť",
+    "phase_readiness_veto": "Čekání na ověřené zotavení"
+  },
+  "thermal_alert": {
+    "heating_response_insufficient": "Topení je potvrzené, ale pokoj se nejméně hodinu dostatečně nezotavuje. HEC zablokovalo cenové útlumy. Zkontrolujte fyzický chod, oběh a regulaci; běh čerpadla není změřen.",
+    "dhw_deferred_for_comfort": "Chybí dohřev teplé vody. HEC čeká na bezpečné zotavení pokoje nebo dostupné omezené okno; požadavek zůstává viditelný."
   }
 }

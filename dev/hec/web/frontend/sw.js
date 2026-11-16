@@ -5,12 +5,13 @@
 // úpravě JS/CSS ukazovalo starý kód donekonečna, dokud by si někdo ručně
 // nevymazal cache prohlížeče – cache je zde jen záloha pro výpadek sítě,
 // ne primární zdroj.
-const CACHE = 'hec-aku-20261104';
+const CACHE = 'hec-comfort-20261116';
 const SHELL = ['/', '/index.html', '/css/tokens.css', '/css/app.css',
   '/js/app.js', '/js/api.js', '/js/i18n.js', '/js/chart.js', '/js/flow.js',
   '/css/today.css', '/js/today-chart.js', '/js/history-fallback.js', '/js/pages.js', '/js/advisor.js', '/js/telemetry.js', '/hec-rules.json', '/js/rules.js', '/js/control-plan.js', '/js/day-plan.js', '/js/heatpump-panel.js', '/js/thermal-status.js', '/js/patch-dom.js', '/js/icons.js', '/js/background.js', '/js/releases.js', '/manifest.json', '/icon.svg'];
 
 SHELL.push('/js/battery-plan.js');
+SHELL.push('/js/thermal-alerts.js');
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)).then(() => self.skipWaiting()));

@@ -5,7 +5,7 @@ from ..core.timeutil import parse_iso, to_iso
 
 
 def evaluate_comfort(saved, heatpump, moment, heating_on):
-    """Observe distinct fresh samples; latch below 21 C, release at 21.5 C.
+    """Observe distinct fresh samples; release only after 30min stable recovery.
 
     Fifteen minutes continuously low triggers heating. A sudden >=0.5 C drop
     within ten minutes while heating gets thirty minutes to recover first.
@@ -18,6 +18,7 @@ def evaluate_comfort(saved, heatpump, moment, heating_on):
             or not isinstance(room, (int, float)) or isinstance(room, bool)
             or not isfinite(room) or not 0 <= room <= 40
             or not 0 <= (moment - stamp).total_seconds() <= 900):
+        state.pop('recovered_since', None)
         return state
     previous = parse_iso(state.get('last_sample'))
     if previous and stamp <= previous:
@@ -25,6 +26,7 @@ def evaluate_comfort(saved, heatpump, moment, heating_on):
     if previous and (stamp - previous).total_seconds() > 900:
         state.pop('below_since', None)
         state.pop('ventilation_since', None)
+        state.pop('recovered_since', None)
         previous = None
     if (previous and heating_on and (stamp - previous).total_seconds() <= 600
             and state.get('last_room', room) - room >= 0.5
@@ -40,9 +42,14 @@ def evaluate_comfort(saved, heatpump, moment, heating_on):
     if room >= 21:
         state.pop('below_since', None)
         state.pop('ventilation_since', None)
-        if room >= 21.5:
-            state['active'] = False
+        if room >= 21.5 and state.get('active'):
+            state.setdefault('recovered_since', to_iso(stamp))
+            if (stamp - parse_iso(state['recovered_since'])).total_seconds() >= 1800:
+                state['active'] = False
+        elif room < 21.5:
+            state.pop('recovered_since', None)
     else:
+        state.pop('recovered_since', None)
         state.setdefault('below_since', to_iso(stamp))
         low_seconds = (stamp - parse_iso(state['below_since'])).total_seconds()
         vent = parse_iso(state.get('ventilation_since'))

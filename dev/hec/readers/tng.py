@@ -269,6 +269,7 @@ class TngReader(BaseReader):
             "boiler_on": settings.get("boiler_on"),
             "boiler_set_temperature": settings.get("boiler_set_temperature"),
             "heating_on": settings.get("heating_on"),
+            "external_circulation_pump": settings.get('external_circulation_pump'),
             "heating_set_temperature": settings.get("heating_set_temperature"),
             "heating_mode": settings.get("heating_mode"),
             "equit_curve": settings.get("equit_curve"),
@@ -755,6 +756,16 @@ class TngReader(BaseReader):
         settings = state.get("settings") or {}
         heatpump = state.get("heatpump") or {}
         actions: list[str] = []
+        pump = settings.get('external_circulation_pump')
+        pump_signature = (pump, settings.get('heating_on'), settings.get('boiler_on'))
+        if pump_signature != getattr(self, '_pump_observation', None):
+            self._command_audit(dict(timestamp=to_iso(moment), source='tng_commands',
+                                     phase='circulation_configuration',
+                                     external_circulation_pump=pump,
+                                     heating_on=settings.get('heating_on'), boiler_on=settings.get('boiler_on'),
+                                     pending=settings.get('last_settings_not_confirmed'),
+                                     origin='cloud_settings_readback', pump_run_measured=False), publish=False)
+            self._pump_observation = pump_signature
         # Let the sole resolver see the confirmation from THIS read, rather
         # than retaining a restoring cycle until a later polling pass.
         self._gate_update("basic", settings.get("last_settings_not_confirmed"))

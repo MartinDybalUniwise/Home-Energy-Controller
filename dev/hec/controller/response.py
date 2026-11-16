@@ -128,6 +128,9 @@ def observe_response(config, state, moment):
     settings = state.get("settings") or {}
     confirmed = (
         state.get("LastSettingsNotConfirmed") is False
+        and settings.get('last_settings_not_confirmed') is False
+        and number(settings.get('heating_set_temperature'))
+        and 41.9 <= settings['heating_set_temperature'] <= 42
         and number(state.get("DayTemperature"))
         and abs(state["DayTemperature"] - 21.7) < .05
         and settings.get("heating_on") is True

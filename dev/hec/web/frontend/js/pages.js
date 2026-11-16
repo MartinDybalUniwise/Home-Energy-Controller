@@ -1,7 +1,7 @@
-import {controlPlan} from './control-plan.js?v=46';
+import {controlPlan} from './control-plan.js?v=50';
 import {renderDayPlan} from './day-plan.js?v=41';
 import {mountMcpSetup} from './mcp-setup.js?v=1';
-import {heatpumpPanel} from './heatpump-panel.js?v=aku-20261104';
+import {heatpumpPanel} from './heatpump-panel.js?v=50';
 import { rulesPage } from './rules.js?v=36';
 import {patchDOM} from './patch-dom.js?v=36';
 import { mountTodayChart, siteDateTime } from './today-chart.js?v=46';

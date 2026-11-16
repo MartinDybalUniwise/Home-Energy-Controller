@@ -5,6 +5,22 @@ description: Vytvoř stručný grafický mobilní přehled HEC při dotazu na st
 
 # Stav HEC
 
+## Oprava dlouhého nekomfortu — 16. 11. 2026
+
+Každá stávající dvouhodinová kontrola musí přečíst také
+`status.controller.thermal_plan.recovery`, `alerts` a `dhw_catchup`.
+Při `response_fault=true` nebo dluhu TV vždy ve své zprávě do tohoto chatu
+výrazně uvést problém, čas měření, již provedené automatické kroky a případný
+konkrétní fyzický zásah vlastníka/servisu. Controller sám zprávy do chatu neposílá;
+doručení zajišťuje tato existující kontrola, bez nového časovače a bez příslibu
+okamžité notifikace. Nehlásit potvrzené 42 °C jako vyřešený komfort.
+Komfortní pojistka nově vyžaduje 30 minut souvisle alespoň 21,5 °C.
+Po nekomfortu zůstává zákaz cenového útlumu do konce dne; další den vyžaduje
+ověřenou připravenost, nikoli jen vysoký jednotlivý vzorek. Náhradní dohřev TV
+na 50 °C je výlučný, nejvýše 45 minut, nejvýše dvakrát denně s hodinovým
+odstupem, až po zotavení komfortu a mimo explicitní datované plány. Rozlišit
+požadovaný návrat od potvrzeného návratu přes původní 900s brány.
+
 Odpovídej česky. Mobilní a pravidelné zprávy posílej jako přehledný nativní
 Markdown s barevnými stavovými emoji, krátkými bloky a časovou osou plánu.
 Telefon vlastníka nevykresluje lokální visualize HTML: nikdy v těchto zprávách
@@ -63,7 +79,7 @@ Owner clarification 2026-10-28: Direct LAN TNG access is READ-ONLY. Existing clo
 
 For wire/command analysis read ../../dev/hec/docs/TNG_WIRE.md. The passive mirror is integrated in HEC; do not restart the old standalone logger on UDP 37008. Inspect both source timestamps and tng_wire_receiver counters. Candidate bits and unresolved temperature branches remain observational only. Cloud confirmation of heating/boiler and thermostat are separate gates; neither proves physical compressor operation.
 
-Room comfort is now enforced inside TNG control: fresh distinct cloud samples below 21 C for 15 minutes request exclusive heating42 and room21.5. A sudden >=0.5 C drop within10 minutes while heating enabled gets30 minutes recovery time. Release at21.5. Persisted guard state survives restart; existing gates/900 s and explicit off/disabled heating remain authoritative. Read sources.tng.comfort_guard_active for effective status; do not override this guard from a periodic plan merely to restore a boiler window.
+Room comfort is now enforced inside TNG control: fresh distinct cloud samples below 21 C for 15 minutes request exclusive heating42 and room21.5. A sudden >=0.5 C drop within10 minutes while heating enabled gets30 minutes recovery time. Release after30min continuous fresh samples>=21.5 (COMFORT-002). Persisted guard state survives restart; existing gates/900 s and explicit off/disabled heating remain authoritative. Read sources.tng.comfort_guard_active for effective status; do not override this guard from a periodic plan merely to restore a boiler window.
 
 Price/FTE shift (owner approved2026-10-30): read sources.tng.price_shift as the
 effective runtime phase and targets. Saved dated windows are conditional, not proof

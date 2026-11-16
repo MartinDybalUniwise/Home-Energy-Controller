@@ -1200,3 +1200,4 @@ dialog button { min-height: 48px; color: #06243b; border-radius: 8px; background
 @media(max-width:600px){.control-live-page .panel{padding:12px}.control-live-page .control-plan-metric dt{font-size:.8rem}.control-live-schedule{font-size:.8rem}}
 .control-live-page{min-width:0;grid-template-columns:minmax(0,1fr)}.control-live-page>*{min-width:0}.control-live-page .table-wrap{max-width:100%;min-width:0;padding:0 0 12px}
 .control-live-page>.control-plan-header{padding:14px;background:var(--panel);border:1px solid var(--panel-border);border-radius:var(--radius-panel)}
+.notice.error.thermal-alert{color:var(--ink-primary);background:var(--state-warning-bg);border:1px solid var(--state-warning-border);border-left:4px solid var(--state-critical);border-radius:8px;line-height:1.45;overflow-wrap:anywhere}

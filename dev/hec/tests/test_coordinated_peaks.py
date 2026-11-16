@@ -151,7 +151,8 @@ def test_only_confirmed_continuous_preheat_teaches_response(tmp_path):
     def state(t, confirmed=True):
         return dict(
             heatpump=dict(sample_time=t.isoformat(), room_temperature=21.3),
-            settings=dict(heating_on=True, boiler_on=False),
+            settings=dict(heating_on=True, boiler_on=False, heating_set_temperature=42,
+                          last_settings_not_confirmed=False),
             DayTemperature=21.7,
             LastSettingsNotConfirmed=not confirmed,
         )
