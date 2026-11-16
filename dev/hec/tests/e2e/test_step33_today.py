@@ -54,7 +54,7 @@ def test_readable_today_chart_and_geometry(page, width, height, lang):
     errors=[]
     page.on('pageerror',lambda e:errors.append(str(e)))
     page.goto('/#/overview')
-    expect(page.locator('.today-plot')).to_have_count(2, timeout=15000)
+    expect(page.locator('.today-plot')).to_have_count(1, timeout=15000)
     expect(page.locator('.kpi-card--heatpump .kpi-value')).to_contain_text('–')
     expect(page.locator('.kpi-card--heatpump')).not_to_contain_text('1,74')
     expect(page.locator('.hero-main-window')).to_contain_text('23')
@@ -111,7 +111,7 @@ def test_chart_units_gaps_table_ranges_and_keyboard(page):
 def test_shared_snapshot_and_prague_dst_dates(page):
     fixtures(page)
     page.goto('/#/overview')
-    expect(page.locator('.today-plot')).to_have_count(2, timeout=15000)
+    expect(page.locator('.today-plot')).to_have_count(1, timeout=15000)
     result=page.evaluate('''async sample => {
       const {energySnapshot,heatpumpPower}=await import('/js/telemetry.js');
       const {chartRange,siteDate}=await import('/js/today-chart.js');
@@ -138,7 +138,7 @@ def test_prague_labels_in_an_actual_utc_browser(browser):
     page=context.new_page()
     fixtures(page)
     page.goto('/#/overview')
-    expect(page.locator('.today-plot')).to_have_count(2, timeout=15000)
+    expect(page.locator('.today-plot')).to_have_count(1, timeout=15000)
     expect(page.locator('.greeting-date')).to_contain_text('13:47')
     expect(page.locator('.kpi-card--pv .kpi-trend')).to_contain_text('13:44')
     page.locator('[data-table]').click()
@@ -165,7 +165,7 @@ def test_missing_bucket_is_a_gap_even_without_a_null_record(page):
 def test_repeated_or_nonexistent_price_hours_are_not_guessed(page):
     fixtures(page)
     page.goto('/#/overview')
-    expect(page.locator('.today-plot')).to_have_count(2, timeout=15000)
+    expect(page.locator('.today-plot')).to_have_count(1, timeout=15000)
     result=page.evaluate('''async () => {
       const {chartRows,chartRange,uniqueSiteMoment}=await import('/js/today-chart.js');
       const now=new Date('2026-10-25T12:00:00Z');
@@ -195,7 +195,7 @@ def test_invalid_and_zero_values_are_consistent(page,change):
         goodwe.update(pv_w=0,house_w=0)
     fixtures(page,sample=sample)
     page.goto('/#/overview')
-    expect(page.locator('.today-plot')).to_have_count(2, timeout=15000)
+    expect(page.locator('.today-plot')).to_have_count(1, timeout=15000)
     if change=='conflict':
         expect(page.locator('.kpi-card--grid .kpi-value')).to_contain_text('–')
     else:

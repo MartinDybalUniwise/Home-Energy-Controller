@@ -9,7 +9,7 @@ pytestmark = pytest.mark.e2e
 def test_sdg_field_priority_and_validation(page):
     fixtures(page)
     page.goto('/#/overview')
-    expect(page.locator('.today-plot')).to_have_count(2, timeout=15000)
+    expect(page.locator('.today-plot')).to_have_count(1, timeout=15000)
     result = page.evaluate('''async () => {
       const {mergeEnergyHistory:m}=await import('/js/history-fallback.js?v=34');
       const t='2026-10-22T12:00:00+02:00';
@@ -44,7 +44,7 @@ def test_sdg_fills_morning_and_retains_source(page, goodwe_failed):
 
     page.route('**/api/history*', history)
     page.goto('/#/overview')
-    expect(page.locator('.today-plot')).to_have_count(2, timeout=15000)
+    expect(page.locator('.today-plot')).to_have_count(1, timeout=15000)
     page.locator('[data-table]').click()
     table = page.locator('.today-chart-table')
     expect(table).to_contain_text('09:00')

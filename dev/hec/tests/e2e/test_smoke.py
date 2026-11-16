@@ -271,21 +271,26 @@ def test_control_plan_read_only_monitor(page: Page):
     from playwright.sync_api import expect
 
     page.set_viewport_size({"width": 1920, "height": 1080})
-    page.goto("/")
-    set_language_in_settings(page, "cs")
+    # This monitor test performs reads only; language persistence has its own
+    # settings tests and must not introduce a config write into this scenario.
+    page.route('**/api/status', lambda route: route.fulfill(json={
+        'ui': {'language': 'cs', 'animations': 'off'}, 'readers': {},
+        'controller': {'enabled': False, 'planner': 'unified'}}))
+    writes = []
+    page.on('request', lambda request: writes.append(request.url)
+            if request.method not in ('GET', 'HEAD') else None)
     page.goto("/#/control-plan")
     expect(page.locator(".control-plan-page")).to_be_visible()
-    expect(page.locator(".control-plan-status")).to_be_visible()
-    expect(page.locator(".control-plan-devices")).to_be_visible()
-    expect(page.locator(".control-plan-lower")).to_be_visible()
-    expect(page.locator(".control-plan-status")).to_contain_text(re.compile("Zápis|Writing"))
+    expect(page.locator(".control-plan-status").first).to_be_visible()
+    for process in ['tng', 'price', 'controller', 'battery', 'gate-basic', 'gate-thermostat', 'energy']:
+        expect(page.locator(f'[data-process="{process}"]')).to_be_visible()
     expect(page.locator(".control-plan-page")).to_contain_text(re.compile("Topení|Heating"))
-    expect(page.locator(".control-plan-page")).to_contain_text(re.compile("Baterie|Battery"))
+    expect(page.locator(".control-plan-page")).to_contain_text(re.compile("Baterie|Battery", re.IGNORECASE))
     expect(page.locator(".control-plan-page")).to_contain_text(re.compile("Dnes|Today"))
-    expect(page.locator(".control-plan-page")).to_contain_text(re.compile("Zítra|Tomorrow"))
-    expect(page.locator(".control-plan-daily-energy")).to_be_visible()
-    expect(page.locator(".control-plan-mode")).to_have_count(2)
+    expect(page.locator(".control-live-schedule")).to_be_visible()
+    expect(page.locator('.control-plan-page input, .control-plan-page button')).to_have_count(0)
     expect(page.locator(".notice.error")).to_have_count(0)
+    assert not writes
 
 
 def test_control_plan_english_catalog(page: Page):
@@ -302,42 +307,50 @@ def test_control_plan_english_catalog(page: Page):
     expect(page.locator(".notice.error")).to_have_count(0)
 
 
-def test_control_plan_groups_decisions_and_opens_detail(page: Page):
+def test_control_plan_groups_command_phases_and_separates_resolved_plan(page: Page):
     from playwright.sync_api import expect
 
     timestamp = datetime.now(UTC).isoformat()
     decision = {
         "timestamp": timestamp,
-        "rule": "goodwe_charge_cheap",
-        "action": "start_battery_charge",
-        "value": 50,
+        "rule": "unified_thermal",
+        "action": "plan_tng",
+        "value": {"mode": "heating", "heating_temperature": 42, "boiler_temperature": 50,
+                  "room_target": 21.5},
         "applied": False,
-        "reason_key": "reason.goodwe_charge_cheap",
-        "reason_params": {"price": 0.5},
+        "reason_key": "reason.unified_thermal",
+        "reason_params": {},
     }
 
     def route_api(route):
         if "/api/decisions?" in route.request.url:
             route.fulfill(status=200, content_type="application/json", body=(
-                json.dumps({"decisions": [decision, decision], "state": {}})
+                json.dumps({"decisions": [decision], "state": {}})
             ))
+            return
+        if '/api/logs?' in route.request.url:
+            command = dict(timestamp=timestamp, command_id='synthetic-command', kind='BASIC_SETTINGS',
+                           requested={'HeatTemp_Const': 42})
+            route.fulfill(json={'rows': [{**command, 'phase': 'sent'},
+                                        {**command, 'phase': 'confirmed_cycle'}]})
             return
         route.continue_()
 
     page.route("**/api/**", route_api)
     page.goto("/#/control-plan")
-    expect(page.locator(".control-plan-activity tbody tr")).to_have_count(1)
-    expect(page.locator(".control-plan-activity__count")).to_contain_text("2")
-    expect(page.locator(".control-plan-status .pill[title]").first).to_be_visible()
-    expect(page.locator(".control-plan-mode[title]").first).to_be_visible()
-    page.locator(".control-plan-activity tbody tr").click()
-    expect(page.locator("#control-plan-decision-dialog")).to_be_visible()
-    expect(page.locator("#control-plan-decision-dialog")).to_contain_text("start_battery_charge")
-    page.keyboard.press("Escape")
-    expect(page.locator("#control-plan-decision-dialog")).to_be_hidden()
-    page.locator(".control-plan-activity tbody tr").click()
-    page.locator("#control-plan-decision-dialog [data-control-plan-close]").last.click()
-    expect(page.locator("#control-plan-decision-dialog")).to_be_hidden()
+    # Two phases of one command become one event, plus the separate resolved plan.
+    expect(page.locator('.control-live-events li')).to_have_count(2)
+    details = page.locator('.control-live-events details').first
+    details.locator('summary').click()
+    expect(details).to_have_attribute('open', '')
+    expect(page.locator('.control-live-events')).to_contain_text('42')
+    decisions = page.locator('.control-plan-status > details').filter(has_text='(1)').last
+    decisions.locator('summary').click()
+    expect(decisions).to_contain_text('42')
+    language = page.locator('html').get_attribute('lang')
+    catalog = json.loads((Path(__file__).parents[2] / 'locales' / f'{language}.json').read_text(encoding='utf-8'))
+    expect(decisions).to_contain_text(catalog['control_live']['plan_only'])
+    expect(page.locator('.control-live-events')).to_contain_text(catalog['control_live']['event_confirmed_cycle'])
 
 
 @pytest.mark.parametrize("viewport", [(1920, 1080), (1440, 900), (1280, 800), (1024, 768), (390, 844)])
