@@ -118,4 +118,4 @@ See [step40/PLAN.md](step40/PLAN.md). Owner approved implementation and deployme
 
 See [step43/PLAN.md](step43/PLAN.md). Fixes missed morning preheat reported on2026-10-31.
 
-| [`step50/`](step50/) | Persistent comfort recovery and bounded DHW catch-up | Implementace a validace probíhá |
+| [`step50/`](step50/) | Persistent comfort recovery and bounded DHW catch-up | Implementováno, 678 regresí + 127 cílených testů; replay 15. 11. ověřen |

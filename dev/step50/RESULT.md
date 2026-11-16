@@ -22,12 +22,23 @@
   README status validation:PASS. Whole-repository Ruff has34 PRE-EXISTING findings
   in test_mcp_setup and historical step46/47/48 activation scripts; baseline
   comparison proves identical code/location/messages. They are not new failures.
-- Test-generated config.example output restored to its pre-task content. No
-  private configuration or telemetry is committed. Physical pump flag preserved.
+- Generated config.example is synchronized with the existing schema defaults
+  (including disabled economic/floor defaults); schema and private production
+  configuration are unchanged. No telemetry is committed. Pump flag preserved.
 
 Private evidence lives under the owner's monitoring-evidence directory: before/
 after replay JSON, full/targeted test output, baseline lint comparison and mobile
 screenshots. Existing two-hour reviews read the expanded hec-status skill and
 report faults/debt into this chat; no new timer or direct chat transport exists.
 
-Production activation and live confirmation are recorded below after observation.
+Production0.1.20 started from the existing HomeEnergyController service, actual
+writerPID3484. New42/21.5 request sent09:33:30 and both native false->true->false
+cycles completed09:35:33 on Nov16. Room21.7C, boiler25.6C; recovery evidence is
+initially insufficient and coast correctly vetoed. A resolved plan alone was
+not counted as acknowledgement. No extra command was used for testing.
+
+An additional pre-restart capture correctly refused the dirty tree after an
+initial commit failed for missing Git identity. The finally clause restored the
+service using the validated code, protected by the original prechange snapshot.
+Commit194295d then succeeded under explicit Codex identity. A clean follow-up
+snapshot/restart and subsequent readbacks are recorded in private live evidence.
