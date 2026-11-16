@@ -5,6 +5,22 @@ description: Vytvoř stručný grafický mobilní přehled HEC při dotazu na st
 
 # Stav HEC
 
+## Oprava dlouhého nekomfortu — 16. 11. 2026
+
+Každá stávající dvouhodinová kontrola musí přečíst také
+`status.controller.thermal_plan.recovery`, `alerts` a `dhw_catchup`.
+Při `response_fault=true` nebo dluhu TV vždy ve své zprávě do tohoto chatu
+výrazně uvést problém, čas měření, již provedené automatické kroky a případný
+konkrétní fyzický zásah vlastníka/servisu. Controller sám zprávy do chatu neposílá;
+doručení zajišťuje tato existující kontrola, bez nového časovače a bez příslibu
+okamžité notifikace. Nehlásit potvrzené 42 °C jako vyřešený komfort.
+Komfortní pojistka nově vyžaduje 30 minut souvisle alespoň 21,5 °C.
+Po nekomfortu zůstává zákaz cenového útlumu do konce dne; další den vyžaduje
+ověřenou připravenost, nikoli jen vysoký jednotlivý vzorek. Náhradní dohřev TV
+na 50 °C je výlučný, nejvýše 45 minut, nejvýše dvakrát denně s hodinovým
+odstupem, až po zotavení komfortu a mimo explicitní datované plány. Rozlišit
+požadovaný návrat od potvrzeného návratu přes původní 900s brány.
+
 Odpovídej česky. Mobilní a pravidelné zprávy posílej jako přehledný nativní
 Markdown s barevnými stavovými emoji, krátkými bloky a časovou osou plánu.
 Telefon vlastníka nevykresluje lokální visualize HTML: nikdy v těchto zprávách
@@ -63,4 +79,99 @@ Owner clarification 2026-10-28: Direct LAN TNG access is READ-ONLY. Existing clo
 
 For wire/command analysis read ../../dev/hec/docs/TNG_WIRE.md. The passive mirror is integrated in HEC; do not restart the old standalone logger on UDP 37008. Inspect both source timestamps and tng_wire_receiver counters. Candidate bits and unresolved temperature branches remain observational only. Cloud confirmation of heating/boiler and thermostat are separate gates; neither proves physical compressor operation.
 
-Room comfort is now enforced inside TNG control: fresh distinct cloud samples below 21 C for 15 minutes request exclusive heating42 and room21.5. A sudden >=0.5 C drop within10 minutes while heating enabled gets30 minutes recovery time. Release at21.5. Persisted guard state survives restart; existing gates/900 s and explicit off/disabled heating remain authoritative. Read sources.tng.comfort_guard_active for effective status; do not override this guard from a periodic plan merely to restore a boiler window.
+Room comfort is now enforced inside TNG control: fresh distinct cloud samples below 21 C for 15 minutes request exclusive heating42 and room21.5. A sudden >=0.5 C drop within10 minutes while heating enabled gets30 minutes recovery time. Release after30min continuous fresh samples>=21.5 (COMFORT-002). Persisted guard state survives restart; existing gates/900 s and explicit off/disabled heating remain authoritative. Read sources.tng.comfort_guard_active for effective status; do not override this guard from a periodic plan merely to restore a boiler window.
+
+Price/FTE shift (owner approved2026-10-30): read sources.tng.price_shift as the
+effective runtime phase and targets. Saved dated windows are conditional, not proof
+of an executed preheat/coast or compressor run. Preserve planner-owned heating and
+thermostat dates unless a deliberate adjustment is needed; routine reviews must not
+flatten them to42. Actual GoodWe surplus can permit extra heat; forecast PV alone
+cannot. No guaranteed cost savings until measured with reliable consumption data.
+
+Unified control2026-10-30: status.controller is the sole production planner.
+Read thermal_plan for the resolved operation/targets, tng_write_enabled for the
+effective writer permission, and goodwe_control_enabled for separate inverter
+actuation. controller.enabled is the master switch. plan_tng history entries are
+resolved plans, never proof of sending or acknowledgement. TNG remains transport;
+do not re-enable retired thermal rules or enable battery/export changes as part
+of an ordinary heating review.
+
+## Kontrola každé dvě hodiny — rozšíření vlastníkem 2026-10-31
+
+Toto rozšíření je povinnou součástí již aktivní dvouhodinové kontroly. Při každém
+běhu zapiš skutečný čas zahájení Europe/Prague, proveď kontrolu a vždy pošli do
+chatu stručný mobilní report. Zachovej existující četnost; nevytvářej druhý plánovač.
+Nový výslovný souhlas vlastníka umožňuje ekonomické řízení GoodWe společným
+controllerem; starší pokyn zachovat GoodWe vypnutý tímto pozbývá platnosti.
+
+- Ověř běh služby, controller.enabled, goodwe_control_enabled a economic.enabled,
+  čerstvost GoodWe/TNG a publikované ceny pro dnešní a následující den. Chybějící
+  zítřejší ceny označ; nenahrazuj je dnešními. Čti status.controller.battery_plan.
+- Porovnej uložený plán, rozhodnutí controlleru, goodwe_audit/TNG potvrzení a
+  naměřený průběh od poslední kontroly (nejvýše posledních 7 dní). Samotné povolení
+  zápisu či úspěšný readback neprokazuje fyzické nabíjení ani běh kompresoru.
+- FVE/baterie: sleduj skutečné PV, spotřebu, import/export, nabíjecí/vybíjecí výkon,
+  SOC a změnu energie. Ověř levné časové okno, konec nativního programu, shodu hodin
+  měniče do120 s, výkon<=20 %, cíl ze sítě<=60 %, BMS/teplotní omezení a rezervu
+  pro FVE. Importní rozpočet7 kW je omezení přídavného nabíjení, nikoli ochrana
+  jističe či záruka celkového odběru. Baterie musí ustoupit TČ a spotřebě domu.
+- Ekonomika: porovnej skutečnou celkovou nákupní cenu s cenou nahrazené vlastní
+  spotřeby. Model: účinnost90 %, opotřebení0,30 Kč/dodané kWh, požadovaný rozdíl
+  alespoň0,50 Kč/kWh po těchto nákladech. Tyto hodnoty jsou konzervativní předpoklady,
+  nikoli změřená účinnost, cena degradace nebo dosažená úspora. Odděl síť/PV energii;
+  při neúplných datech skutečnou úsporu nevyčísluj. Nepouštěj vynucené vybíjení do sítě.
+- Zkontroluj držení nakoupené energie do dražšího období a následné uvolnění rezervy
+  do režimu GENERAL pro spotřebu domu. Rezervu nezvyšuj nad aktuální SOC. Exportní
+  omezení nejsou součástí nového řízení. Při neplatných datech ukončit vlastní
+  vynucené nabíjení; přirozený provoz FVE a ochrany měniče ponechat.
+- TČ: zhodnoť, zda skutečně potvrzený předehřev předcházel růstu ceny, nebo zda ho
+  zabrzdila brána900 s, nepotvrzený povel či komfort. Neoznač zmeškanou noc jako
+  vykonaný předehřev. Uveď pokojovou teplotu/trend, AKU jen z ověřeného čerstvého
+  čidla, výstup TNG a bojler. Posuzuj komfort>=21 °C, běžný cíl21,5 °C, přetápění,
+  večerní zásobu TV, výlučné režimy a účinné komfortní/solární veto.
+- Při změně plánu použij jen společný controller a schválené parametry/datované
+  výjimky. Neobnovuj vyřazená samostatná pravidla. Zachovej stav potvrzení TNG.
+  Neupravuj účinnost ani opotřebení podle jedné epizody. U závady uveď konkrétní
+  rozdíl plán→povel→potvrzení→měření, provedenou nápravu a co ještě není ověřené.
+
+V reportu vždy aktuální stav, naměřený trend, dnešní další okna a krátká tabulka
+Zhodnocení | Doporučení. Drahé vytápění může být nutné pro komfort: vysvětli důvod,
+nepokládej samotnou vysokou cenu za závadu. Poškození komfortu kvůli nabíjení je závada.
+
+EVV1/D57d tariff review (2026-10-31 owner approval): check that OTE API prices
+include the shared current distribution_pricing projection and valid date range.
+NT00-06,07-09,10-13,14-16,17-24 every weekday. VT otherwise. Check for distributor
+schedule changes; exported times are not live HDO confirmation. Never use the old
+SDG00-06/19-21 schedule. Preserve price-owned overrides; review differences between
+planned preheat, comfort/PV veto, confirmed TNG settings and measured behaviour.
+
+Coordinated repair2026-11-01: verify native grid charging ends before VT. Read
+thermal-response.json freshness/outcome and thermal_plan.required_preheat_minutes;
+2-4h preheat is conditional, not a readiness guarantee. Battery coordination may
+release to20% General reserve for a fresh cold-house VT peak with sufficient
+estimated cheaper refill within6h. Compare battery_plan.coordination and
+release_reason=comfort_peak to audited reserve changes, physical battery/grid power
+and SOC. Distinguish estimated refill/load from measurements and do not promise
+financial optimality. Never re-lock the same VT release during ordinary warming.
+
+Hourly floor check2026-11-01: inspect thermal_plan.floor_check (phase, next_check_at,
+request_sent_at, acknowledged_at, observations and last_cycle). Pump activity is an
+owner assumption from thermostat demand, not measurement. During a cycle cloud
+polling is60s; no second hourly chat task/controller exists. Distinguish requested
+restoration from native acknowledgement;900s gates can delay delivery. Review AKU
+range/cloud crosschecks and missing/late samples. Reheating threshold35C, stable
+recovery38C, earliest15min and restoration request by45min. Native autonomous
+pump-only control is NOT verified. Check that the temporary room service request
+(+0.5C,max24C) returns to the CURRENT common plan and explicitoff/DHW take priority.
+
+Daily-review optimisation2026-11-04 (dev/step49/PLAN.md): review battery_plan.
+peak_reservation (configured capacity/current load estimate) against measured
+SOC/native reserve and later sustained peaks; comfort exceptions still win.
+Hourly floor evaluation may defer warm/safe pulses to120min, never cold-store/room
+needs. Inspect restoration_wait_minutes/confirmation_delayed and actual basic/
+thermostat readbacks, not an overdue next_check_at or an assumed pump runtime.
+Second ordinary DHW window may be skipped with fresh probe>=target (resume at
+target-2), retaining first/hygienic/dated-owner windows. Check dhw_readiness.
+Consumption forecasts now include heating once and expose consumption_components
+and consumption_progress (measured today + estimated remainder); compare with
+fresh GoodWe load counter. Never present an empirical weather component as COP.

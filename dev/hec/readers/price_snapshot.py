@@ -2,8 +2,8 @@
 
 from math import isfinite
 
+from ..core.electricity_price import load_priced_day
 from ..core.timeutil import now_local, to_iso
-from ..storage.base import read_json
 from ..storage.series import numeric
 
 
@@ -15,7 +15,7 @@ def _price(value):
 def cached_price_snapshot(config, previous: dict, moment=None) -> dict:
     moment = moment or now_local()
     day = moment.date().isoformat()
-    payload = read_json(config.data_dir / f"ote-{day}.json", None)
+    payload = load_priced_day(config, day)
     payload = payload if isinstance(payload, dict) else {}
     clock = moment.strftime("%H:%M")
     periods = payload.get("periods", []) if payload.get("date") == day else []

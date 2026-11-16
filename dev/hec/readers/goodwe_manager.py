@@ -179,7 +179,56 @@ class GoodWeManager:
                     state[name] = value
                 except Exception:  # noqa: BLE001 - optional control fields must not break telemetry
                     continue
+            state['rated_power_w'] = getattr(inverter, 'rated_power', None)
+            try:
+                state['inverter_time'] = _json_safe(self._run(self._read_setting('time')))
+                state['battery_program'] = self._run(self._bounded_state())
+            except Exception:
+                state['battery_program'] = None
             return state
+
+    async def _bounded_state(self):
+        schedule = await self._read_setting('eco_mode_1')
+        return {
+            'valid_from': f'{schedule.start_h:02}:{schedule.start_m:02}',
+            'valid_to': f'{schedule.end_h:02}:{schedule.end_m:02}',
+            'day_bits': schedule.day_bits, 'power_pct': schedule.get_power(),
+            'stop_soc_pct': schedule.soc, 'enabled': schedule.on_off < 0,
+            'other_groups': [await self._read_setting(f'eco_mode_{i}_switch') for i in (2, 3, 4)],
+            'work_mode': await self._read_setting('work_mode'),
+        }
+
+    async def _bounded_charge(self, kwargs):
+        from goodwe import OperationMode
+
+        inverter = self._require_inverter()
+        clock = await self._read_setting('time')
+        moment = now_local()
+        if not isinstance(clock, datetime) or abs((clock - moment.replace(tzinfo=None)).total_seconds()) > 120:
+            raise ValueError('Inverter clock unavailable or differs by more than 120 seconds')
+        if kwargs['valid_day'] != moment.date().isoformat():
+            raise ValueError('Battery program must be for today')
+        if not kwargs['valid_from'] <= moment.strftime('%H:%M') < kwargs['valid_to']:
+            raise ValueError('Battery program is outside its active window')
+        schedule = await self._read_setting('eco_mode_1')
+        if schedule.get_power_unit() != '%' or int(schedule.schedule_type) not in (0, 6):
+            raise ValueError('Unsupported GoodWe schedule encoding')
+        encoded = bytearray(schedule.encode_charge(int(kwargs['power_pct']), int(kwargs['stop_soc_pct'])))
+        encoded[:4] = bytes(int(part) for key in ('valid_from', 'valid_to') for part in kwargs[key].split(':'))
+        encoded[5] = self._day_bits(kwargs['valid_day'])
+        schedule.encode_value(bytes(encoded))  # SDK validation before any hardware write
+        await self._await(inverter.write_setting('eco_mode_1', bytes(encoded)))
+        for i in (2, 3, 4):
+            await self._await(inverter.write_setting(f'eco_mode_{i}_switch', 0))
+        prepared = await self._bounded_state()
+        expected = self._expected_value('start_battery_charge', kwargs)
+        if any(prepared.get(key) != value for key, value in expected.items() if key != 'work_mode'):
+            raise RuntimeError('Native charge program verification failed before mode activation')
+        await self._await(inverter.set_operation_mode(OperationMode.ECO))
+
+    @staticmethod
+    def _day_bits(day):
+        return 1 << ((date.fromisoformat(day).weekday() + 1) % 7)
 
     def _write_gates(self) -> dict[str, bool]:
         authorization = load_authorization(self.config)
@@ -217,6 +266,9 @@ class GoodWeManager:
             value = max(0, min(100, int(kwargs["value"])))
             await self._await(inverter.set_ongrid_battery_dod(100 - value))
         elif command in {"start_battery_charge", "start_battery_discharge"}:
+            if command == 'start_battery_charge' and kwargs.get('valid_day'):
+                await self._bounded_charge(kwargs)
+                return
             from goodwe import OperationMode
 
             mode = (OperationMode.ECO_CHARGE if command == "start_battery_charge"
@@ -231,7 +283,9 @@ class GoodWeManager:
 
             await self._await(inverter.set_operation_mode(OperationMode.GENERAL))
 
-    async def _read_command_state(self, command: str) -> Any:
+    async def _read_command_state(self, command: str, kwargs=None) -> Any:
+        if kwargs and kwargs.get('valid_day'):
+            return await self._bounded_state()
         inverter = self._require_inverter()
         if command == "set_export_limit_enabled":
             return bool(await self._read_setting("grid_export"))
@@ -285,10 +339,12 @@ class GoodWeManager:
                 try:
                     self._terminal_status("write_requested", command=command, attempt=attempt)
                     self._run(self._apply_command(command, kwargs))
-                    actual = self._run(self._read_command_state(command))
+                    actual = self._run(self._read_command_state(command, kwargs) if kwargs.get('valid_day')
+                                       else self._read_command_state(command))
                     expected = self._expected_value(command, kwargs)
                     if actual != expected:
-                        second_read = self._run(self._read_command_state(command))
+                        second_read = self._run(self._read_command_state(command, kwargs) if kwargs.get('valid_day')
+                                                else self._read_command_state(command))
                         if second_read == expected:
                             actual = second_read
                         else:
@@ -307,6 +363,7 @@ class GoodWeManager:
                                          gates=gates, before=before, attempt=attempt,
                                          write_result="applied", readback=actual, final_status="success")
                     self._last_write = {"command_id": command_id, "command": command,
+                                        "timestamp": to_iso(now_local()),
                                         "requested": requested, "before": before,
                                         "after": {"value": actual}, "success": True,
                                         "attempts": attempt}
@@ -316,7 +373,8 @@ class GoodWeManager:
                             "actual": {"value": actual}, "success": True, "attempts": attempt}
                 except Exception as exc:  # noqa: BLE001
                     try:
-                        evidence = self._run(self._read_command_state(command))
+                        evidence = self._run(self._read_command_state(command, kwargs) if kwargs.get('valid_day')
+                                             else self._read_command_state(command))
                     except Exception as verify_exc:
                         error = f"ambiguous write state: {type(verify_exc).__name__}: {verify_exc}"
                         self._record_attempt(command_id=command_id, command=command, requested=requested,
@@ -330,6 +388,10 @@ class GoodWeManager:
                                              gates=gates, before=before, attempt=attempt,
                                              write_result="applied", readback=evidence,
                                              final_status="success_after_ambiguous")
+                        self._last_write = {'command_id': command_id, 'command': command,
+                                            'timestamp': to_iso(now_local()), 'requested': requested,
+                                            'before': before, 'after': {'value': evidence},
+                                            'success': True, 'attempts': attempt}
                         return {"command_id": command_id, "requested": requested,
                                 "actual": {"value": evidence}, "success": True,
                                 "attempts": attempt}
@@ -372,7 +434,13 @@ class GoodWeManager:
                 raise ValueError("GoodWe charge stop SOC must not be below start SOC")
             if command == "start_battery_discharge" and stop > start:
                 raise ValueError("GoodWe discharge stop SOC must not be above start SOC")
-            if (kwargs.get("valid_from"), kwargs.get("valid_to")) != ("00:00", "23:59"):
+            if command == 'start_battery_charge' and kwargs.get('valid_day'):
+                date.fromisoformat(kwargs['valid_day'])
+                for key in ('valid_from', 'valid_to'):
+                    datetime.strptime(kwargs[key], '%H:%M')
+                if not kwargs['valid_from'] < kwargs['valid_to']:
+                    raise ValueError('Battery charge window must end on the same day')
+            elif (kwargs.get("valid_from"), kwargs.get("valid_to")) != ("00:00", "23:59"):
                 raise ValueError("GoodWe SDK operation mode does not support partial-day validity windows")
 
     @staticmethod
@@ -386,6 +454,11 @@ class GoodWeManager:
         if command == "stop_battery_control":
             return "GENERAL"
         if command == "start_battery_charge":
+            if kwargs.get('valid_day'):
+                return {'valid_from': kwargs['valid_from'], 'valid_to': kwargs['valid_to'],
+                        'day_bits': GoodWeManager._day_bits(kwargs['valid_day']),
+                        'power_pct': -int(kwargs['power_pct']), 'stop_soc_pct': int(kwargs['stop_soc_pct']),
+                        'enabled': True, 'other_groups': [0, 0, 0], 'work_mode': 3}
             return "ECO_CHARGE"
         if command == "start_battery_discharge":
             return "ECO_DISCHARGE"

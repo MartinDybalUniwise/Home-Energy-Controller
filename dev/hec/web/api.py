@@ -15,6 +15,7 @@ from uuid import uuid4
 from ..core import config as config_mod
 from ..core import i18n
 from ..core import schema as schema_mod
+from ..core.electricity_price import load_priced_day
 from ..core.goodwe_hardware_authorization import authorize as authorize_goodwe_hardware
 from ..core.goodwe_hardware_authorization import load as load_goodwe_authorization
 from ..core.timeutil import now_local, parse_iso, to_iso
@@ -178,7 +179,7 @@ def prices(app) -> tuple[int, dict]:
     today = now_local().date()
     out = {}
     for label, day in (("today", today), ("tomorrow", today + timedelta(days=1))):
-        payload = read_json(app.config.data_dir / f"ote-{day.isoformat()}.json")
+        payload = load_priced_day(app.config, day.isoformat())
         out[label] = payload
     return 200, out
 
@@ -395,13 +396,14 @@ def config_put(app, body: dict) -> tuple[int, dict]:
             key in goodwe_incoming for key in ("hardware_verified", "hardware_authorization")):
         return 400, {"error": "hardware_authorization_read_only"}
     # Zamaskované hodnoty z UI se nikdy nezapisují zpět – tajemství se mění jen v .env.
-    before = deepcopy(app.config.data)
-    merged = _merge_preserving_secrets(app.config.data, incoming)
-    errors = config_mod.save(app.config, merged)
-    if errors:
-        return 400, {"errors": errors}
-    # Porovnává se stav před uložením – save() konfiguraci v paměti už přepsal.
-    return 200, {"saved": True, "restart_required": _restart_required(before, app.config.data)}
+    with config_mod.WRITE_LOCK:
+        before = deepcopy(app.config.data)
+        merged = _merge_preserving_secrets(app.config.data, incoming)
+        errors = config_mod.save(app.config, merged)
+        if errors:
+            return 400, {"errors": errors}
+        # Porovnává se stav před uložením – save() konfiguraci v paměti už přepsal.
+        return 200, {"saved": True, "restart_required": _restart_required(before, app.config.data)}
 
 
 def _merge_preserving_secrets(existing: dict, incoming: dict) -> dict:

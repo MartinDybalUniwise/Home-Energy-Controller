@@ -65,7 +65,7 @@ class FTEWriter:
         requested = result.get("requested", {"command": command, **kwargs})
         actual = result.get("actual", {"value": result.get("value")})
         return self._record(command=command, requested=requested,
-                            before=self.manager.status_snapshot().get("last_write", {}).get("before"),
+                            before=(self.manager.status_snapshot().get("last_write") or {}).get("before"),
                             after=actual, success=bool(result.get("success", True)),
                             attempts=int(result.get("attempts", 1)))
 
@@ -79,11 +79,12 @@ class FTEWriter:
         return self._execute("set_on_grid_soc_limit_pct", value=int(value), requested_by=requested_by, source=source)
 
     def start_battery_charge(self, power_pct: int, start_soc_pct: int, stop_soc_pct: int, valid_from: Any, valid_to: Any,
-                             *, requested_by="controller", source="controller"):
+                             *, requested_by="controller", source="controller", valid_day=None):
         return self._execute("start_battery_charge", power_pct=power_pct,
                              start_soc_pct=start_soc_pct, stop_soc_pct=stop_soc_pct,
                              valid_from=valid_from, valid_to=valid_to,
-                             requested_by=requested_by, source=source)
+                             requested_by=requested_by, source=source,
+                             **({'valid_day': valid_day} if valid_day else {}))
 
     def start_battery_discharge(self, power_pct: int, start_soc_pct: int, stop_soc_pct: int, valid_from: Any, valid_to: Any,
                                 *, requested_by="controller", source="controller"):

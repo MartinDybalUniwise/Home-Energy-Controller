@@ -103,7 +103,9 @@ class TngWireReader(BaseReader):
                 online=True,
                 field_quality={
                     TEMPERATURE_FIELDS[k]: (
-                        "outside_verified_range"
+                        "owner_extended_provisional"
+                        if k == "aku_c" and 30.0 <= decoded["temperatures"][k] < 34.2
+                        else "outside_verified_range"
                         if k in decoded["outside_reference_range"]
                         else "photo_validated_provisional"
                     )

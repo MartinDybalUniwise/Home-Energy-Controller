@@ -1,5 +1,7 @@
+import {temperatureReading} from './thermal-status.js?v=aku-20261104';
 import {source, finite} from './telemetry.js';
 import {t, num} from './i18n.js';
+import {thermalAlerts} from './thermal-alerts.js?v=50';
 import {siteDateTime, siteTime, siteDate, siteClock} from './today-chart.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -13,15 +15,10 @@ export function heatpumpPanel(current, config, now = new Date()) {
   const wire = source(current,'tng_wire'), cloud = source(current,'tng');
   const receiver = source(current,'tng_wire_receiver');
   const wireFresh = fresh(wire,now,180), cloudFresh = fresh(cloud,now,900);
-  const field = key => {
-    if (wireFresh && finite(wire[key]) !== null && wire.field_quality?.[key] !== 'outside_verified_range')
-      return {value:wire[key], origin:'wire'};
-    if (cloudFresh && finite(cloud[key]) !== null) return {value:cloud[key], origin:'cloud'};
-    return {value:null,origin:null};
-  };
+  const field = key => temperatureReading(current,key,now)||{value:null,origin:null};
   const temp = key => {
     const result = field(key);
-    return result.value === null ? '—' : `${num(result.value,1)} <small>°C${result.origin === 'cloud' ? ' · API' : ''}</small>`;
+    return result.value === null ? '—' : `${num(result.value,1)} <small>°C</small>`;
   };
   const unknown = '—';
   const candidate = wireFresh && finite(wire.candidate_frequency_or_ack) !== null ? `${num(wire.candidate_frequency_or_ack,0)} <small>?</small>` : unknown;
@@ -36,7 +33,7 @@ export function heatpumpPanel(current, config, now = new Date()) {
   const right = [[t('hp.sw'),unknown],[t('hp.model'),unknown],[t('hp.switch'),unknown],
     [t('hp.inputs'),wireFresh && Number.isInteger(wire.candidate_inputs) ? `${wire.candidate_inputs.toString(2).padStart(8,'0')} ?` : unknown],
     [t('hp.outputs'),unknown],[t('hp.power_req'),unknown],[t('hp.power_ack'),candidate],
-    [t('hp.request'),`${t(`hp.mode_${actualMode}`)}${cloudFresh ? ' <small>· API</small>' : ''}`],[t('hp.errors'),unknown]];
+    [t('hp.request'),`${t(`hp.mode_${actualMode}`)}`],[t('hp.errors'),unknown]];
   const moment = siteTime(now), date = siteDate(moment), clock = siteClock(moment);
   const effective = name => {
     const base = config?.tng?.[name] || {};
@@ -44,11 +41,19 @@ export function heatpumpPanel(current, config, now = new Date()) {
   };
   const inWindow = item => item.from <= item.to ? clock >= item.from && clock < item.to : clock >= item.from || clock < item.to;
   const operation = effective('operation');
+  const candidatePlan = current?.status?.controller?.thermal_plan;
+  const planAge = (+now-Date.parse(candidatePlan?.planned_at))/1000;
+  const plan = current?.status?.controller?.enabled && planAge >= -60 && planAge <= 900 ? candidatePlan : null;
   let desiredMode = operation.default_mode || 'heating';
   for (const item of operation.schedule || []) if (inWindow(item)) desiredMode = item.mode;
   const comfort = cloudFresh && cloud.comfort_guard_active === true;
   if (comfort && desiredMode !== 'off') desiredMode = 'heating';
+  if (plan) desiredMode = plan.mode;
   const target = name => {
+    if (plan) {
+      const value = plan[{heating:'heating_temperature',boiler:'boiler_temperature',thermostat:'room_target'}[name]];
+      return finite(value) === null ? '—' : `${num(value,1)} °C`;
+    }
     const section = effective(name);
     let value = section.default_temperature;
     for (const item of section.schedule || []) if (inWindow(item)) value = item.temperature;
@@ -86,10 +91,10 @@ export function heatpumpPanel(current, config, now = new Date()) {
     [t('hp.reported_boiler'),cloudFresh ? `${num(cloud.boiler_set_temperature,1)} °C` : '—']];
   return `<section class="workspace-card hp-panel" id="heatpump-panel">
     <header class="workspace-card-header"><h4>${t('hp.title')}</h4><span class="hp-badge ${wireFresh && !receiver.log_limit_reached ? 'is-fresh' : 'is-stale'}">${t(receiver.log_limit_reached ? 'hp.log_limit' : wireFresh ? 'hp.receiving' : 'hp.no_wire')}</span></header>
+    ${thermalAlerts(current,now)}
     <div class="hp-panels"><article><h5>${t('hp.actual')}</h5><div class="hp-display">${rows(left)}${rows(right)}</div>
-      <div class="meta">${t('hp.wire_time')}: ${wire.sample_time ? esc(siteDateTime(wire.sample_time)) : '—'}</div>
-      <div class="meta">API: ${cloud.sample_time ? esc(siteDateTime(cloud.sample_time)) : '—'}</div></article>
+</article>
     <article><h5>${t('hp.command')}</h5>${comfort ? `<span class="hp-badge is-stale">${t('hp.comfort_guard')}</span>` : ''}${rows(commandRows)}<span class="hp-badge ${settingsMatch ? 'is-fresh' : 'is-stale'}">${t(settingsMatch ? 'hp.matches' : 'hp.not_matched')}</span></article></div>
-    <details><summary>ⓘ</summary><p>${t('hp.help')}</p><p>${t('hp.trace_counts',{requests:receiver.requests ?? 0,responses:receiver.responses ?? 0,pairs:receiver.pairs ?? 0})}</p><a href="/api/tng-wire/events?hours=1&limit=100" target="_blank" rel="noopener">${t('hp.raw_events')}</a></details>
+    <details><summary>ⓘ</summary><p class="meta">${t('hp.wire_time')}: ${wire.sample_time ? esc(siteDateTime(wire.sample_time)) : '—'} · API: ${cloud.sample_time ? esc(siteDateTime(cloud.sample_time)) : '—'}</p><p>${t('hp.help')}</p><p>${t('hp.trace_counts',{requests:receiver.requests ?? 0,responses:receiver.responses ?? 0,pairs:receiver.pairs ?? 0})}</p><a href="/api/tng-wire/events?hours=1&limit=100" target="_blank" rel="noopener">${t('hp.raw_events')}</a></details>
   </section>`;
 }

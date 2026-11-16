@@ -105,3 +105,17 @@ See [step37/PLAN.md](step37/PLAN.md).
 ## Step38 — passive TNG evidence
 
 See [step38/PLAN.md](step38/PLAN.md).
+
+## Step39 — heating before price peaks and measured FTE surplus
+
+See [step39/PLAN.md](step39/PLAN.md). Owner approved implementation and deployment on 2026-10-30.
+
+## Step40 — one production planning authority
+
+See [step40/PLAN.md](step40/PLAN.md). Owner approved implementation and deployment on2026-10-30.
+
+## Step43 — local morning price rises
+
+See [step43/PLAN.md](step43/PLAN.md). Fixes missed morning preheat reported on2026-10-31.
+
+| [`step50/`](step50/) | Persistent comfort recovery and bounded DHW catch-up | Implementováno, 678 regresí + 127 cílených testů; replay 15. 11. ověřen |

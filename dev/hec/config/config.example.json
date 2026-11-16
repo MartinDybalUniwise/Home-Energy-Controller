@@ -285,6 +285,19 @@
         true,
         false
       ]
+    },
+    "floor_check": {
+      "enabled": false,
+      "activated_at": "",
+      "idle_minutes": 60,
+      "probe_minutes": 15,
+      "max_cycle_minutes": 45,
+      "minimum_aku_c": 35,
+      "recovery_aku_c": 38,
+      "water_target_c": 42,
+      "room_request_offset_c": 0.5,
+      "maximum_room_request_c": 24,
+      "adaptive_enabled": true
     }
   },
   "tng_wire": {
@@ -303,7 +316,8 @@
     "distribution_czk_kwh": 0.0,
     "fees_czk_kwh": 0.0,
     "vat_rate": 0.21,
-    "export_price_czk_kwh": 0.0
+    "export_price_czk_kwh": 0.0,
+    "distribution_tariff": {}
   },
   "weather": {
     "enabled": true,

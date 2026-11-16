@@ -62,6 +62,9 @@ class Application:
         self.metrics = Metrics(self.config, self.storage, self.summaries)
         self.finance = FinanceService(self)
         self.controller = Controller(self)
+        tng_reader = next((reader for reader in self.readers if reader.name == 'tng'), None)
+        if tng_reader is not None:
+            tng_reader.planner = self.controller
         self.started_at = now_local()
 
         for error in self.config.errors:
@@ -78,6 +81,8 @@ class Application:
             if sample.values:
                 with self._lock:
                     self.snapshot[sample.source] = sample.to_dict()
+            if self.controller is not None and sample.source == 'goodwe':
+                self.controller.on_sample(sample)
             return
         with self._lock:
             self.snapshot[sample.source] = sample.to_dict()
@@ -113,6 +118,9 @@ class Application:
         }
         if include_status:
             payload["status"] = self.status()
+        elif getattr(self, 'controller', None) is not None:
+            # Cached controller plan only; keep the fast overview free of full diagnostics.
+            payload['controller'] = self.controller.state()
         return payload
 
     def status(self) -> dict[str, Any]:

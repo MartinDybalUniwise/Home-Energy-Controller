@@ -11,6 +11,7 @@ from datetime import date, datetime, timedelta
 import requests
 from bs4 import BeautifulSoup
 
+from ..core.electricity_price import priced_day
 from ..core.timeutil import now_local, to_iso
 from ..storage.base import atomic_write_json, read_json
 from .base import BaseReader
@@ -177,7 +178,7 @@ class OteReader(BaseReader):
         každém pravidelném čtení."""
         cached = read_json(self.day_path(day), None)
         if self._is_enriched(cached):
-            return cached
+            return priced_day(self.config, cached)
         try:
             payload = self.fetch_day(day)
         except Exception as exc:                              # noqa: BLE001
@@ -187,7 +188,7 @@ class OteReader(BaseReader):
                           day.isoformat(), type(exc).__name__)
             return None
         self.save_day(payload)
-        return payload
+        return priced_day(self.config, payload)
 
     @staticmethod
     def period_for(payload: dict, moment: datetime) -> dict | None:
@@ -205,7 +206,8 @@ class OteReader(BaseReader):
         tomorrow_payload = self.load_or_fetch_day(today + timedelta(days=1), required=False)
 
         current = self.period_for(payload, now_local()) or {}
-        prices = [p["price_total_czk_kwh"] for p in payload["periods"]]
+        prices = [p["price_total_czk_kwh"] for p in payload["periods"]
+                  if p.get("price_total_czk_kwh") is not None]
         return {
             "date": payload["date"],
             "eur_czk_rate": payload["eur_czk_rate"],

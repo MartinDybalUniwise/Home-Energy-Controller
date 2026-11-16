@@ -76,3 +76,42 @@ and report verified findings/unknowns. Do not generate commands for experimentat
 Use original timed photos and independent cloud/Shelly evidence; phase-fault Shelly
 can support temporal observations, not valid energy/COP. Proven observational
 decoder changes require regression tests and the normal backup/PR/deploy process.
+
+## Owner-approved bounded floor check2026-11-01
+
+New physical-panel photos independently show AKU41.2 and41.5C. Extend only the
+buffer evidence upper bound41.3->41.5C; keep lower34.2C and every other field's
+range unchanged. No CRC, higher-branch, pump relay or request-bit rule is inferred.
+Global control_eligible remainsFalse. The owner-authorised hourly floor check has
+a narrow separate qualifier: sample<=180s, photo-range buffer, independent fresh
+cloud room/outlet/outside agreement<=0.8C, bounded42C heat request through existing
+TNG gates. This exception does not license any other passive-data control use.
+See dev/step48/PLAN.md for unknown-data handling and restoration limits.
+
+Owner update2026-11-01: expand floor-check operational AKU range to30.0-41.5C.
+Below34.2C use owner_extended_provisional / owner_extended_range_cloud_crosschecked;
+this is owner-authorised operational acceptance, NOT additional photo validation.
+Keep original decoder photo-reference range34.2-41.5C and CRC/global control_eligible
+unverified. Freshness/cloud crosschecks, exclusive modes,42C/24C caps and900s gates
+remain unchanged. Below35C valid expanded samples latch the existing reheat phase.
+
+## Display correction2026-11-04
+
+The low observed branch can alias a higher boiler or outlet temperature into a
+plausible value inside its photo-reference range. A range check alone is not
+proof of correct branch selection. The overview and heat-pump detail share one
+temperatureReading policy: boiler and outlet temperatures, plus their requested
+setpoints, use fresh cloud fields (<=900 s); if unavailable they remain unknown.
+Never fall back to the ambiguous passive values or add a guessed25.6 C offset.
+AKU and other passive-only fields retain their existing <=180 s/quality guards.
+Individual timestamps are retained and the shared overview timestamp uses the
+oldest displayed reading. Raw decoder evidence, control eligibility and all
+controller/writer/confirmation behaviour are unchanged.
+
+## Owner display request2026-11-04
+
+Display fresh finite AKU readings even when field_quality is outside_verified_range.
+The old photo-reference interval is not a display cutoff. Overview and heat-pump
+detail share this policy. Keep freshness and missing-value handling, original
+quality metadata and the separately authorised controller/floor-check qualifiers.
+The verified cloud source policy for boiler/outlet is unchanged.

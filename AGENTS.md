@@ -44,4 +44,87 @@ The owner confirmed the desired heating-store reading is AKU/buffer temperature.
 
 Owner clarification 2026-10-28: Direct LAN TNG access is READ-ONLY. Existing cloud API control remains authorised and enabled. Local investigation is explicitly paused until the owner supplies further information/credentials; do not probe the LAN controller while paused.
 
+Owner-approved 2026-10-30: tng.price_shift.enabled activates conservative price/FTE
+planning (dev/step39/PLAN.md). Preserve planner-owned dated heating/thermostat
+overrides during routine reviews; do not flatten them to constant42 merely to
+restore a schedule. Check sources.tng.price_shift for the effective comfort/solar
+veto, distinct from the saved plan. A deliberate edit of either dated schedule
+opts that date out of automatic rewriting. DHW and ordinary schedules are separate.
+
+Owner-approved unification2026-10-30: Application.controller is the sole production
+planning authority (dev/step40/PLAN.md). TNG is its transport with unchanged gates;
+controller.enabled is the master switch. Retired individual thermal rules must
+never issue additional commands. GoodWe actuation remains separately disabled to
+preserve existing battery/grid operation. Review status.controller.thermal_plan
+and the saved dated schedules; a resolved plan is not a sent/confirmed command.
+
+Repair2026-10-31 (dev/step43/PLAN.md) supersedes the original daily-median/90-minute
+price policy: local preceding-six-hour comparison, gap>=0.60 CZK/kWh and8%, later
+nearly-cheap two-hour preheat, coast<=3 h with the same21.3 C comfort veto. Preserve
+revised_at cutoffs: never turn a counterfactual missed night into an executed plan.
+
 Mobile report correction 2026-10-28: the owner phone displays local visualize directives as raw text. Use native mobile Markdown with status emoji, compact state/trend/plan blocks and a short Assessment | Recommendation table for scheduled and mobile reports. Never send local HTML paths or visualize directives in these reports. The full report must be readable in chat without opening files.
+
+Owner-approved2026-10-31 battery control supersedes the disabled-GoodWe statement
+above. The same Application.controller now exclusively selects economic battery
+planning (dev/step44/PLAN.md); never activate legacy battery/export rules alongside
+it. Grid charge ceiling60%, power<=20%, model efficiency90%, wear0.30 CZK/kWh and
+net margin>=0.50 CZK/kWh. Leave PV headroom, hold bought energy for dear periods,
+release via General self-consumption, never forced grid export. Preserve TNG gates.
+Existing two-hour reviews MUST follow the expanded checks in skills/hec-status:
+prices, comfort, measured PV/SOC/power, native charge schedule/readback, TNG actual
+acknowledgement and behaviour. Every review sends its own dated mobile report.
+
+Owner clarification2026-10-31: one inverter configuration, one unified controller.
+Plan views are read-only projections of status.controller.battery_plan; never add
+UI price optimisation, another writer/controller or an independent battery timer.
+Hide inactive legacy battery configuration in economic mode. Reject retired-rule
+actuation while economic mode owns GoodWe. See dev/step45/PLAN.md.
+
+Owner-approved2026-10-31 EVV1/D57d distribution-aware pricing (dev/step46/PLAN.md).
+Use core.electricity_price.load_priced_day for all plans/API consumers; do not use
+cached total prices without projecting current configuration. One NT/VT config,
+no SDG duplicate controls. Check distribution_pricing.valid and validity dates.
+Reviews must verify exported EVV1 times against distributor changes; preserve
+owned schedules and comfort gates. Configured fees are not verified supplier fees.
+
+Owner-approved2026-11-01 coordinated repair supersedes the fixed2h preheat cap:
+confirmed room-response evidence can extend grid preheat up to4h, still42C/21.7C,
+NT-only and subject to comfort/PV/exclusive-mode gates. Thermal model evidence
+expires after7days and never proves heat inventory. Native grid charging must
+end before VT. Fresh present comfort demand can release the held battery in VT
+when a cheaper profitable refill within6h has estimated capacity>=110% of remaining
+VT consumption. Keep20% reserve and General self-consumption, no forced discharge.
+This comfort priority is not a guaranteed global cost optimum. One controller,
+same writers/guards. See dev/step47/PLAN.md; reviews must compare physical response.
+
+Owner-approved2026-11-01 hourly floor check (dev/step48/PLAN.md): assume pump runs
+with confirmed thermostat heating demand; do not present that as measured activity.
+After60min idle the same thermal resolver requests a bounded heating check (may
+start compressor). Temporary room service request+0.5C up to24C, water<=42C; this
+specific bounded service supersedes the ordinary21.7C price-preheat cap only for
+its duration. Observe2/5/10/15min; below35C latch reheat, stable>=38C after>=15min
+allows restore, request restore by45min through original900s/ack gates. No duplicate
+scheduler/writer, no LAN access, no simultaneous DHW. The global passive-control
+prohibition has ONE owner-approved exception: fresh photo-range AKU34.2-41.5C
+with independent cloud room/outlet/outside crosschecks may inform this bounded
+floor check. Other passive candidates/global control_eligible stay unverified.
+Preserve external-circulation-pump configuration; its enable flag is not pump-on.
+Software duration limits require the original service and cloud to remain available.
+
+Owner update2026-11-01: expand floor-check operational AKU range to30.0-41.5C.
+Below34.2C use owner_extended_provisional / owner_extended_range_cloud_crosschecked;
+this is owner-authorised operational acceptance, NOT additional photo validation.
+Keep original decoder photo-reference range34.2-41.5C and CRC/global control_eligible
+unverified. Freshness/cloud crosschecks, exclusive modes,42C/24C caps and900s gates
+remain unchanged. Below35C valid expanded samples latch the existing reheat phase.
+
+Owner-approved2026-11-04 review optimisation (dev/step49/PLAN.md): hourly floor
+evaluation may defer warm/safe pulses to120min, with cold-store/room exceptions;
+retain existing bounds/gates. Protect estimated battery energy for a sustained
+later materially dearer peak, preserving comfort exceptions and native limits.
+Only second ordinary DHW window target<=50 may skip with fresh probe>=target
+and resume target-2; dated/hygienic/first windows remain. Near21.2 slow cooling
+can trigger early comfort recovery. Forecast house totals include heating once,
+use recent/weather evidence and today's measured load plus estimated remainder.
+Check confirmation delay diagnostics and native readbacks, not POST counts.

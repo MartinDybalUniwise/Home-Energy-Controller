@@ -1,7 +1,77 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-10-29",
+  "updated_at": "2026-11-16",
   "rules": [
+    {
+      "id": "COMFORT-002",
+      "status": "active",
+      "recorded_on": "2026-11-16",
+      "source": "owner",
+      "title": {
+        "cs": "Trvalé zotavení a náhradní teplá voda",
+        "en": "Sustained recovery and DHW catch-up"
+      },
+      "text": {
+        "cs": "Po nekomfortu zakázat další cenové útlumy daného dne; komfortní pojistku uvolnit až po 30 minutách čerstvých měření alespoň 21,5 °C. Nový útlum vyžaduje alespoň hodinu potvrzeného předehřevu 42/21,7 a úspěšnou odezvu nejvýše 7 dní starou. Po hodině potvrzeného topení s nedostatečným zotavením zobrazit problém, nikoli tvrdit měřený chod. Zmeškaný ohřev a nízkou večerní TV sledovat jako dluh; po stabilním zotavení mimo explicitní datované plány nejvýše dvakrát denně dohřev 50 °C, nejvýše 45 minut, odstup alespoň hodinu a návrat topení. Zachovat původní 900s brány a příznak externího čerpadla; návrat vyžaduje dostupnou službu a cloud. Upozornění v HEC a ve stávající dvouhodinové kontrole v chatu, bez nového plánovače.",
+        "en": "After discomfort inhibit further coasts for the day; release the guard after30min fresh room samples >=21.5C. New coast requires >=60min confirmed42/21.7 preheat and successful response evidence <=7days old. Diagnose insufficient recovery after an hour of confirmed heating without claiming measured physical operation. Track missed DHW/evening low probe as debt; after stable recovery outside dated owner plans allow at most two50C catch-ups/day, <=45min and >=1h apart, then restore heating. Preserve900s/ack gates and external-pump configuration; restoration requires service/cloud availability. Alerts appear in HEC and existing two-hour chat reviews, without another scheduler."
+      }
+    },
+    {
+      "id": "CONTROL-002",
+      "status": "active",
+      "recorded_on": "2026-10-31",
+      "source": "owner",
+      "title": {
+        "cs": "Jedno nastavení a zobrazený plán FVE",
+        "en": "One configuration and visible PV plan"
+      },
+      "text": {
+        "cs": "FVE a baterii plánuje a ovládá pouze společný controller HEC z jediného aktivního nastavení. Původní bateriová pravidla nesmějí vydávat další povely. Obrazovka Řízení a plán i hlavní denní graf pouze zobrazují tentýž plán controlleru; nemají další časovač, výpočet cen ani ovládání měniče. Uvádět zbývající podmíněná okna, limity, čerstvost a skutečný stav odděleně od plánu. Staré neaktivní parametry nezobrazovat jako druhé nastavení.",
+        "en": "Only the unified HEC controller plans and actuates PV/battery from one active configuration. Retired battery rules must not send further commands. Control & Plan and the overview timeline only display that same controller plan, without another timer, price calculation or inverter control. Show remaining conditional windows, limits and freshness; separate intent from actual state. Hide inactive legacy targets rather than showing a second configuration."
+      }
+    },
+    {
+      "id": "BATTERY-001",
+      "status": "active",
+      "recorded_on": "2026-10-31",
+      "source": "owner",
+      "title": {
+        "cs": "Ekonomické řízení FVE a baterie",
+        "en": "Economic PV and battery control"
+      },
+      "text": {
+        "cs": "Vlastník schválil řízení GoodWe společným controllerem. Staré samostatné bateriové a exportní povely se v ekonomickém režimu neprovádějí. Nabíjet ze sítě jen v publikovaném levném okně při následné alespoň hodinové dražší spotřebě; modelová účinnost90 %, rezerva na opotřebení0,30 Kč/kWh a požadovaný čistý rozdíl nejméně0,50 Kč/kWh. Nejvýše60 % SOC ze sítě, výkon nejvýše20 % měniče, omezený BMS a importním rozpočtem7 kW. Ponechat kapacitu pro FVE; při skutečném PV přebytku preferovat přirozené solární nabíjení. Nakoupenou energii podržet do dražšího období (nejvýše12 h), potom GENERAL pro vlastní spotřebu s rezervou20 %, nikdy vynucené vybíjení do sítě. Časové okno1–3 h ověřit v měniči včetně výkonu, SOC, dne a hodin. Chybějící data nebo ochranné veto ukončí vlastní vynucené nabíjení. Každé2 h posoudit FVE, baterii i TČ: plán, povel, potvrzení, skutečný výkon a teploty vzhledem k celkové ceně a komfortu. Každá kontrola pošle zprávu do chatu. Model není důkaz dosažené úspory. Nabíjení ze sítě nesmí zasahovat do VT. Nutné aktuální topení ve VT může dostat přednost před držením celé baterie na později: pouze s čerstvým plánem a měřením, pokojem pod 21,5 °C a dostatečným levným nabíjecím oknem do 6 h. Odhad doplnění musí pokrýt alespoň 110 % odhadované zbývající spotřeby ve VT. Uvolnit pouze GENERAL s rezervou 20 %, nikoli vynucený export. Uvolnění držet do konce VT proti přepínání; úsporu negarantovat.",
+        "en": "Owner approved unified GoodWe economic control, excluding legacy battery/export actions. Require published cheap windows and a sustained later peak covering assumed90% efficiency,0.30 CZK/kWh wear and0.50 CZK/kWh net margin. Grid SOC ceiling60%, power<=20% with BMS and7kW import budget. Preserve PV headroom and prefer measured solar surplus. Hold bought energy for dear periods up to12h, then General self-consumption with20% reserve; never forced discharge to grid. Verify1–3h native schedule, power, SOC, weekday and clock. Invalid data/protection veto stops owned forced charging. Every2h review PV, battery and HP plans, commands, acknowledgements and physical power/temperatures against total price and comfort; report each run. Model economics do not prove realised savings. Grid charging must stop before VT. Fresh confirmed heating need below21.5C during a VT peak can release held energy if a cheaper profitable refill within6h has estimated capacity>=110% of remaining VT demand. Retain20% reserve, General only, latch to VT end; no guaranteed savings."
+      }
+    },
+    {
+      "id": "CONTROL-001",
+      "status": "active",
+      "recorded_on": "2026-10-30",
+      "source": "owner",
+      "title": {
+        "cs": "Jeden společný controller",
+        "en": "One unified controller"
+      },
+      "text": {
+        "cs": "Jedinou autoritou plánování je společný controller HEC. Z něj vychází jeden výsledný požadavek pro topení, bojler a pokojový cíl: ochrany zařízení, komfort, omezená okna teplé vody, potom cenová a FTE optimalizace. Modul TNG pouze měří a provádí schválené požadavky přes původní ochrany. Původní samostatná tepelná pravidla ani přímé požadavky mimo společný controller nesmějí vydávat další povely. Hlavní vypínač zastaví automatické zápisy; sám fyzicky nevypíná TČ. Baterie a měnič mají samostatné povolení zásahů, při sjednocení zůstávají bez nových zásahů.",
+        "en": "The unified HEC controller is the sole planning authority. It resolves one target for heating, DHW and room temperature: equipment protection, comfort, bounded DHW windows, then price and FTE optimisation. TNG only measures and executes approved requests through existing gates. Retired thermal rules and direct requests outside the controller must not issue competing commands. The master switch stops automatic writes; it does not physically switch off the HP. Battery/inverter interventions require a separate permission and remain unchanged during unification."
+      }
+    },
+    {
+      "id": "PLAN-002",
+      "status": "active",
+      "recorded_on": "2026-10-30",
+      "source": "owner",
+      "title": {
+        "cs": "Topení před zdražením a z přebytku FTE",
+        "en": "Heating before price peaks and from FTE surplus"
+      },
+      "text": {
+        "cs": "Cenové špičky posuzovat vůči předchozím šesti hodinám, nikoli vůči celodennímu mediánu; drahý večer nesmí skrýt ranní růst. Předehřev podle potvrzeného požadavku a naměřené odezvy 2 až 4 h, TČ nejvýše 42 °C a pokojový cíl 21,7 °C. Vyžadovat rozdíl alespoň 0,60 Kč/kWh a současně 8 % proti ceně předehřevu. Mezi podobně levnými okny preferovat pozdější (nejvýše o 0,10 Kč/kWh dražší). Omezení může pokrýt i náběh špičky, nejvýše 3 h; začíná pouze při pokoji alespoň 21,5 °C a při 21,3 °C končí pro zbytek okna. Zachovat oddělený bojler, potvrzení TNG a interval 900 s. Solární předehřev pouze z platného skutečného přebytku FTE alespoň 3 kW po 10 minut, s baterií alespoň 20 %, vybíjením nejvýše 100 W a importem nejvýše 200 W; nejvýše 2 h od prvního solárního startu za den a do pokojových 21,7 °C. Při starých nebo neplatných vstupech neoptimalizovat. Při opravě přepočítat jen zbývající část dne; nikdy nevydávat zmeškaný noční předehřev za uskutečněný. Ručně změněné denní výjimky nepřepisovat. Při nedosažení 21,5 °C po potvrzeném předehřevu prodloužit příští levný předehřev nejvýše na 4 h; učení vyžaduje souvislé platné vzorky a platí nejvýše 7 dní. Nejde o záruku dosažení teploty ani měření zásoby tepla. Pokud se celá potřebná doba do levného okna nevejde, využít nejdelší dostupnou část alespoň 1 h a přiznat nedostatečný předstih; nikdy neposouvat start do minulosti. Cenový náběh v NT před VT nesmí skrýt možnost předehřevu před začátkem VT.",
+        "en": "Detect peaks against the preceding six hours, not the whole-day median; an expensive evening must not hide the morning rise. Use measured response under confirmed requests for 2-4h preheat, HP at most 42 C and room target21.7 C. Require at least0.60 CZK/kWh and8% gap against the preheat price. Prefer a later nearly-equally-cheap window (at most0.10 CZK/kWh extra). Coast may cover the rising edge, at most3 h; enter only from room>=21.5 C and release for the rest of the window at21.3 C. Preserve exclusive DHW, acknowledgements and900 s interval. Solar preheat requires fresh measured FTE surplus>=3 kW for10 minutes, battery>=20%, discharge<=100 W, import<=200 W, at most2 h from the first solar start of the day and room<=21.7 C. Invalid/stale inputs disable optimisation. Replanning after repair changes only the remaining day; never present missed overnight preheat as executed. Preserve owner-edited dated overrides. Use a remaining partial cheaper block of at least1h when full lead cannot fit; never backdate. An NT ramp must not hide the VT edge."
+      }
+    },
     {
       "id": "TNG-001",
       "status": "active",
@@ -26,8 +96,8 @@
         "en": "Comfort without overheating"
       },
       "text": {
-        "cs": "Komfort alespoň 21 °C, běžný cíl 21,5 °C. Čerstvé cloudové měření pod 21 °C souvisle 15 minut přeruší bojler a vyžádá topení 42 °C. Náhlý pokles alespoň 0,5 °C během 10 minut při povoleném topení dostane 30 minut na zotavení. Pojistka skončí při 21,5 °C. Nikdy souběh režimů; zachovat potvrzovací brány a interval 900 s, respektovat vypnuté topení. Neplatná data nejsou důkaz chladu ani zotavení.",
-        "en": "Comfort minimum 21 C, normal target 21.5 C. Fresh cloud room readings continuously below 21 C for 15 minutes interrupt DHW and request exclusive heating at 42 C. A sudden drop of at least 0.5 C within 10 minutes while heating is enabled gets 30 minutes to recover. Release at 21.5 C. Preserve confirmation gates, 900 s interval and disabled heating; invalid samples prove neither cold nor recovery."
+        "cs": "Komfort alespoň 21 °C, běžný cíl 21,5 °C. Čerstvé cloudové měření pod 21 °C souvisle 15 minut přeruší bojler a vyžádá topení 42 °C. Náhlý pokles alespoň 0,5 °C během 10 minut při povoleném topení dostane 30 minut na zotavení. Pojistka skončí po 30 minutách souvislých čerstvých měření alespoň 21,5 °C (COMFORT-002). Nikdy souběh režimů; zachovat potvrzovací brány a interval 900 s, respektovat vypnuté topení. Neplatná data nejsou důkaz chladu ani zotavení.",
+        "en": "Comfort minimum 21 C, normal target 21.5 C. Fresh cloud room readings continuously below 21 C for 15 minutes interrupt DHW and request exclusive heating at 42 C. A sudden drop of at least 0.5 C within 10 minutes while heating is enabled gets 30 minutes to recover. Release after30min continuous fresh readings >=21.5C (COMFORT-002). Preserve confirmation gates, 900 s interval and disabled heating; invalid samples prove neither cold nor recovery."
       }
     },
     {
@@ -183,9 +253,139 @@
         "cs": "Přímé lokální spojení TNG smí pouze číst, nikdy zapisovat ani měnit nastavení. Původní cloudové API ovládání zůstává povolené s ochrannými bránami. Zkoumání lokálního rozhraní je dočasně pozastavené na pokyn vlastníka, dokud nedodá další informace.",
         "en": "Direct local TNG access may only read; never write or change settings. Existing cloud API control remains enabled with its guards. Local-interface investigation is paused at owner request until further information is provided."
       }
+    },
+    {
+      "id": "PRICE-001",
+      "status": "active",
+      "recorded_on": "2026-10-31",
+      "source": "owner",
+      "title": {
+        "cs": "Distribuce EVV1 / D57d",
+        "en": "EVV1 / D57d distribution"
+      },
+      "text": {
+        "cs": "Jeden cenovy podklad pro TC i baterii: spot OTE + distribuce NT/VT EVV1 + nastavene poplatky a DPH. NT denne 00-06,07-09,10-13,14-16,17-24; VT zbytek. Ceny distribuce 2026 bez DPH: NT 0,11650, VT 0,75477 Kc/kWh. Neprepsat rucni denni plany; zachovat komfort, FVE a ochrany zapisu. Rozvrh je export distributora, nikoli zive HDO; kontrolovat zmeny. Neoverene poplatky dodavatele nevydavat za konecnou fakturovanou cenu.",
+        "en": "One price basis for heat pump and battery: OTE spot + EVV1 distribution + configured fees and VAT. NT daily00-06,07-09,10-13,14-16,17-24; VT otherwise. 2026 prices excluding VAT: NT0.11650, VT0.75477 CZK/kWh. Preserve manual plans, comfort/PV/write guards. Exported schedule is not live HDO; check changes. Supplier fees are not verified."
+      }
+    },
+    {
+      "id": "FLOOR-001",
+      "status": "active",
+      "recorded_on": "2026-11-01",
+      "source": "owner",
+      "title": {
+        "cs": "Hodinová kontrola tepla pro podlahu",
+        "en": "Hourly floor heat check"
+      },
+      "text": {
+        "cs": "Na výslovný pokyn vlastníka předpokládat oběh pouze při topení. Po 60 minutách bez předpokládaného termostatického požadavku vyhodnotit potřebu omezeného běhu přes jediný controller; při dostatečné AKU nebo bezpečném cenovém útlumu lze start odložit nejvýše na120 minut, podle OPT-001. Nejde o změřený chod čerpadla ani samostatný povel oběhu; může běžet i kompresor. Dočasný pokojový požadavek +0,5 °C, nejvýše 24 °C, voda nejvýše 42 °C. První kontrola po aktivaci za hodinu; běžné topení čítač obnovuje. Sledovat AKU a vratnou vodu po 2/5/10/15 min, chybějící data nezaměňovat za nulu. Čerstvá AKU v povoleném rozsahu 30,0–41,5 °C (pod 34,2 °C provozně rozšířený, bez fotoověření) a shoda společných čidel s cloudem jsou úzce povolený vstup této funkce; ostatní pasivní pole zůstávají neověřená. Pod 35 °C podržet dohřev, obnovu běžného plánu požadovat nejdříve po 15 min při stabilní AKU alespoň 38 °C, nejpozději po 45 min. Skutečné ukončení podléhá původním potvrzovacím branám a 900 s. Při výpadku HEC/cloudu nelze zaručit softwarový časový limit. Žádný souběh s bojlerem, respektovat vypnuté topení a limit pokojového požadavku; nevytvářet další plánovač ani zapisovač.",
+        "en": "Owner assumes circulation only with heating. After60min without assumed thermostat demand, evaluate bounded heating; warm-store/safe-coast starts may defer to120min under OPT-001 (a request may also start compressor). Temporary room request+0.5C capped24C, water<=42C. First check after an hour; ordinary demand resets the idle clock. Observe2/5/10/15min; missing data are not zero. Only fresh permitted AKU30.0-41.5C (below34.2C owner-extended, not photo-validated) with cloud crosschecks is narrowly authorised for this feature; other passive data remain unverified. Below35C latch reheating; request normal-plan restoration after>=15min with stable AKU>=38C, no later than45min. Delivery still obeys original900s/confirmation gates and depends on HEC/cloud availability. Respect DHW/off/disabled controls; no second planner or writer."
+      }
+    },
+    {
+      "id": "OPT-001",
+      "status": "active",
+      "recorded_on": "2026-11-04",
+      "source": "owner",
+      "title": {
+        "cs": "Optimalizace podle denních hodnocení",
+        "en": "Daily-review optimisation"
+      },
+      "text": {
+        "cs": "Jediný controller chrání odhadovanou energii baterie pro pozdější souvislou dražší špičku (rozdíl alespoň0,60 Kč/kWh a8 %); přebytek lze využít dříve a komfortní výjimky zůstávají. Podlahu vyhodnocovat hodinově, ale při dostatečné AKU nebo bezpečném útlumu odložit další start nejvýše na120 minut klidu; AKU pod35 °C nebo pokoj do21,3 °C má přednost. Zachovat42 °C/24 °C,45min a původní900s/potvrzení. Druhé běžné okno bojleru s cílem do50 °C smí vynechat přepnutí při čerstvém čidle nad cílem a obnovit ohřev při cíli minus2 °C; první, hygienická a ručně datovaná okna zachovat. Pozvolné chladnutí u21,2 °C řešit včas. Předpověď počítá vytápění v celkové spotřebě pouze jednou, používá nedávnou historii, počasí a dnešní změřenou spotřebu s odhadovaným zbytkem. Nevydávat odhady za měření ani povel za potvrzení.",
+        "en": "One controller reserves estimated battery energy for a sustained later dearer peak (>=0.60CZK/kWh and8%). Preserve comfort overrides. Hourly floor evaluation can defer warm/safe pulses to120min idle; cold AKU<35C or room<=21.3C overrides deferral. Preserve42C/24C,45min and900s/ack gates. Second ordinary DHW target<=50C may skip if fresh probe meets target and resume at target-2C; first/hygienic/dated-owner windows retained. Anticipate slow cooling near21.2C. Whole-house forecasts count heating once and use recent/weather/measured-plus-remaining evidence. Estimates and requested/confirmed actuation remain distinct."
+      }
     }
   ],
   "history": [
+    {
+      "date": "2026-11-16",
+      "rule_id": "COMFORT-002",
+      "change": {
+        "cs": "Vlastník schválil implementaci, replay 15. listopadu a nasazení opravy dlouhého nekomfortu.",
+        "en": "Owner approved implementation, Nov15 replay and deployment of prolonged-discomfort repair."
+      }
+    },
+    {
+      "date": "2026-11-04",
+      "rule_id": "OPT-001",
+      "change": {
+        "cs": "Vlastník schválil provedení optimalizací doporučených z denních hodnocení.",
+        "en": "Owner approved implementing the daily-review optimisation recommendations."
+      }
+    },
+    {
+      "date": "2026-11-01",
+      "rule_id": "FLOOR-001",
+      "change": {
+        "cs": "Opraveno čtení termostatického FloatValue z cloudu, aby se uzavřel potvrzený návrat na aktuální plán; bez nových povelů a bez obcházení potvrzovacích bran.",
+        "en": "Parse cloud thermostat FloatValue to finish confirmed restoration to the current plan; no new control path or confirmation bypass."
+      }
+    },
+    {
+      "date": "2026-11-01",
+      "rule_id": "FLOOR-001",
+      "change": {
+        "cs": "Vlastník schválil rozšíření dolní meze AKU na30 °C pro kontrolu podlahy; samostatná kvalita owner_extended_provisional, původní fotoověřený rozsah zachován.",
+        "en": "Owner authorised floor-check AKU lower bound30C; separate owner_extended_provisional quality, original photo-reference range retained."
+      }
+    },
+    {
+      "date": "2026-11-01",
+      "rule_id": "FLOOR-001",
+      "change": {
+        "cs": "Vlastník schválil hodinovou kontrolu s předpokladem běhu oběhového čerpadla při topení.",
+        "en": "Owner approved an hourly check assuming circulation while heating."
+      }
+    },
+    {
+      "date": "2026-11-01",
+      "rule_id": "PLAN-002",
+      "change": {
+        "cs": "Vlastník schválil opravu ranního odběru: adaptivní předehřev, nabíjení výhradně NT a společná priorita aktuálního komfortu při plánování baterie.",
+        "en": "Owner approved measured-response preheat, NT-only charging and coordinated battery supply for present comfort."
+      }
+    },
+    {
+      "date": "2026-10-31",
+      "rule_id": "PRICE-001",
+      "change": {
+        "cs": "Vlastnik schvalil zapracovani vlastniho exportu EVV1 do planovace.",
+        "en": "Owner approved integrating their EVV1 export into the planner."
+      }
+    },
+    {
+      "date": "2026-10-31",
+      "rule_id": "CONTROL-002",
+      "change": {
+        "cs": "Vlastník výslovně požaduje jedno nastavení, jeden controller FTE a plán na obrazovce.",
+        "en": "Owner explicitly requested one inverter configuration/controller and an on-screen plan."
+      }
+    },
+    {
+      "date": "2026-10-31",
+      "rule_id": "BATTERY-001",
+      "change": {
+        "cs": "Vlastník schválil ekonomické nabíjení baterie, zapnutí řízení FTE a důslednou kontrolu FTE/TČ každé2 h.",
+        "en": "Owner approved economic grid charging, inverter control and careful PV/HP reviews every2h."
+      }
+    },
+    {
+      "date": "2026-10-30",
+      "rule_id": "CONTROL-001",
+      "change": {
+        "cs": "Vlastník schválil jeden společný controller, implementaci i rozhodnutí provozních podrobností.",
+        "en": "Owner approved one unified controller, implementation and operational requirement decisions."
+      }
+    },
+    {
+      "date": "2026-10-30",
+      "rule_id": "PLAN-002",
+      "change": {
+        "cs": "Vlastník schválil okamžitou implementaci plánování před cenovou špičkou a doplnil závislost na skutečné výrobě FTE.",
+        "en": "Owner approved immediate implementation of advance price planning and added dependence on actual FTE production."
+      }
+    },
     {
       "date": "2026-10-28",
       "rule_id": "TNG-001",
@@ -217,6 +417,14 @@
         "en": "Automatic room comfort guard prioritises heating over DHW during sustained cold; TNG protections preserved."
       },
       "rule_id": "COMFORT-001"
+    },
+    {
+      "date": "2026-10-31",
+      "rule_id": "PLAN-002",
+      "change": {
+        "cs": "Oprava po hlášení vlastníka: lokální ranní špička místo celodenní hranice, pozdější levný předehřev a až tříhodinové omezení s nezměněnou komfortní pojistkou.",
+        "en": "Repair after owner report: local morning peaks replace daily threshold, later cheap preheat and up-to-three-hour coast with unchanged comfort veto."
+      }
     }
   ]
 }
