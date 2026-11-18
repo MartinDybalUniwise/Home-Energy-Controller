@@ -1,6 +1,11 @@
 {
-  "current": "0.1.20",
+  "current": "0.1.21",
   "releases": [
+    {
+      "version": "0.1.21",
+      "released_at": "2026-11-18T23:25:00+01:00",
+      "changes": ["release.battery_clock"]
+    },
     {
       "version": "0.1.20",
       "released_at": "2026-11-16T09:15:34.299518+01:00",

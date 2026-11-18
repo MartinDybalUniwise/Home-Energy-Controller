@@ -1039,7 +1039,8 @@
     "live_control": "Control page tracks the unified controller, effective targets, guard intervals and actual events.",
     "boiler_display": "Correct boiler and heat-pump outlet temperatures using the verified reading rather than an ambiguous passive decoder branch.",
     "aku_display_range": "Show AKU beyond the original reference range; clarify the missing-reading label.",
-    "comfort_recovery": "Persistent comfort protection, verified preheat and bounded hot-water catch-up."
+    "comfort_recovery": "Persistent comfort protection, verified preheat and bounded hot-water catch-up.",
+    "battery_clock": "Battery clock validation separates inverter clock skew from sample age while retaining safety limits."
   },
   "meter": {
     "valid": "Measured electrical input",

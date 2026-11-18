@@ -103,6 +103,38 @@ def test_missing_prices_stops_owned_charge(tmp_path):
     assert p.decide(row(), {}, instant() + timedelta(minutes=1))[0].action == 'stop_battery_control'
 
 
+@pytest.mark.parametrize('skew', [-120, -110, 110, 120])
+def test_sample_age_does_not_turn_valid_clock_skew_into_owned_charge_stop(tmp_path, skew):
+    p = planner(tmp_path)
+    values = row()
+    values['inverter_time'] = (instant() - timedelta(seconds=skew)).isoformat()
+    start = p.decide(values, curve(), instant())[0]
+    p.prepare_write(start)
+    values.update(operation_mode='ECO', battery_program=GoodWeManager._expected_value(
+        start.action, start.reason_params))
+    assert p.decide(values, curve(), instant() + timedelta(seconds=60)) == []
+    assert p.state['inverter_clock_valid'] is True
+    assert p.state['inverter_clock_skew_seconds'] == skew
+
+
+@pytest.mark.parametrize('skew', [-121, 121])
+def test_real_clock_skew_still_stops_owned_charge(tmp_path, skew):
+    p = planner(tmp_path)
+    start = p.decide(row(), curve(), instant())[0]
+    p.prepare_write(start)
+    values = row()
+    values.update(operation_mode='ECO', inverter_time=(instant() - timedelta(seconds=skew)).isoformat())
+    assert p.decide(values, curve(), instant())[0].action == 'stop_battery_control'
+    assert p.state['inverter_clock_valid'] is False
+
+
+def test_stale_telemetry_still_stops_owned_charge_with_synchronised_clocks(tmp_path):
+    p = planner(tmp_path)
+    start = p.decide(row(), curve(), instant())[0]
+    p.prepare_write(start)
+    assert p.decide(row(), curve(), instant() + timedelta(seconds=91))[0].action == 'stop_battery_control'
+
+
 def test_bought_energy_held_then_released_as_self_consumption(tmp_path):
     p = planner(tmp_path)
     p.memory = {'basis': 6}

@@ -1039,7 +1039,8 @@
     "live_control": "Stránka řízení sleduje společný controller, účinné cíle, ochranné intervaly a skutečné události.",
     "boiler_display": "Opravené teploty bojleru a výstupu TČ: ověřený odečet místo nejednoznačné větve pasivního dekodéru.",
     "aku_display_range": "AKU se zobrazuje i mimo původní ověřený rozsah; přesnější popisek chybějícího údaje.",
-    "comfort_recovery": "Ochrana trvalého komfortu, ověřený předehřev a omezený náhradní dohřev vody."
+    "comfort_recovery": "Ochrana trvalého komfortu, ověřený předehřev a omezený náhradní dohřev vody.",
+    "battery_clock": "Kontrola hodin baterie odděluje odchylku měniče od stáří měření; ochranné limity zůstávají zachované."
   },
   "meter": {
     "valid": "Měřený příkon",
