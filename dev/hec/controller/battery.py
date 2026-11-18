@@ -240,7 +240,10 @@ class BatteryPlanner:
             and row["charge_current_limit_a"] > 0
         )
         device_clock = parse_iso(row.get("inverter_time"))
-        clock_ok = device_clock is not None and abs((moment - device_clock).total_seconds()) <= 120
+        # Compare clocks at the same observation. Telemetry age has its own
+        # freshness gate; adding it to clock skew made safe owned programs flap.
+        clock_skew = (stamp - device_clock).total_seconds() if stamp and device_clock else None
+        clock_ok = clock_skew is not None and abs(clock_skew) <= 120
         safe = safe and clock_ok
         # Native charging is stopped before restoring normal discharge reserves.
         # Unknown/manual non-General modes are never silently commandeered.
@@ -365,6 +368,8 @@ class BatteryPlanner:
             reason=reason,
             prices_valid=bool(prices),
             data_valid=bool(valid),
+            inverter_clock_skew_seconds=clock_skew,
+            inverter_clock_valid=clock_ok,
             windows=windows,
             price_czk_kwh=price,
             grid_target_soc_pct=ceiling,
